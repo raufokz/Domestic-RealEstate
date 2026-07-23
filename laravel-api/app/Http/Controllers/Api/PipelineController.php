@@ -121,4 +121,40 @@ class PipelineController extends Controller
         Deal::where('pipeline_id', $pipelineId)->findOrFail($dealId)->delete();
         return response()->json(['message' => 'Deal deleted']);
     }
+
+    public function bulkMoveDeals(Request $request, $pipelineId)
+    {
+        $validated = $request->validate([
+            'deal_ids' => 'required|array',
+            'deal_ids.*' => 'integer|exists:deals,id',
+            'stage_id' => 'required|exists:pipeline_stages,id',
+        ]);
+
+        Deal::where('pipeline_id', $pipelineId)
+            ->whereIn('id', $validated['deal_ids'])
+            ->update(['stage_id' => $validated['stage_id']]);
+
+        $stage = PipelineStage::find($validated['stage_id']);
+        if ($stage && $stage->is_won) {
+            Deal::where('pipeline_id', $pipelineId)->whereIn('id', $validated['deal_ids'])->update(['status' => 'won', 'closed_at' => now()]);
+        } elseif ($stage && $stage->is_lost) {
+            Deal::where('pipeline_id', $pipelineId)->whereIn('id', $validated['deal_ids'])->update(['status' => 'lost', 'closed_at' => now()]);
+        }
+
+        return ApiResponse::ok(['moved_count' => count($validated['deal_ids'])], 'Deals moved successfully');
+    }
+
+    public function bulkArchiveDeals(Request $request, $pipelineId)
+    {
+        $validated = $request->validate([
+            'deal_ids' => 'required|array',
+            'deal_ids.*' => 'integer|exists:deals,id',
+        ]);
+
+        Deal::where('pipeline_id', $pipelineId)
+            ->whereIn('id', $validated['deal_ids'])
+            ->delete();
+
+        return ApiResponse::ok(['archived_count' => count($validated['deal_ids'])], 'Deals archived successfully');
+    }
 }

@@ -263,7 +263,13 @@ class SystemController extends Controller
     }
 
     public function warmCache(): JsonResponse {
-        return response()->json(['message' => 'Cache warmed successfully']);
+        try {
+            Artisan::call('config:cache');
+            Artisan::call('route:cache');
+            return ApiResponse::ok(null, 'Configuration and routes cached successfully');
+        } catch (\Throwable $e) {
+            return ApiResponse::fail('Failed to warm cache: '.$e->getMessage(), 'cache_warm_failed', 500);
+        }
     }
 
     public function cacheGet($key): JsonResponse {
@@ -277,18 +283,34 @@ class SystemController extends Controller
     }
 
     public function queueStats(): JsonResponse {
-        return response()->json([
-            'pending' => 0, 'processing' => 0, 'failed' => 0, 'completed' => 0,
-            'jobs' => [],
-        ]);
+        $pending = 0;
+        $failed = 0;
+        try { $pending = DB::table('jobs')->count(); } catch (\Throwable) {}
+        try { $failed = DB::table('failed_jobs')->count(); } catch (\Throwable) {}
+
+        return ApiResponse::ok([
+            'pending' => $pending,
+            'failed' => $failed,
+            'completed' => 0,
+        ], 'Queue stats');
     }
 
     public function retryQueueJob($jobId): JsonResponse {
-        return response()->json(['message' => 'Job queued for retry']);
+        try {
+            Artisan::call('queue:retry', ['id' => [$jobId]]);
+            return ApiResponse::ok(null, 'Job queued for retry');
+        } catch (\Throwable $e) {
+            return ApiResponse::fail('Failed to retry queue job: '.$e->getMessage(), 'retry_failed', 400);
+        }
     }
 
     public function deleteQueueJob($jobId): JsonResponse {
-        return response()->json(['message' => 'Job deleted']);
+        try {
+            Artisan::call('queue:forget', ['id' => $jobId]);
+            return ApiResponse::ok(null, 'Job deleted from failed queue');
+        } catch (\Throwable $e) {
+            return ApiResponse::fail('Failed to delete queue job: '.$e->getMessage(), 'delete_failed', 400);
+        }
     }
 
     public function cronJobs(): JsonResponse {
@@ -319,11 +341,78 @@ class SystemController extends Controller
         );
     }
 
-    public function imports(): JsonResponse {
-        return response()->json(['data' => [], 'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0]]);
+    /** Real import history, newest first, with a failure count per batch. */
+    public function imports(Request $request): JsonResponse {
+        $batches = \App\Models\ImportBatch::withCount('errors')
+            ->latest()
+            ->paginate((int) $request->input('per_page', 15));
+
+        return response()->json($batches);
     }
 
+    /** Per-row failure detail for one import batch. */
+    public function importErrors($id): JsonResponse {
+        $batch = \App\Models\ImportBatch::with(['errors' => fn ($q) => $q->orderBy('row_number')])
+            ->findOrFail($id);
+
+        return response()->json([
+            'data' => [
+                'batch' => $batch->only([
+                    'id', 'file_name', 'format', 'status', 'total_rows',
+                    'rows_imported', 'rows_failed', 'rows_without_email',
+                    'column_map', 'detected_headers', 'created_at',
+                ]),
+                'errors' => $batch->errors,
+            ],
+        ]);
+    }
+
+    /** Download the failed rows as CSV so they can be corrected and re-uploaded. */
+    public function downloadImportErrors($id) {
+        $batch = \App\Models\ImportBatch::with('errors')->findOrFail($id);
+
+        if ($batch->errors->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'code' => 'no_errors',
+                'message' => 'This import had no failed rows, so there is nothing to download.',
+            ], 404);
+        }
+
+        $headers = $batch->detected_headers ?? [];
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, array_merge(['row_number', 'reason'], $headers));
+
+        foreach ($batch->errors as $error) {
+            $row = $error->row_data ?? [];
+            fputcsv($handle, array_merge(
+                [$error->row_number, $error->reason],
+                array_map(fn ($h) => $row[$h] ?? '', $headers)
+            ));
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="import-'.$batch->id.'-errors.csv"',
+        ]);
+    }
+
+    /**
+     * Re-running an import needs the original file, which is not retained.
+     * Say so plainly instead of pretending a retry was queued.
+     */
     public function retryImport($id): JsonResponse {
-        return response()->json(['message' => 'Import queued for retry']);
+        $batch = \App\Models\ImportBatch::findOrFail($id);
+
+        return ApiResponse::fail(
+            'This import cannot be retried automatically because the original file is not stored. '
+                .'Download the error report for batch #'.$batch->id.', correct the listed rows, and upload the file again.',
+            'retry_unavailable',
+            422
+        );
     }
 }

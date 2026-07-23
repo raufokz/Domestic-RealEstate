@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessDataExport;
 use App\Models\DataExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,9 @@ class DataExportController extends Controller
             'status' => 'pending',
             'created_by' => $request->user()->id,
         ]);
+
+        // Actually generate the file. Previously the row was created and never processed.
+        ProcessDataExport::dispatch($export->id);
 
         return response()->json($export, 201);
     }

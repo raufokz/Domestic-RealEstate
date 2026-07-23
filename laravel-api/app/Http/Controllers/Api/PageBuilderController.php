@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentBlock;
 use App\Models\Page;
 use App\Models\PageSection;
+use App\Models\PageTemplate;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -113,26 +116,70 @@ class PageBuilderController extends Controller
     }
 
     public function pageTemplates(): JsonResponse {
-        return response()->json(['data' => []]);
+        $templates = PageTemplate::orderBy('name')->get();
+        return ApiResponse::ok($templates);
     }
 
     public function storePageTemplate(Request $request): JsonResponse {
-        return response()->json(['message' => 'Template created', 'data' => ['id' => 1] + $request->only(['name'])], 201);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string',
+            'sections_config' => 'nullable|array',
+        ]);
+
+        $template = PageTemplate::create($validated);
+        return ApiResponse::ok($template, 'Template created', 201);
     }
 
     public function destroyPageTemplate($id): JsonResponse {
-        return response()->json(['message' => 'Template deleted']);
+        $template = PageTemplate::findOrFail($id);
+        $template->delete();
+        return ApiResponse::ok(null, 'Template deleted');
     }
 
-    public function usePageTemplate($id): JsonResponse {
-        return response()->json(['message' => 'Template applied', 'data' => ['id' => 1]]);
+    public function usePageTemplate(Request $request, $id): JsonResponse {
+        $template = PageTemplate::findOrFail($id);
+        $pageId = $request->input('page_id');
+        if (!$pageId) {
+            return ApiResponse::fail('page_id is required to apply template.', 'missing_page_id', 422);
+        }
+        $page = Page::findOrFail($pageId);
+
+        $sections = $template->sections_config ?? [];
+        foreach ($sections as $index => $sec) {
+            PageSection::create([
+                'page_id' => $page->id,
+                'type' => $sec['type'] ?? 'hero',
+                'name' => $sec['name'] ?? 'Section',
+                'settings' => $sec['settings'] ?? [],
+                'sort_order' => $index,
+            ]);
+        }
+
+        return ApiResponse::ok(['page_id' => $page->id, 'sections_added' => count($sections)], 'Template applied');
     }
 
     public function contentBlocks(): JsonResponse {
-        return response()->json(['data' => []]);
+        $blocks = ContentBlock::orderBy('title')->get();
+        return ApiResponse::ok($blocks);
     }
 
     public function updateContentBlocks(Request $request): JsonResponse {
-        return response()->json(['message' => 'Content blocks updated']);
+        $blocks = $request->input('blocks', []);
+        foreach ($blocks as $blockData) {
+            if (!empty($blockData['key_name'])) {
+                ContentBlock::updateOrCreate(
+                    ['key_name' => $blockData['key_name']],
+                    [
+                        'title' => $blockData['title'] ?? $blockData['key_name'],
+                        'content' => $blockData['content'] ?? null,
+                        'type' => $blockData['type'] ?? 'text',
+                        'settings' => $blockData['settings'] ?? [],
+                    ]
+                );
+            }
+        }
+        return ApiResponse::ok(ContentBlock::all(), 'Content blocks updated');
     }
 }

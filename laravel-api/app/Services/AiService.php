@@ -227,7 +227,7 @@ class AiService
             return null;
         }
 
-        $modelName = $model && str_contains($model, 'gemini') ? $model : 'gemini-1.5-flash';
+        $modelName = $model && str_contains($model, 'gemini') ? $model : 'gemini-2.0-flash';
         $system = '';
         $contents = [];
         foreach ($messages as $m) {

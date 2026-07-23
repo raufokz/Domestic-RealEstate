@@ -99,6 +99,43 @@ class AdminController extends Controller
         return response()->json($query->orderBy('created_at', 'desc')->paginate(25));
     }
 
+    /** Single user for the admin user-detail screen, with real activity counts. */
+    public function showUser($id) {
+        $this->checkAdmin();
+        $user = User::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'role' => $user->role,
+                'status' => $user->status,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+                'last_login_at' => $user->last_login_at ?? null,
+                'stats' => [
+                    'properties' => Property::where('realtor_id', $user->id)->count(),
+                    'leads_assigned' => \App\Models\Lead::where('assigned_to', $user->id)->count(),
+                    'login_count' => \App\Models\AuthLog::where('user_id', $user->id)->count(),
+                ],
+                // Real sign-in history from auth_logs. No geo-IP provider is
+                // configured, so location is deliberately omitted rather than invented.
+                'login_history' => \App\Models\AuthLog::where('user_id', $user->id)
+                    ->orderByDesc('created_at')->limit(25)
+                    ->get(['id', 'type', 'ip_address', 'user_agent', 'success', 'failure_reason', 'created_at']),
+                'assigned_leads' => \App\Models\Lead::where('assigned_to', $user->id)
+                    ->orderByDesc('created_at')->limit(25)
+                    ->get(['id', 'first_name', 'last_name', 'email', 'type', 'status', 'score', 'created_at']),
+                'activity' => \App\Models\AdminActivityLog::where('user_id', $user->id)
+                    ->orderByDesc('created_at')->limit(25)
+                    ->get(['id', 'action', 'subject_type', 'subject_id', 'details', 'created_at']),
+            ],
+        ]);
+    }
+
     public function properties(Request $request) {
         $this->checkAdmin();
         $query = Property::with(['propertyType', 'realtor']);
@@ -592,11 +629,53 @@ class AdminController extends Controller
 
     public function notifications(Request $request) {
         $this->checkAdmin();
-        $query = \App\Models\Notification::query();
-        $query->where('user_id', Auth::id());
-        
-        $notifications = $query->orderBy('created_at', 'desc')->paginate(50);
-        return response()->json($notifications);
+        $query = \App\Models\Notification::query()->where('user_id', Auth::id());
+
+        if ($request->filled('severity')) {
+            $query->where('severity', $request->severity);
+        }
+        if ($request->filled('module')) {
+            $query->where('module', $request->module);
+        }
+        if ($request->boolean('unread_only')) {
+            $query->whereNull('read_at');
+        }
+        if ($request->boolean('open_only')) {
+            $query->whereNull('resolved_at');
+        }
+
+        $notifications = $query->orderByRaw(
+            // Critical unresolved alerts first, then newest.
+            "CASE severity WHEN 'critical' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END"
+        )->orderBy('created_at', 'desc')->paginate(50);
+
+        $base = fn () => \App\Models\Notification::where('user_id', Auth::id());
+
+        return response()->json([
+            'data' => $notifications->items(),
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'total' => $notifications->total(),
+            ],
+            'counts' => [
+                'unread' => (clone $base())->whereNull('read_at')->count(),
+                'open_critical' => (clone $base())->where('severity', 'critical')->whereNull('resolved_at')->count(),
+                'open_warning' => (clone $base())->where('severity', 'warning')->whereNull('resolved_at')->count(),
+            ],
+        ]);
+    }
+
+    /** Mark an alert as handled so it stops counting as an open issue. */
+    public function resolveNotification($id) {
+        $this->checkAdmin();
+        $notification = \App\Models\Notification::where('user_id', Auth::id())->findOrFail($id);
+        $notification->update([
+            'resolved_at' => now(),
+            'resolved_by' => Auth::id(),
+            'read_at' => $notification->read_at ?? now(),
+        ]);
+        return response()->json(['success' => true, 'message' => 'Alert marked as resolved', 'data' => $notification]);
     }
 
     public function markNotificationRead($id) {

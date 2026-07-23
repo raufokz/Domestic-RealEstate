@@ -114,19 +114,41 @@ class PropertyManagementController extends Controller
     }
 
     public function amenities(): JsonResponse {
-        return response()->json(['data' => []]);
+        $amenities = \App\Models\Amenity::orderBy('name')->get();
+        return ApiResponse::ok($amenities);
     }
 
     public function storeAmenity(Request $request): JsonResponse {
-        return response()->json(['message' => 'Amenity created', 'data' => ['id' => 1] + $request->only(['name'])], 201);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'icon' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+        $validated['slug'] = Str::slug($validated['name']);
+        $amenity = \App\Models\Amenity::create($validated);
+        return ApiResponse::ok($amenity, 'Amenity created', 201);
     }
 
     public function updateAmenity(Request $request, $id): JsonResponse {
-        return response()->json(['message' => 'Amenity updated']);
+        $amenity = \App\Models\Amenity::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'icon' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'is_active' => 'sometimes|boolean',
+        ]);
+        if (isset($validated['name'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+        $amenity->update($validated);
+        return ApiResponse::ok($amenity->fresh(), 'Amenity updated');
     }
 
     public function destroyAmenity($id): JsonResponse {
-        return response()->json(['message' => 'Amenity deleted']);
+        $amenity = \App\Models\Amenity::findOrFail($id);
+        $amenity->delete();
+        return ApiResponse::ok(null, 'Amenity deleted');
     }
 
     public function propertiesAnalytics(Request $request): JsonResponse {

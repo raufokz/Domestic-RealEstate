@@ -592,18 +592,37 @@ class FormSubmissionController extends Controller
                 $pipeline = Pipeline::first();
             }
 
-            if ($pipeline) {
-                $firstStage = PipelineStage::where('pipeline_id', $pipeline->id)
-                    ->orderBy('order')
-                    ->first();
-
-                if ($firstStage) {
-                    $lead->update([
-                        'pipeline_id' => $pipeline->id,
-                        'pipeline_stage_id' => $firstStage->id,
-                    ]);
-                }
+            // No pipeline (or no stages) means the lead is saved but never lands
+            // on the Kanban board. That used to fail silently; alert instead.
+            if (!$pipeline) {
+                Log::warning('Lead captured but no pipeline exists', ['lead_id' => $lead->id]);
+                \App\Services\Notifier::pipelineMisconfigured();
+                return;
             }
+
+            $firstStage = PipelineStage::where('pipeline_id', $pipeline->id)
+                ->orderBy('sort_order')
+                ->first();
+
+            if (!$firstStage) {
+                Log::warning('Pipeline has no stages', ['pipeline_id' => $pipeline->id]);
+                \App\Services\Notifier::pipelineMisconfigured();
+                return;
+            }
+
+            // Pipelines run on Deals (leads carry no pipeline columns), so the
+            // Kanban board only sees this lead once a deal exists for it.
+            \App\Models\Deal::firstOrCreate(
+                ['lead_id' => $lead->id],
+                [
+                    'pipeline_id' => $pipeline->id,
+                    'stage_id' => $firstStage->id,
+                    'title' => trim(($lead->first_name . ' ' . $lead->last_name)) ?: ($lead->email ?? 'Lead #' . $lead->id),
+                    'status' => 'open',
+                    'assigned_to' => $lead->assigned_to,
+                    'value' => $lead->budget_max ?? $lead->budget_min ?? 0,
+                ]
+            );
         } catch (\Exception $e) {
             Log::warning('Failed to assign lead to pipeline', [
                 'lead_id' => $lead->id,

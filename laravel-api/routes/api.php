@@ -262,6 +262,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('email-campaigns')->group(function () {
         Route::get('/', [CampaignEmailController::class, 'index']);
         Route::post('/', [CampaignEmailController::class, 'store']);
+        Route::post('/bulk-followup', [CampaignEmailController::class, 'bulkFollowUp']);
+        Route::post('/send-test', [CampaignEmailController::class, 'sendTestEmail']);
         Route::get('/{id}', [CampaignEmailController::class, 'show']);
         Route::put('/{id}', [CampaignEmailController::class, 'update']);
         Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
@@ -308,6 +310,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{pipelineId}/stages', [PipelineController::class, 'storeStage']);
         Route::post('/{pipelineId}/deals', [PipelineController::class, 'storeDeal']);
         Route::put('/{pipelineId}/deals/{dealId}/move', [PipelineController::class, 'moveDeal']);
+        Route::post('/{pipelineId}/deals/bulk-move', [PipelineController::class, 'bulkMoveDeals']);
+        Route::post('/{pipelineId}/deals/bulk-archive', [PipelineController::class, 'bulkArchiveDeals']);
         Route::delete('/{pipelineId}/deals/{dealId}', [PipelineController::class, 'destroyDeal']);
     });
 
@@ -360,6 +364,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/analytics', [AdminController::class, 'analytics']);
     Route::get('/users', [AdminController::class, 'users']);
     Route::post('/users', [AdminController::class, 'storeUser']);
+    Route::get('/users/{id}', [AdminController::class, 'showUser']);
     Route::put('/users/{id}', [AdminController::class, 'updateUser']);
     Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
     Route::get('/properties', [AdminController::class, 'properties']);
@@ -424,6 +429,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/notifications', [AdminController::class, 'notifications']);
     Route::post('/notifications/mark-all-read', [AdminController::class, 'markAllNotificationsRead']);
     Route::post('/notifications/{id}/read', [AdminController::class, 'markNotificationRead']);
+    Route::post('/notifications/{id}/resolve', [AdminController::class, 'resolveNotification']);
     Route::delete('/notifications/{id}', [AdminController::class, 'destroyNotification']);
 
     // Integrations Hub
@@ -535,7 +541,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/posts/{id}', [BlogController::class, 'showAdmin']);
         Route::put('/posts/{id}', [BlogController::class, 'update']);
         Route::delete('/posts/{id}', [BlogController::class, 'destroy']);
-        Route::patch('/posts/{id}/publish', [BlogController::class, 'togglePublish']);
+        Route::match(['patch', 'post'], '/posts/{id}/publish', [BlogController::class, 'togglePublish']);
     });
 
     // SEO Pages (Admin)
@@ -611,6 +617,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
     // Imports
     Route::get('/imports', [SystemController::class, 'imports']);
+    Route::get('/imports/{id}/errors', [SystemController::class, 'importErrors']);
+    Route::get('/imports/{id}/errors/download', [SystemController::class, 'downloadImportErrors']);
     Route::post('/imports/{id}/retry', [SystemController::class, 'retryImport']);
 
     // Testing

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessEmailCampaign;
 use App\Models\EmailCampaign;
 use App\Models\CampaignRecipient;
 use App\Models\Contact;
@@ -91,11 +92,11 @@ class CampaignEmailController extends Controller
 
         $campaign = EmailCampaign::with('template')->findOrFail($id);
 
-        $pendingRecipients = CampaignRecipient::where('campaign_id', $id)
+        $pendingCount = CampaignRecipient::where('campaign_id', $id)
             ->where('status', 'pending')
-            ->get();
+            ->count();
 
-        if ($pendingRecipients->isEmpty()) {
+        if ($pendingCount === 0) {
             return response()->json([
                 'success' => false,
                 'code' => 'no_recipients',
@@ -107,65 +108,13 @@ class CampaignEmailController extends Controller
 
         $campaign->update(['status' => 'sending', 'sent_at' => now()]);
 
-        $subject = $campaign->subject ?? $campaign->name;
-        $htmlBody = $campaign->template?->html_body
-            ?: $campaign->template?->body
-            ?: $campaign->body
-            ?: '<p>'.e($campaign->subject ?? 'Message from Domestic Real Estate').'</p>';
-        $textBody = strip_tags($htmlBody);
-        $fromEmail = $campaign->from_email ?: config('mail.from.address', 'info@domesticrealestate.us');
-
-        foreach ($pendingRecipients as $recipient) {
-            $trackingId = Str::uuid()->toString();
-
-            $emailHistory = EmailHistory::create([
-                'recipient' => $recipient->email,
-                'subject' => $subject,
-                'body' => $htmlBody,
-                'status' => 'sent',
-                'opens' => 0,
-                'clicks' => 0,
-                'sent_at' => now(),
-            ]);
-
-            $sentEmail = SentEmail::create([
-                'user_id' => $campaign->created_by ?? null,
-                'campaign_id' => $campaign->id,
-                'to_email' => $recipient->email,
-                'from_email' => $fromEmail,
-                'subject' => $subject,
-                'body' => $htmlBody,
-                'status' => 'sent',
-                'tracking_id' => $trackingId,
-                'sent_at' => now(),
-                'metadata' => ['email_history_id' => $emailHistory->id],
-            ]);
-
-            $recipient->update(['status' => 'sent', 'sent_at' => now()]);
-
-            try {
-                Mail::to($recipient->email)->queue(new CampaignMail(
-                    emailSubject: $subject,
-                    htmlBody: $htmlBody,
-                    textBody: $textBody,
-                    trackingId: $trackingId,
-                ));
-                $sentEmail->update(['status' => 'sent']);
-            } catch (\Exception $e) {
-                $sentEmail->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
-                $recipient->update(['status' => 'failed']);
-                $emailHistory->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
-            }
-        }
-
-        $allDone = CampaignRecipient::where('campaign_id', $id)->where('status', 'pending')->count() === 0;
-        if ($allDone) {
-            $campaign->update(['status' => 'sent']);
-        }
+        // Sending runs on the queue so a large recipient list cannot time out the request.
+        ProcessEmailCampaign::dispatch($campaign->id);
 
         return response()->json([
-            'message' => 'Campaign emails queued for sending',
-            'total' => $pendingRecipients->count(),
+            'message' => 'Campaign queued for sending. Track delivery on the campaign progress view.',
+            'total' => $pendingCount,
+            'requires_worker' => true,
         ]);
     }
 
@@ -297,6 +246,110 @@ class CampaignEmailController extends Controller
             'unsubscribed_at' => now(),
         ]);
         return response()->json(['message' => 'You have been unsubscribed']);
+    }
+
+    public function bulkFollowUp(Request $request): JsonResponse
+    {
+        IntegrationGate::requireEmail('Bulk email follow-up');
+
+        $validated = $request->validate([
+            'recipient_group' => 'required|string|in:all_leads,hot_leads,buyers,sellers,investors,realtors,subscribers,selected_leads',
+            'lead_ids' => 'nullable|array',
+            'lead_ids.*' => 'integer',
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+            'from_email' => 'nullable|email',
+            'sync_send' => 'nullable|boolean',
+        ]);
+
+        $query = Lead::query();
+        if ($validated['recipient_group'] === 'hot_leads') {
+            $query->where(function ($q) {
+                $q->where('priority', 'high')->orWhere('score', '>=', 70);
+            });
+        } elseif (in_array($validated['recipient_group'], ['buyers', 'sellers', 'investors', 'realtors'])) {
+            $type = rtrim($validated['recipient_group'], 's');
+            $query->where('type', $type);
+        } elseif ($validated['recipient_group'] === 'selected_leads' && !empty($validated['lead_ids'])) {
+            $query->whereIn('id', $validated['lead_ids']);
+        }
+
+        $recipients = $query->whereNotNull('email')->where('email', '!=', '')->get(['id', 'first_name', 'last_name', 'name', 'email']);
+        if ($recipients->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid email recipients found for the selected segment.',
+            ], 422);
+        }
+
+        $campaign = EmailCampaign::create([
+            'name' => 'Bulk Follow-Up: ' . Str::limit($validated['subject'], 40),
+            'type' => 'outreach',
+            'subject' => $validated['subject'],
+            'body' => $validated['body'],
+            'from_email' => $validated['from_email'] ?? 'sales@domesticrealestate.us',
+            'recipient_source' => 'leads',
+            'created_by' => $request->user()->id,
+            'status' => 'sending',
+            'sent_at' => now(),
+        ]);
+
+        $count = 0;
+        foreach ($recipients as $r) {
+            $unsub = EmailUnsubscribe::where('email', $r->email)->first();
+            if ($unsub) continue;
+            CampaignRecipient::create([
+                'campaign_id' => $campaign->id,
+                'email' => $r->email,
+                'name' => trim(($r->first_name ?? '') . ' ' . ($r->last_name ?? '')) ?: ($r->name ?? ''),
+                'status' => 'pending',
+            ]);
+            $count++;
+        }
+
+        $sync = $validated['sync_send'] ?? true;
+        if ($sync) {
+            ProcessEmailCampaign::dispatchSync($campaign->id);
+        } else {
+            ProcessEmailCampaign::dispatch($campaign->id);
+        }
+
+        return response()->json([
+            'success' => true,
+            'campaign_id' => $campaign->id,
+            'recipients_count' => $count,
+            'message' => "Bulk follow-up email successfully dispatched to {$count} client(s).",
+        ]);
+    }
+
+    public function sendTestEmail(Request $request): JsonResponse
+    {
+        IntegrationGate::requireEmail('Test email dispatch');
+
+        $validated = $request->validate([
+            'target_email' => 'required|email',
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        try {
+            Mail::to($validated['target_email'])->send(new CampaignMail(
+                emailSubject: '[TEST] ' . $validated['subject'],
+                htmlBody: $validated['body'],
+                textBody: strip_tags($validated['body']),
+                trackingId: Str::uuid()->toString()
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => "Test follow-up email successfully sent to {$validated['target_email']}.",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function buildRecipientList(array $data): array

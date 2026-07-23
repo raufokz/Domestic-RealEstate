@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -43,7 +44,7 @@ class BlogController extends Controller
             'excerpt' => 'nullable|string',
             'category_id' => 'nullable|exists:blog_categories,id',
             'featured_image' => 'nullable|string',
-            'status' => 'in:draft,published,archived',
+            'status' => 'in:draft,published,archived,scheduled',
             'seo_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
@@ -85,7 +86,7 @@ class BlogController extends Controller
             'excerpt' => 'nullable|string',
             'category_id' => 'nullable|exists:blog_categories,id',
             'featured_image' => 'nullable|string',
-            'status' => 'in:draft,published,archived',
+            'status' => 'in:draft,published,archived,scheduled',
             'seo_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
@@ -94,7 +95,10 @@ class BlogController extends Controller
         $data = $request->only(['title', 'content', 'excerpt', 'category_id', 'featured_image', 'status', 'seo_title', 'meta_description', 'tags']);
         
         if (isset($data['title']) && !isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
+            $slug = Str::slug($data['title']);
+            $existing = Blog::where('slug', $slug)->where('id', '!=', $post->id)->count();
+            if ($existing > 0) $slug .= '-' . time();
+            $data['slug'] = $slug;
         }
         if (isset($data['content']) && !isset($data['reading_time'])) {
             $data['reading_time'] = max(1, ceil(str_word_count(strip_tags($data['content'])) / 200));
@@ -159,8 +163,6 @@ class BlogController extends Controller
     }
 
     public function tags() {
-        // Tags are stored on each blog post (Blog.tags array), not a standalone table.
-        // Return the derived catalog of tags in use, with real post counts.
         $counts = [];
         Blog::whereNotNull('tags')->pluck('tags')->each(function ($tags) use (&$counts) {
             foreach ((is_array($tags) ? $tags : []) as $tag) {
@@ -183,10 +185,20 @@ class BlogController extends Controller
 
     public function storeTag(Request $request) {
         $request->validate(['tag' => 'required|string|max:255']);
-        return response()->json(['tag' => $request->tag], 201);
+        $tag = trim($request->tag);
+        return ApiResponse::ok(['name' => $tag, 'slug' => Str::slug($tag), 'posts_count' => 0], 'Tag created', 201);
     }
 
     public function destroyTag($id) {
-        return response()->json(['message' => 'Tag removed']);
+        $tagStr = trim((string) $id);
+        $posts = Blog::whereNotNull('tags')->get();
+        foreach ($posts as $p) {
+            $tags = is_array($p->tags) ? $p->tags : [];
+            if (in_array($tagStr, $tags)) {
+                $p->tags = array_values(array_filter($tags, fn ($t) => $t !== $tagStr));
+                $p->save();
+            }
+        }
+        return ApiResponse::ok(null, 'Tag removed from posts');
     }
 }

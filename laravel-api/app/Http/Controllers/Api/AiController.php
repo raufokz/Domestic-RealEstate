@@ -121,10 +121,8 @@ class AiController extends Controller
             $cacheKey = 'ai_fallback_notification_sent';
             if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
                 \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addMinutes(15));
-                \App\Models\Notification::notifyAdmins(
-                    'error',
-                    'AI Chat Assistant Offline',
-                    'The AI Chat was accessed but resolved to fallback because the AI provider was offline or inactive.'
+                \App\Services\Notifier::aiProviderFailed(
+                    'A visitor used the chat assistant and received the safe fallback reply instead of a real AI answer.'
                 );
             }
         }
@@ -465,7 +463,7 @@ class AiController extends Controller
                     $pipeline = \App\Models\Pipeline::where('slug', $aiType)->first() 
                         ?: \App\Models\Pipeline::first();
                     if ($pipeline) {
-                        $stage = $pipeline->stages()->orderBy('order')->first();
+                        $stage = $pipeline->stages()->orderBy('sort_order')->first();
                         if ($stage) {
                             \App\Models\Deal::create([
                                 'lead_id' => $lead->id,

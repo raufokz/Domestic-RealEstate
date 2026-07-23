@@ -7,6 +7,8 @@ use App\Models\LeadActivity;
 use App\Models\LeadNote;
 use App\Models\LeadTask;
 use App\Models\LeadAssignment;
+use App\Models\ImportBatch;
+use App\Models\ImportBatchError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -241,90 +243,264 @@ class LeadController extends Controller
         return response()->json($assignment, 201);
     }
 
+    /**
+     * Import leads from CSV, XLSX, or JSON.
+     *
+     * The email column is detected from the actual cell values, not the header
+     * text, so a timestamp or ID column can never be mistaken for an email.
+     * Every run is persisted as an ImportBatch with per-row failure reasons.
+     */
     public function import(Request $request) {
         $request->validate([
-            'file' => 'required|file|max:10240'
+            'file' => 'required|file|max:10240',
+            // Explicit override when the admin picks the column manually.
+            'email_column' => 'nullable|string',
+            // Allows importing contacts that genuinely have no email address.
+            'allow_without_email' => 'nullable|boolean',
         ]);
 
         $file = $request->file('file');
-        $path = $file->getRealPath();
         $ext = strtolower($file->getClientOriginalExtension());
+        $allowWithoutEmail = $request->boolean('allow_without_email');
 
-        $rows = [];
-        if ($ext === 'json') {
-            $content = file_get_contents($path);
-            $rows = json_decode($content, true) ?: [];
-        } else {
-            // Read as CSV
-            if (($handle = fopen($path, 'r')) !== false) {
-                $header = null;
-                while (($row = fgetcsv($handle, 1000, ',')) !== false) {
-                    if (!$header) {
-                        $header = array_map(function($h) {
-                            return strtolower(trim(preg_replace('/[^\w\s]/', '', $h)));
-                        }, $row);
-                    } else {
-                        if (count($header) === count($row)) {
-                            $rows[] = array_combine($header, $row);
-                        }
-                    }
-                }
-                fclose($handle);
-            }
+        try {
+            [$headers, $rows] = $this->readTabularFile($file, $ext);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'code' => 'unreadable_file',
+                'message' => 'That file could not be read.',
+                'reason' => $e->getMessage(),
+                'fix' => 'Save the file as CSV, XLSX, or JSON and upload it again.',
+            ], 422);
         }
 
-        $imported = 0;
-        $errors = 0;
+        if ($headers === [] || $rows === []) {
+            return response()->json([
+                'success' => false,
+                'code' => 'empty_file',
+                'message' => 'The uploaded file contains no data rows.',
+                'reason' => 'no header row or no data rows were found',
+                'fix' => 'Add a header row and at least one data row, then upload again.',
+            ], 422);
+        }
 
-        foreach ($rows as $rowData) {
-            $email = $rowData['email'] ?? $rowData['emailaddress'] ?? $rowData['email_address'] ?? null;
-            if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors++;
+        $map = \App\Services\ImportColumnMapper::detect($headers, $rows);
+
+        if ($request->filled('email_column') && in_array($request->email_column, $headers, true)) {
+            $map['email'] = $request->email_column;
+        }
+
+        $emailHeader = $map['email'] ?? null;
+
+        // No usable email column, and the admin has not opted into email-less import.
+        if (!$emailHeader && !$allowWithoutEmail) {
+            return response()->json([
+                'success' => false,
+                'code' => 'no_email_column',
+                'message' => \App\Services\ImportColumnMapper::noEmailColumnMessage($headers),
+                'reason' => 'none of the columns contain a meaningful number of valid email addresses',
+                'fix' => 'Select the correct email column, or re-submit with allow_without_email to import these as non-email leads.',
+                'detected_headers' => $headers,
+                'suggested_map' => $map,
+            ], 422);
+        }
+
+        $batch = ImportBatch::create([
+            'import_type' => 'leads',
+            'file_name' => $file->getClientOriginalName(),
+            'format' => $ext,
+            'status' => 'processing',
+            'column_map' => $map,
+            'detected_headers' => $headers,
+            'total_rows' => count($rows),
+            'created_by' => $request->user()?->id,
+            'started_at' => now(),
+        ]);
+
+        $index = array_flip($headers);
+        $imported = 0;
+        $failed = 0;
+        $withoutEmail = 0;
+
+        foreach ($rows as $i => $row) {
+            $rowNumber = $i + 2; // +1 for zero-index, +1 for the header row
+            $value = fn (?string $field) => $field !== null && isset($index[$field])
+                ? trim((string) ($row[$index[$field]] ?? ''))
+                : null;
+
+            $email = $emailHeader ? $value($emailHeader) : null;
+            $hasValidEmail = $email && filter_var($email, FILTER_VALIDATE_EMAIL);
+
+            if (!$hasValidEmail && !$allowWithoutEmail) {
+                $failed++;
+                $this->recordRowError(
+                    $batch,
+                    $rowNumber,
+                    $email ? 'invalid_email' : 'missing_email',
+                    $email
+                        ? '"'.$email.'" is not a valid email address.'
+                        : 'This row has no email address.',
+                    $headers,
+                    $row
+                );
                 continue;
             }
 
-            $name = $rowData['name'] ?? $rowData['fullname'] ?? $rowData['full_name'] ?? null;
-            $firstName = $rowData['firstname'] ?? $rowData['first_name'] ?? null;
-            $lastName = $rowData['lastname'] ?? $rowData['last_name'] ?? null;
+            $firstName = $value($map['first_name'] ?? null);
+            $lastName = $value($map['last_name'] ?? null);
+            $fullName = $value($map['name'] ?? null);
 
-            if (!$firstName && $name) {
-                $parts = explode(' ', trim($name), 2);
+            if (!$firstName && $fullName) {
+                $parts = explode(' ', trim($fullName), 2);
                 $firstName = $parts[0];
                 $lastName = $parts[1] ?? '';
             }
 
-            // Mapped status validation
-            $type = strtolower($rowData['type'] ?? 'buyer');
-            if (!in_array($type, ['buyer', 'seller', 'investor', 'realtor', 'vendor'])) {
-                if ($type === 'agent') {
-                    $type = 'realtor';
-                } else {
-                    $type = 'buyer';
-                }
+            if (!$firstName && !$hasValidEmail) {
+                $failed++;
+                $this->recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'insufficient_data',
+                    'This row has neither a name nor an email address, so it cannot become a lead.',
+                    $headers,
+                    $row
+                );
+                continue;
+            }
+
+            $type = strtolower($value($map['type'] ?? null) ?: 'buyer');
+            if (!in_array($type, ['buyer', 'seller', 'investor', 'realtor', 'vendor'], true)) {
+                $type = $type === 'agent' ? 'realtor' : 'buyer';
             }
 
             try {
                 \App\Services\LeadCaptureService::upsert([
                     'first_name' => $firstName ?: 'Guest',
-                    'last_name' => $lastName ?? '',
-                    'email' => $email,
-                    'phone' => $rowData['phone'] ?? $rowData['phonenumber'] ?? $rowData['phone_number'] ?? $rowData['mobile'] ?? null,
+                    'last_name' => $lastName ?: '',
+                    'email' => $hasValidEmail ? $email : null,
+                    'phone' => $value($map['phone'] ?? null),
                     'type' => $type,
-                    'source' => $rowData['source'] ?? 'csv_import',
-                    'notes' => $rowData['notes'] ?? $rowData['comment'] ?? $rowData['message'] ?? null,
+                    'source' => $value($map['source'] ?? null) ?: $ext.'_import',
+                    'notes' => $value($map['notes'] ?? null),
+                    'location' => $value($map['city'] ?? null),
                 ]);
+
                 $imported++;
+                if (!$hasValidEmail) {
+                    $withoutEmail++;
+                }
             } catch (\Throwable $e) {
-                $errors++;
+                $failed++;
+                $this->recordRowError($batch, $rowNumber, 'save_failed', $e->getMessage(), $headers, $row);
             }
+        }
+
+        $batch->update([
+            'status' => $failed > 0 ? 'completed_with_errors' : 'completed',
+            'rows_imported' => $imported,
+            'rows_failed' => $failed,
+            'rows_without_email' => $withoutEmail,
+            'completed_at' => now(),
+        ]);
+
+        $message = "Imported {$imported} lead(s).";
+        if ($withoutEmail > 0) {
+            $message .= " {$withoutEmail} have no email address and cannot receive email campaigns until one is added.";
+        }
+        if ($failed > 0) {
+            $message .= " {$failed} row(s) were skipped — download the error report for details.";
         }
 
         return response()->json([
             'success' => true,
-            'message' => "Imported {$imported} leads successfully, with {$errors} skipped.",
+            'message' => $message,
+            'batch_id' => $batch->id,
             'count' => $imported,
-            'errors' => $errors
+            'errors' => $failed,
+            'without_email' => $withoutEmail,
+            'column_map' => $map,
         ]);
+    }
+
+    /** Persist one failed row so the admin can download and correct it. */
+    private function recordRowError(
+        ImportBatch $batch,
+        int $rowNumber,
+        string $code,
+        string $reason,
+        array $headers,
+        array $row
+    ): void {
+        ImportBatchError::create([
+            'import_batch_id' => $batch->id,
+            'row_number' => $rowNumber,
+            'reason_code' => $code,
+            'reason' => $reason,
+            'row_data' => $this->combineRow($headers, $row),
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function combineRow(array $headers, array $row): array
+    {
+        $out = [];
+        foreach ($headers as $i => $header) {
+            $out[$header] = $row[$i] ?? null;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Read CSV/XLSX/JSON into a positional header + rows structure.
+     *
+     * @return array{0: array<int,string>, 1: array<int, array<int, mixed>>}
+     */
+    private function readTabularFile($file, string $ext): array
+    {
+        $path = $file->getRealPath();
+
+        if ($ext === 'json') {
+            $decoded = json_decode((string) file_get_contents($path), true);
+            if (!is_array($decoded) || $decoded === []) {
+                return [[], []];
+            }
+            $headers = array_keys((array) reset($decoded));
+            $rows = array_map(
+                fn ($item) => array_map(fn ($h) => ((array) $item)[$h] ?? null, $headers),
+                $decoded
+            );
+
+            return [$headers, array_values($rows)];
+        }
+
+        if (in_array($ext, ['xlsx', 'xls'], true)) {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $data = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+            $headers = array_map(fn ($h) => trim((string) $h), array_shift($data) ?: []);
+
+            return [$headers, array_values(array_filter($data, fn ($r) => array_filter($r, fn ($v) => trim((string) $v) !== '')))];
+        }
+
+        // Default: CSV / TXT
+        $headers = [];
+        $rows = [];
+        if (($handle = fopen($path, 'r')) !== false) {
+            while (($row = fgetcsv($handle, 0, ',')) !== false) {
+                if ($headers === []) {
+                    $headers = array_map(fn ($h) => trim((string) $h), $row);
+                    continue;
+                }
+                if (array_filter($row, fn ($v) => trim((string) $v) !== '') !== []) {
+                    $rows[] = $row;
+                }
+            }
+            fclose($handle);
+        }
+
+        return [$headers, $rows];
     }
 
     public function bulkReassign(Request $request) {
