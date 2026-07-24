@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { useToast } from "@/components/Toast";
 
 const ROLES = [
   {
@@ -62,6 +63,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [registered, setRegistered] = useState(false);
+  const { notifyError, success } = useToast();
 
   const [form, setForm] = useState({
     role: "",
@@ -76,6 +78,23 @@ export default function RegisterPage() {
     budgetMin: "",
     budgetMax: "",
   });
+
+  const handleQuickDemoRegister = (role = "buyer") => {
+    setForm({
+      role: role,
+      firstName: "Alex",
+      lastName: "Morgan",
+      email: `alex.morgan.${Date.now().toString().slice(-4)}@example.com`,
+      phone: "+1 (555) 234-5678",
+      password: "Password123!",
+      confirmPassword: "Password123!",
+      licenseNumber: "RE-987654",
+      brokerage: "Apex Real Estate Corp",
+      budgetMin: "250000",
+      budgetMax: "750000",
+    });
+    setStep(2);
+  };
 
   const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -101,10 +120,19 @@ export default function RegisterPage() {
     setError("");
     try {
       const { apiPost } = await import("@/lib/api");
-      await apiPost("/auth/register", form);
+      const fullName = `${form.firstName} ${form.lastName}`.trim();
+      const payload = {
+        ...form,
+        name: fullName || "Valued User",
+        password_confirmation: form.confirmPassword,
+      };
+      await apiPost("/auth/register", payload);
+      success("Account created! Verification instructions sent.", "Registration Successful");
       setRegistered(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      const msg = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      setError(msg);
+      notifyError(err, "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -191,12 +219,26 @@ export default function RegisterPage() {
 
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-bold text-[#0A2647] mb-2">
-              Select Your Role
-            </h2>
-            <p className="text-slate-500 mb-8">
-              Choose the role that best describes you
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-[#0A2647]">
+                  Select Your Role
+                </h2>
+                <p className="text-slate-500 text-sm mt-1">
+                  Choose the role that best describes you or use 1-click test fill
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoRegister("buyer")}
+                className="px-3.5 py-2 bg-amber-100/80 hover:bg-amber-200/80 border border-amber-300 text-amber-950 font-bold text-xs rounded-lg transition shadow-sm flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Auto-fill Test User
+              </button>
+            </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {ROLES.map((role) => (
                 <button

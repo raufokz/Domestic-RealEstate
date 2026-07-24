@@ -1,36 +1,16 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://domesticrealestate.us";
+
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: '/',
-        // Private, authenticated areas. Trailing slashes keep public plural
-        // routes crawlable (e.g. /agent/ is blocked, /agents/ stays allowed).
-        disallow: [
-          '/admin/',
-          '/super-admin/',
-          '/api/',
-          '/auth/',
-          '/buyer/',
-          '/seller/',
-          '/investor/',
-          '/wholesaler/',
-          '/agent/',
-          '/broker/',
-          '/lender/',
-          '/title/',
-          '/staff/',
-          '/dashboard/',
-          '/logout',
-          '/reset-password',
-          '/verify-email',
-          '/email-verification-notice',
-          '/unauthorized',
-        ],
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin/", "/agent/dashboard/", "/super-admin/", "/contracts/"],
       },
     ],
-    sitemap: 'https://domesticrealestate.us/sitemap.xml',
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

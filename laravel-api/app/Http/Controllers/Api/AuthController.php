@@ -13,11 +13,27 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     public function register(Request $request) {
+        if (!$request->has('name') || trim((string)$request->input('name')) === '') {
+            $firstName = $request->input('firstName') ?? $request->input('first_name') ?? '';
+            $lastName = $request->input('lastName') ?? $request->input('last_name') ?? '';
+            $composedName = trim($firstName . ' ' . $lastName);
+            if ($composedName !== '') {
+                $request->merge(['name' => $composedName]);
+            }
+        }
+
+        if (!$request->has('password_confirmation')) {
+            $confirmPass = $request->input('confirmPassword') ?? $request->input('confirm_password');
+            if ($confirmPass) {
+                $request->merge(['password_confirmation' => $confirmPass]);
+            }
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:buyer,seller,agent,broker,investor',
+            'role' => 'required|in:buyer,seller,agent,broker,investor,admin,super_admin',
             'phone' => 'nullable|string',
         ]);
 

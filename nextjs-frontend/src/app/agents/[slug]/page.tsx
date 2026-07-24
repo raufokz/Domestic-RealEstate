@@ -50,10 +50,6 @@ function generateFallback(slug: string) {
   };
 }
 
-export async function generateStaticParams() {
-  return [{ slug: 'jessica-hartwell' }, { slug: 'michael-torres' }];
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const agent = AGENTS_DB[slug] || generateFallback(slug);

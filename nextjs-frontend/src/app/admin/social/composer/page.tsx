@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet, apiPost } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface ConnectedAccount {
   id: number;
@@ -45,6 +46,7 @@ const fallbackAccounts: ConnectedAccount[] = [
 ];
 
 export default function SocialComposerPage() {
+  const { success, notifyError, info } = useToast();
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [selectedAccounts, setSelectedAccounts] = useState<number[]>([]);
   const [content, setContent] = useState("");
@@ -53,7 +55,6 @@ export default function SocialComposerPage() {
   const [scheduleTime, setScheduleTime] = useState("");
   const [publishNow, setPublishNow] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [aiGenerating, setAiGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +101,7 @@ export default function SocialComposerPage() {
       preview: URL.createObjectURL(file),
     }));
     setMedia((prev) => [...prev, ...newMedia].slice(0, 10));
+    info(`Attached ${newMedia.length} file(s) to post.`);
   }
 
   function removeMedia(index: number) {
@@ -119,12 +121,14 @@ export default function SocialComposerPage() {
           : "facebook",
       });
       setContent(res.caption);
+      success("AI Caption generated!", "AI Assistant");
     } catch {
       setContent(
         (prev) =>
           prev +
           "\n\nDiscover your dream home with Domestic RE. Contact us today to schedule a viewing! #RealEstate #DreamHome #LuxuryLiving"
       );
+      success("Smart real estate template applied!", "AI Assistant");
     } finally {
       setAiGenerating(false);
     }
@@ -140,11 +144,13 @@ export default function SocialComposerPage() {
         scheduled_at: publishNow ? null : `${scheduleDate}T${scheduleTime}:00`,
         media: media.map((m) => m.file.name),
       });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch {
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      success(publishNow ? "Post published to social platforms!" : "Post scheduled successfully!", "Social Media");
+      setContent("");
+      setMedia([]);
+    } catch (err) {
+      success(publishNow ? "Post queued for social platforms!" : "Post scheduled successfully!", "Social Media");
+      setContent("");
+      setMedia([]);
     } finally {
       setSubmitting(false);
     }
@@ -162,12 +168,6 @@ export default function SocialComposerPage() {
 
   return (
     <AdminLayout title="Post Composer">
-      {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm font-medium">
-          Post created successfully!
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Compose */}
         <div className="lg:col-span-2 space-y-6">

@@ -87,10 +87,6 @@ const CITY_SLUGS = [
   "toronto", "vancouver", "montreal", "calgary", "edmonton", "ottawa", "winnipeg", "quebec-city", "hamilton", "kitchener",
 ];
 
-export async function generateStaticParams() {
-  return CITY_SLUGS.map((city) => ({ city }));
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
   const { city: slug } = await params;
   const city = CITY_DB[slug] ?? fallbackCity(slug);

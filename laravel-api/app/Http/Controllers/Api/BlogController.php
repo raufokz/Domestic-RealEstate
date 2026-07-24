@@ -184,9 +184,20 @@ class BlogController extends Controller
     }
 
     public function storeTag(Request $request) {
+        // Tags have no standalone table — they only exist as entries in a blog post's
+        // `tags` JSON column (see tags()/destroyTag() above). A "created" tag with no
+        // post attached would vanish on the very next tags() read, so faking success
+        // here would mislead the admin into thinking it persisted. Fail honestly instead.
         $request->validate(['tag' => 'required|string|max:255']);
-        $tag = trim($request->tag);
-        return ApiResponse::ok(['name' => $tag, 'slug' => Str::slug($tag), 'posts_count' => 0], 'Tag created', 201);
+        return ApiResponse::fail(
+            'Tags cannot be created on their own — they only exist once applied to a blog post.',
+            'tags_not_standalone',
+            422,
+            'Blog Tags',
+            'Tags are derived from the `tags` column on individual blog posts; there is no separate tags table to insert into.',
+            'Open the blog post you want to tag and add it there — it will then appear on this list automatically.',
+            '/admin/blog'
+        );
     }
 
     public function destroyTag($id) {

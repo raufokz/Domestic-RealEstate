@@ -128,6 +128,21 @@ class PortalController extends Controller
         ]);
     }
 
+    public function brokerDashboard(): JsonResponse
+    {
+        return response()->json([
+            'team_agents' => 0,
+            'team_listings' => 0,
+            'team_revenue' => 0,
+            'team_leads' => 0,
+            'top_agents' => [],
+            'team_activity' => [],
+            // agent_profiles has no broker_id FK yet — only free-text brokerage_name/broker_name —
+            // so a real "my team" roster can't be derived until that relation exists.
+            'team_linked' => false,
+        ]);
+    }
+
     public function lenderDashboard(): JsonResponse
     {
         return response()->json([

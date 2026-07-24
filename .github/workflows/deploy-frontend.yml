@@ -1,0 +1,163 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nextjs-frontend/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: nextjs-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: nextjs-frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Create production env
+        working-directory: nextjs-frontend
+        run: |
+          cat > .env.production << 'EOF'
+          NEXT_PUBLIC_API_URL=https://api.domesticrealestate.us
+          NEXT_PUBLIC_SITE_URL=https://domesticrealestate.us
+          PORT=3000
+          HOSTNAME=0.0.0.0
+          EOF
+
+      - name: Build standalone
+        working-directory: nextjs-frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Copy static assets
+        working-directory: nextjs-frontend
+        run: cp -r .next/static .next/standalone/.next/static
+
+      - name: Copy public assets
+        working-directory: nextjs-frontend
+        run: cp -r public .next/standalone/public
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: nextjs-frontend/.next/standalone
+          retention-days: 3
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-standalone
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy standalone to server
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }}" \
+            frontend-standalone/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/frontend/
+
+      - name: Deploy Laravel API
+        working-directory: .
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }}" \
+            --exclude '.env' \
+            --exclude 'storage/framework/*' \
+            --exclude 'storage/logs/*' \
+            --exclude 'bootstrap/cache/*' \
+            laravel-api/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
+
+      - name: Install Node.js on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'SSH'
+            cd ~/domains/domesticrealestate.us/public_html/frontend
+            # Check if pm2 is installed, install if not
+            if ! command -v pm2 &> /dev/null; then
+              npm install -g pm2
+            fi
+            # Stop existing process
+            pm2 stop domestic-frontend 2>/dev/null || true
+            pm2 delete domestic-frontend 2>/dev/null || true
+            # Start new process
+            pm2 start server.js --name domestic-frontend --cwd ~/domains/domesticrealestate.us/public_html/frontend
+            pm2 save
+          SSH
+
+      - name: Setup Apache reverse proxy
+        run: |
+          cat > /tmp/frontend-htaccess << 'HTACCESS'
+          # Reverse proxy to Node.js for non-static routes
+          <IfModule mod_proxy.c>
+              ProxyPreserveHost On
+              ProxyPass / http://127.0.0.1:3000/
+              ProxyPassReverse / http://127.0.0.1:3000/
+          </IfModule>
+
+          # Serve static assets directly
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+
+              # Serve existing static files directly
+              RewriteCond %{REQUEST_FILENAME} -f [OR]
+              RewriteCond %{REQUEST_FILENAME} -d
+              RewriteRule ^ - [L]
+
+              # Route everything else to Node.js
+              RewriteRule ^ http://127.0.0.1:3000%{REQUEST_URI} [P,L]
+          </IfModule>
+
+          # Security headers
+          <IfModule mod_headers.c>
+              Header set X-Content-Type-Options "nosniff"
+              Header set X-Frame-Options "DENY"
+              Header set Referrer-Policy "strict-origin-when-cross-origin"
+          </IfModule>
+          HTACCESS
+
+          scp -i ~/.ssh/deploy_key -P ${{ secrets.PORT }} \
+            /tmp/frontend-htaccess \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/frontend/.htaccess
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -rf ~/.ssh/deploy_key
+
+      - name: Deployment summary
+        run: echo "Frontend deployed to https://domesticrealestate.us"
