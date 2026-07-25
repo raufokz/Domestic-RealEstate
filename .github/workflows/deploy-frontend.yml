@@ -65,12 +65,10 @@ jobs:
             .next/standalone/ \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/nextjs-frontend/
 
-      - name: Sync Root Apache .htaccess
+      - name: Write Primary Domain Apache .htaccess
         run: |
-          rsync -az \
-            -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no" \
-            ../deploy/root.htaccess \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/.htaccess
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
+            "cat > ~/domains/domesticrealestate.us/public_html/.htaccess && rm -f ~/domains/domesticrealestate.us/public_html/root.htaccess" < ../deploy/root.htaccess
 
       - name: Manage Node.js Process & PM2 Server
         run: |
