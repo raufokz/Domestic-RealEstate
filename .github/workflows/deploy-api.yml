@@ -46,6 +46,11 @@ jobs:
 
           cd ~/domains/domesticrealestate.us/public_html/laravel-api
 
+          if ! command -v composer >/dev/null 2>&1; then
+            echo "::error::composer not found on PATH for ${{ secrets.USERNAME }}@${{ secrets.HOST }} — install it or update this script's PATH"
+            exit 1
+          fi
+
           composer install --no-dev --optimize-autoloader --no-interaction
 
           php artisan storage:link || true

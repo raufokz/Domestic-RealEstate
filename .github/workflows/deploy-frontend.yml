@@ -70,11 +70,24 @@ jobs:
           -p ${{ secrets.PORT }} \
           ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
 
+          # Non-interactive SSH sessions don't source ~/.bashrc, so PATH
+          # additions from nvm (how Hostinger typically installs Node) are
+          # missing and `pm2`/`node`/`npm` resolve to "command not found".
+          # Source nvm explicitly (its own documented fix for CI/non-interactive use).
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"
+
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo "pm2 not on PATH — installing globally"
+            npm install -g pm2
+          fi
+
           cd ~/domains/domesticrealestate.us/public_html/nextjs-frontend
 
           pm2 delete domestic-frontend || true
 
-          pm2 start server.js \
+          PORT=3000 HOSTNAME=0.0.0.0 pm2 start server.js \
             --name domestic-frontend
 
           pm2 save
