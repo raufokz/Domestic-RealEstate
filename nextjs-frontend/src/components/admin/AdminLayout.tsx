@@ -219,7 +219,7 @@ export default function AdminLayout({
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">Admin User</p>
-                <p className="text-xs text-gray-500">admin@domesticre.com</p>
+                <p className="text-xs text-gray-500">admin@domesticrealestate.us</p>
               </div>
             </div>
           </div>

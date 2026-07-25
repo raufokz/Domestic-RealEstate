@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState({
     siteName: "Domestic Real Estate",
     tagline: "Your Trusted Partner in Finding the Perfect Home",
-    email: "info@domesticre.com",
+    email: "info@domesticrealestate.us",
     phone: "(555) 123-4567",
     address: "123 Real Estate Blvd, Los Angeles, CA 90001",
     primaryColor: "#0A2647",

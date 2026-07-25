@@ -27,7 +27,7 @@ const DEFAULT_SETTINGS: SEOSettings = {
   google_tag_manager_id: "",
   sitemap_auto_generate: true,
   robots_txt: "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/",
-  canonical_url: "https://domesticre.com",
+  canonical_url: "https://domesticrealestate.us",
   social_facebook: "",
   social_twitter: "",
   social_instagram: "",
