@@ -13,9 +13,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: nextjs-frontend
 
     steps:
       - name: Checkout Repository
@@ -31,6 +28,12 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      # NOTE: these run from the repo root, NOT nextjs-frontend/. The Vercel
+      # project's "Root Directory" setting (nextjs-frontend) already tells the
+      # CLI where the app lives. Adding a working-directory cd here on top of
+      # that setting double-nests the path (nextjs-frontend/nextjs-frontend)
+      # and silently produces a build with no matching routes -> 404 on every
+      # URL, including the raw *.vercel.app one.
       - name: Pull Vercel Environment
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
