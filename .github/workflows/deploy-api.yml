@@ -1,0 +1,57 @@
+name: Deploy Laravel API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "laravel-api/**"
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -p ${{ secrets.PORT }} \
+          ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Laravel
+        run: |
+          rsync -az --delete \
+          --exclude=.env \
+          --exclude=vendor \
+          --exclude=node_modules \
+          --exclude=storage/logs \
+          --exclude=storage/framework/cache \
+          -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }}" \
+          laravel-api/ \
+          ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
+
+      - name: Run Artisan
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+          -p ${{ secrets.PORT }} \
+          ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+
+          cd ~/domains/domesticrealestate.us/public_html/laravel-api
+
+          php artisan optimize:clear
+
+          php artisan config:cache
+
+          php artisan route:cache
+
+          php artisan view:cache
+
+          EOF
