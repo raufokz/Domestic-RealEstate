@@ -8,4 +8,3 @@
 - [x] Audit email system (SMTP, templates, campaigns, tracking)
 - [x] Audit payments flow (invoice generation, Payoneer flow, payment status updates)
 - [x] Produce final system diagnosis report + diagrams + list of broken/missing features
-
