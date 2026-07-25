@@ -74,6 +74,11 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
             # 1. Environment & PATH setup for non-interactive SSH shell
+            # This account has no nvm/~/.bashrc at all — Node is provided by
+            # CloudLinux's alt-nodejs package, confirmed directly executable
+            # (not via the hPanel "Node.js App" wizard, no nodevenv needed).
+            export PATH="/opt/alt/alt-nodejs20/root/usr/bin:$PATH"
+
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
@@ -92,8 +97,8 @@ jobs:
             # 2. Check for PM2 availability
             if ! command -v pm2 >/dev/null 2>&1; then
               echo "PM2 not found on global PATH — attempting user-space installation"
-              mkdir -p ~/.npm-global
-              npm config set prefix '~/.npm-global' 2>/dev/null || true
+              mkdir -p "$HOME/.npm-global"
+              npm config set prefix "$HOME/.npm-global" 2>/dev/null || true
               npm install -g pm2 2>/dev/null || npm install pm2 --save-dev 2>/dev/null || true
             fi
 

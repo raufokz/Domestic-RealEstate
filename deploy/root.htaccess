@@ -1,9 +1,26 @@
 # Domestic Real Estate — Primary Domain Apache Reverse Proxy (.htaccess)
 DirectoryIndex index.html index.php
+Options -Indexes
+
+# --- Security lockdown ---
+# Hostinger's own hPanel Git auto-deploy feature clones the FULL repo
+# (including secrets, docs, csv exports) directly into this document root
+# on every push, independently of the GitHub Actions pipeline. These rules
+# are defense-in-depth so that even if it does, nothing sensitive is servable.
+<FilesMatch "(^\.env.*|\.git.*|\.gitattributes|\.gitignore|\.md$|\.csv$|composer\.(json|lock)|^package(-lock)?\.json$|^artisan$|phpunit\.xml|vite\.config\.js|routes\.txt|routes2\.txt)$">
+    Require all denied
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
+
+    RewriteRule ^\.git(/|$) - [F,L]
+    RewriteRule ^\.claude(/|$) - [F,L]
+    RewriteRule ^\.github(/|$) - [F,L]
+    RewriteRule ^deploy(/|$) - [F,L]
+    RewriteRule ^laravel-api/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]
+    RewriteRule ^laravel-api/\.env - [F,L]
 
     # Enable HTTP Header forwarding for authorization
     RewriteCond %{HTTP:Authorization} .
