@@ -1,15 +1,19 @@
-# Domestic Real Estate — Primary Domain Apache Reverse Proxy (.htaccess)
+# Domestic Real Estate — Primary Domain Apache Configuration (.htaccess)
 DirectoryIndex index.html index.php
 Options -Indexes
 
 # --- Security lockdown ---
-# Hostinger's own hPanel Git auto-deploy feature clones the FULL repo
-# (including secrets, docs, csv exports) directly into this document root
-# on every push, independently of the GitHub Actions pipeline. These rules
-# are defense-in-depth so that even if it does, nothing sensitive is servable.
 <FilesMatch "(^\.env.*|\.git.*|\.gitattributes|\.gitignore|\.md$|\.csv$|composer\.(json|lock)|^package(-lock)?\.json$|^artisan$|phpunit\.xml|vite\.config\.js|routes\.txt|routes2\.txt)$">
     Require all denied
 </FilesMatch>
+
+# --- Phusion Passenger / Hostinger CloudLinux Node.js Setup ---
+<IfModule mod_passenger.c>
+    PassengerAppRoot "/home/u854670637/domains/domesticrealestate.us/public_html/nextjs-frontend"
+    PassengerAppType node
+    PassengerStartupFile server.js
+    PassengerNodeJS "/opt/alt/alt-nodejs20/root/usr/bin/node"
+</IfModule>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -30,9 +34,13 @@ Options -Indexes
     RewriteCond %{REQUEST_URI} ^/laravel-api [NC]
     RewriteRule ^ - [L]
 
-    # Forward all primary domain traffic (domesticrealestate.us) to Next.js server on port 3000
-    RewriteCond %{HTTP_HOST} ^(www\.)?domesticrealestate\.us$ [NC]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+    # Do not proxy existing static files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Proxy requests to local Node.js server on port 3000 if PM2/Node is active
+    <IfModule mod_proxy.c>
+        RewriteCond %{HTTP_HOST} ^(www\.)?domesticrealestate\.us$ [NC]
+        RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+    </IfModule>
 </IfModule>
