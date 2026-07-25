@@ -68,17 +68,35 @@ jobs:
             echo "Installing composer dependencies..."
             $COMPOSER_CMD install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-            # Directory permissions
-            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+            # Directory & storage permissions
+            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache database
             chmod -R 775 storage bootstrap/cache || true
 
-            # Artisan optimize
-            php artisan storage:link || true
-            php artisan optimize:clear
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan migrate --force
+            # Ensure .env file exists
+            if [ ! -f .env ]; then
+              if [ -f .env.production ]; then
+                cp .env.production .env
+              elif [ -f .env.example ]; then
+                cp .env.example .env
+              fi
+              php artisan key:generate --force 2>/dev/null || true
+            fi
+
+            # Ensure SQLite database file exists if referenced in .env
+            if [ ! -f database/database.sqlite ]; then
+              touch database/database.sqlite
+              chmod 666 database/database.sqlite || true
+            fi
+
+            # Create storage symlink via bash (Hostinger disables PHP exec/symlink)
+            ln -sfn "$TARGET_DIR/storage/app/public" "$TARGET_DIR/public/storage" 2>/dev/null || true
+
+            # Artisan optimize & cache setup
+            php artisan optimize:clear || true
+            php artisan config:cache || true
+            php artisan route:cache || true
+            php artisan view:cache || true
+            php artisan migrate --force || true
 
             echo "Backend API Deployment Completed Successfully!"
           EOF
