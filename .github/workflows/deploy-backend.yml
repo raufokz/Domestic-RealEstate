@@ -2,136 +2,40 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "laravel-api/**"
 
-  workflow_dispatch:
-
-concurrency:
-  group: deploy-backend
-  cancel-in-progress: true
-
 jobs:
-  build:
-    name: Build & Validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          extensions: mbstring, xml, curl, pdo_mysql, zip, gd, fileinfo
-          coverage: none
-
-      - name: Validate composer.json
-        working-directory: laravel-api
-        run: composer validate --no-interaction
-
-      - name: Install dependencies
-        working-directory: laravel-api
-        run: composer install --no-dev --optimize-autoloader --no-interaction
-
-      - name: Run syntax check
-        working-directory: laravel-api
-        run: find app routes config -name "*.php" -exec php -l {} \; 2>&1 | grep -v "No syntax errors" || true
-
   deploy:
-    name: Deploy
-    needs: build
     runs-on: ubuntu-latest
-    environment: production
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          extensions: mbstring, xml, curl, pdo_mysql, zip, gd, fileinfo
-          coverage: none
-
-      - name: Install composer dependencies
-        working-directory: laravel-api
-        run: composer install --no-dev --optimize-autoloader --no-interaction
+      - uses: actions/checkout@v4
 
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-      - name: Sync files to server
+      - name: Deploy Laravel
         run: |
-          rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }}" \
-            --exclude '.git' \
-            --exclude '.env' \
-            --exclude 'storage/logs/*' \
-            --exclude 'storage/framework/cache/*' \
-            --exclude 'storage/framework/sessions/*' \
-            --exclude 'storage/framework/views/*' \
-            --exclude 'bootstrap/cache/*.php' \
-            --exclude 'node_modules' \
-            --exclude 'tests' \
-            --exclude '*.md' \
-            --exclude 'docker-compose.yml' \
-            laravel-api/ \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
+          rsync -az --delete \
+          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }}" \
+          --exclude=.env \
+          --exclude=vendor \
+          laravel-api/ \
+          ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
 
-      - name: Preserve storage & env on server
+      - name: Optimize Laravel
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'PRESERVE'
-            cd ~/domains/domesticrealestate.us/public_html/laravel-api
-
-            # Ensure storage directories exist with correct structure
-            mkdir -p storage/framework/{cache,sessions,views}
-            mkdir -p storage/logs
-            mkdir -p bootstrap/cache
-
-            # Ensure storage is writable
-            chmod -R 775 storage
-            chmod -R 775 bootstrap/cache
-          PRESERVE
-
-      - name: Run remote optimizations
-        run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'OPTIMIZE'
-            cd ~/domains/domesticrealestate.us/public_html/laravel-api
-
-            # Clear all caches first
-            php artisan optimize:clear
-
-            # Rebuild caches
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan event:cache
-
-            # Run migrations
-            php artisan migrate --force
-
-            echo "Backend deployment complete"
-          OPTIMIZE
-
-      - name: Verify health endpoint
-        run: |
-          sleep 5
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.domesticrealestate.us/up || echo "000")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "Health check passed (HTTP $HTTP_STATUS)"
-          else
-            echo "::warning::Health check returned HTTP $HTTP_STATUS — verify deployment manually"
-          fi
-
-      - name: Cleanup SSH
-        if: always()
-        run: rm -rf ~/.ssh/deploy_key
-
-      - name: Deployment summary
-        run: echo "Backend deployed to https://api.domesticrealestate.us"
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.PORT }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
+          cd ~/domains/domesticrealestate.us/public_html/laravel-api
+          composer install --no-dev --optimize-autoloader
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          EOF
