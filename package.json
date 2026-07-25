@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "domestic-real-estate-monorepo",
+  "scripts": {
+    "build": "npm --prefix nextjs-frontend run build",
+    "dev": "npm --prefix nextjs-frontend run dev",
+    "start": "npm --prefix nextjs-frontend run start",
+    "lint": "npm --prefix nextjs-frontend run lint",
+    "postinstall": "npm --prefix nextjs-frontend install"
+  }
+}
