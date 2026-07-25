@@ -1,0 +1,385 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #0A2647;
+  --color-navy-50: #E8EDF4;
+  --color-navy-100: #D1DBE9;
+  --color-navy-200: #A3B7D3;
+  --color-navy-300: #7593BD;
+  --color-navy-400: #476FA7;
+  --color-navy-500: #0A2647;
+  --color-navy-600: #081F3A;
+  --color-navy-700: #06172C;
+  --color-navy-800: #040F1E;
+  --color-navy-900: #020810;
+  --color-navy-950: #010408;
+
+  --color-gold: #C9A227;
+  --color-gold-50: #FBF6E4;
+  --color-gold-100: #F7EDC9;
+  --color-gold-200: #EFDB93;
+  --color-gold-300: #E7C95D;
+  --color-gold-400: #D4B43F;
+  --color-gold-500: #C9A227;
+  --color-gold-600: #A1821F;
+  --color-gold-700: #796117;
+  --color-gold-800: #514110;
+  --color-gold-900: #282008;
+  --color-gold-950: #141004;
+
+  --color-burgundy: #8B1E3F;
+  --color-burgundy-50: #F5E6ED;
+  --color-burgundy-100: #EBCCDB;
+  --color-burgundy-200: #D799B7;
+  --color-burgundy-300: #C36693;
+  --color-burgundy-400: #A63363;
+  --color-burgundy-500: #8B1E3F;
+  --color-burgundy-600: #6F1832;
+  --color-burgundy-700: #531226;
+  --color-burgundy-800: #380C19;
+  --color-burgundy-900: #1C060D;
+
+  --color-slate-50: #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+  --color-slate-950: #020617;
+
+  --color-background: #ffffff;
+  --color-foreground: #0A2647;
+  --color-muted: #F8FAFC;
+  --color-muted-foreground: #64748B;
+  --color-border: #E2E8F0;
+  --color-ring: #C9A227;
+
+  --font-heading: var(--font-poppins), "Poppins", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+
+  --shadow-premium: 0 4px 24px -4px rgba(10, 38, 71, 0.12);
+  --shadow-premium-lg: 0 8px 40px -8px rgba(10, 38, 71, 0.18);
+  --shadow-premium-xl: 0 16px 64px -12px rgba(10, 38, 71, 0.24);
+  --shadow-gold: 0 4px 24px -4px rgba(201, 162, 39, 0.3);
+  --shadow-gold-lg: 0 8px 40px -8px rgba(201, 162, 39, 0.4);
+  --shadow-glass: 0 8px 32px 0 rgba(10, 38, 71, 0.08);
+  --shadow-card: 0 2px 16px -2px rgba(10, 38, 71, 0.08);
+  --shadow-card-hover: 0 8px 32px -4px rgba(10, 38, 71, 0.15);
+
+  --radius-card: 20px;
+  --radius-button: 12px;
+
+  --animate-fade-in: fadeIn 0.6s ease-out forwards;
+  --animate-slide-up: slideUp 0.6s ease-out forwards;
+  --animate-slide-down: slideDown 0.4s ease-out forwards;
+  --animate-scale-in: scaleIn 0.5s ease-out forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-pulse-gold: pulseGold 2s ease-in-out infinite;
+}
+
+:root {
+  /* PRIMARY PALETTE */
+  --primary-navy: #0A2647;
+  --primary-gold: #C9A227;
+  --pure-white: #FFFFFF;
+  --background-light: #F8FAFC;
+  --dark-base: #111827;
+  --accent-burgundy: #8B1E3F;
+
+  /* STATUS COLORS */
+  --success: #16A34A;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --info: #2563EB;
+
+  /* TEXT COLORS */
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --text-white: #FFFFFF;
+  --text-gold: #C9A227;
+
+  /* BACKGROUNDS */
+  --bg-white: #FFFFFF;
+  --bg-light: #F8FAFC;
+  --bg-navy: #0A2647;
+  --bg-dark: #111827;
+  --bg-gold: #C9A227;
+
+  /* BORDERS */
+  --border-light: #E5E7EB;
+  --border-medium: #D1D5DB;
+
+  /* SHADOWS */
+  --shadow-sm: 0 1px 2px rgba(10, 38, 71, 0.05);
+  --shadow-md: 0 4px 12px rgba(10, 38, 71, 0.08);
+  --shadow-lg: 0 12px 40px rgba(10, 38, 71, 0.12);
+  --shadow-gold: 0 4px 20px rgba(201, 162, 39, 0.25);
+
+  /* TYPOGRAPHY */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* SPACING (8px grid) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* RADIUS */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* LEGACY (kept for backward compat) */
+  --background: #ffffff;
+  --foreground: #0A2647;
+  --background-secondary: #F8FAFC;
+  --navy: #0A2647;
+  --gold: #C9A227;
+  --burgundy: #8B1E3F;
+  --border-color: #E2E8F0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-white);
+  color: var(--text-primary);
+  font-family: var(--font-body), "Inter", sans-serif;
+}
+
+input, textarea, select {
+  color: var(--text-primary);
+}
+
+button {
+  color: inherit;
+}
+
+/* ── HIGH CONTRAST BUTTON COLOR RULES ── */
+.bg-navy,
+[class*="bg-[#0A2647]"],
+[class*="bg-[#07162C]"],
+[class*="bg-[#051324]"],
+[class*="bg-[#081F3A]"],
+[class*="bg-slate-900"],
+[class*="bg-slate-800"] {
+  color: #ffffff;
+}
+
+.bg-gold,
+[class*="bg-[#C9A227]"] {
+  color: #0A2647;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+textarea,
+select {
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+  outline: none;
+}
+
+::selection {
+  background-color: rgba(201, 162, 39, 0.25);
+  color: #0A2647;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C9A227, #A1821F);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #D4B43F, #C9A227);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C9A227 #F1F5F9;
+}
+
+*:focus-visible {
+  outline: 2px solid #C9A227;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0% { opacity: 0; transform: translateY(-16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(201, 162, 39, 0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 162, 39, 0); }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  border-radius: 8px;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(10, 38, 71, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .scroll-reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Infinite Sliding Marquee for Company Logos */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+

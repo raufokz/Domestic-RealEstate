@@ -1,0 +1,16 @@
+{
+  "installCommand": "npm install",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.domesticrealestate.us"
+        }
+      ],
+      "destination": "https://domesticrealestate.us/:path*",
+      "permanent": true
+    }
+  ]
+}

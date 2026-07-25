@@ -1,0 +1,5 @@
+Name,Email,Phone,Type,Notes
+Alice Cooper,alice.cooper@email.com,555-123-4567,buyer,Wants a 3-bedroom house in Chicago
+Bob Dylan,bob.dylan@email.com,555-987-6543,seller,Looking to sell condo in Austin
+Charlie Brown,charlie.brown@email.com,555-222-3333,investor,Multi-family properties
+David Bowie,david.bowie@email.com,invalid-phone,agent,Realtor contact

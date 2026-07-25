@@ -1,0 +1,46 @@
+# Domestic Real Estate — Primary Domain Apache Configuration (.htaccess)
+DirectoryIndex index.html index.php
+Options -Indexes
+
+# --- Security lockdown ---
+<FilesMatch "(^\.env.*|\.git.*|\.gitattributes|\.gitignore|\.md$|\.csv$|composer\.(json|lock)|^package(-lock)?\.json$|^artisan$|phpunit\.xml|vite\.config\.js|routes\.txt|routes2\.txt)$">
+    Require all denied
+</FilesMatch>
+
+# --- Phusion Passenger / Hostinger CloudLinux Node.js Setup ---
+<IfModule mod_passenger.c>
+    PassengerAppRoot "/home/u854670637/domains/domesticrealestate.us/public_html/nextjs-frontend"
+    PassengerAppType node
+    PassengerStartupFile server.js
+    PassengerNodeJS "/opt/alt/alt-nodejs20/root/usr/bin/node"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteRule ^\.git(/|$) - [F,L]
+    RewriteRule ^\.claude(/|$) - [F,L]
+    RewriteRule ^\.github(/|$) - [F,L]
+    RewriteRule ^deploy(/|$) - [F,L]
+    RewriteRule ^laravel-api/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]
+    RewriteRule ^laravel-api/\.env - [F,L]
+
+    # Enable HTTP Header forwarding for authorization
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Do not proxy or rewrite requests for laravel-api
+    RewriteCond %{REQUEST_URI} ^/laravel-api [NC]
+    RewriteRule ^ - [L]
+
+    # Do not proxy existing static files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Proxy requests to local Node.js server on port 3000 if PM2/Node is active
+    <IfModule mod_proxy.c>
+        RewriteCond %{HTTP_HOST} ^(www\.)?domesticrealestate\.us$ [NC]
+        RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+    </IfModule>
+</IfModule>
