@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "nextjs-frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+      - "deploy/root.htaccess"
 
   workflow_dispatch:
 
@@ -21,75 +23,115 @@ jobs:
         working-directory: nextjs-frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: nextjs-frontend/package-lock.json
 
-      - name: Install Packages
+      - name: Install Dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Create Production Environment
+      - name: Create Production Environment File
         run: |
           cat > .env.production << EOF
           NEXT_PUBLIC_SITE_URL=https://domesticrealestate.us
           NEXT_PUBLIC_API_URL=https://api.domesticrealestate.us/api
           EOF
 
-      - name: Build
+      - name: Build Next.js Production App
         run: npm run build
 
-      - name: Prepare Standalone
+      - name: Prepare Standalone Assets
         run: |
           cp -r .next/static .next/standalone/.next
           cp -r public .next/standalone/
 
-      - name: Setup SSH
+      - name: Setup SSH Key & Known Hosts
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          ssh-keyscan -p ${{ secrets.PORT }} \
-          ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
-      - name: Upload Files
+      - name: Upload Standalone Server via rsync
         run: |
           rsync -az --delete \
-          -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }}" \
-          .next/standalone/ \
-          ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/nextjs-frontend/
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no" \
+            .next/standalone/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/nextjs-frontend/
 
-      - name: Restart PM2
+      - name: Sync Root Apache .htaccess
         run: |
-          ssh -i ~/.ssh/id_ed25519 \
-          -p ${{ secrets.PORT }} \
-          ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no" \
+            ../deploy/root.htaccess \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/.htaccess
 
-          # Non-interactive SSH sessions don't source ~/.bashrc, so PATH
-          # additions from nvm (how Hostinger typically installs Node) are
-          # missing and `pm2`/`node`/`npm` resolve to "command not found".
-          # Source nvm explicitly (its own documented fix for CI/non-interactive use).
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"
+      - name: Manage Node.js Process & PM2 Server
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+            # 1. Environment & PATH setup for non-interactive SSH shell
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-          if ! command -v pm2 >/dev/null 2>&1; then
-            echo "pm2 not on PATH — installing globally"
-            npm install -g pm2
-          fi
+            LATEST_NVM_NODE=$(ls "$HOME/.nvm/versions/node" 2>/dev/null | tail -n 1)
+            if [ -n "$LATEST_NVM_NODE" ]; then
+              export PATH="$HOME/.nvm/versions/node/$LATEST_NVM_NODE/bin:$PATH"
+            fi
+            export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 
-          cd ~/domains/domesticrealestate.us/public_html/nextjs-frontend
+            TARGET_DIR="$HOME/domains/domesticrealestate.us/public_html/nextjs-frontend"
+            cd "$TARGET_DIR"
 
-          pm2 delete domestic-frontend || true
+            echo "Current Node version on server:"
+            node -v || echo "Node binary not found on standard PATH"
 
-          PORT=3000 HOSTNAME=0.0.0.0 pm2 start server.js \
-            --name domestic-frontend
+            # 2. Check for PM2 availability
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "PM2 not found on global PATH — attempting user-space installation"
+              mkdir -p ~/.npm-global
+              npm config set prefix '~/.npm-global' 2>/dev/null || true
+              npm install -g pm2 2>/dev/null || npm install pm2 --save-dev 2>/dev/null || true
+            fi
 
-          pm2 save
+            # 3. Process Execution Strategy
+            if command -v pm2 >/dev/null 2>&1; then
+              echo "Starting/Restarting application with PM2..."
+              pm2 delete domestic-frontend 2>/dev/null || true
+              PORT=3000 HOSTNAME=0.0.0.0 pm2 start server.js --name domestic-frontend
+              pm2 save 2>/dev/null || true
+              echo "PM2 process status:"
+              pm2 status
+            elif [ -f "./node_modules/pm2/bin/pm2" ]; then
+              echo "Starting application with local PM2 binary..."
+              ./node_modules/pm2/bin/pm2 delete domestic-frontend 2>/dev/null || true
+              PORT=3000 HOSTNAME=0.0.0.0 ./node_modules/pm2/bin/pm2 start server.js --name domestic-frontend
+              ./node_modules/pm2/bin/pm2 save 2>/dev/null || true
+            else
+              echo "PM2 is unavailable. Falling back to background Node.js runner & Passenger trigger..."
+              mkdir -p tmp
+              touch tmp/restart.txt 2>/dev/null || true
+              
+              # Kill previous background server.js process if running
+              pkill -f "node server.js" 2>/dev/null || true
+              PORT=3000 HOSTNAME=0.0.0.0 nohup node server.js > app.log 2>&1 &
+              echo "Node server started in background mode."
+            fi
 
+            echo "Frontend Deployment Step Complete!"
           EOF
+
+      - name: Health Verification
+        run: |
+          sleep 5
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://domesticrealestate.us || echo "000")
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "302" ]; then
+            echo "Frontend Health check passed (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Frontend returned HTTP $HTTP_STATUS — check PM2 logs or Apache reverse proxy on server"
+          fi

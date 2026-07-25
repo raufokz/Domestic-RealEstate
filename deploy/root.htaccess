@@ -1,0 +1,18 @@
+# Domestic Real Estate — Primary Domain Apache Reverse Proxy (.htaccess)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Enable HTTP Header forwarding for authorization
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Do not proxy requests to subdomains or laravel-api folder
+    RewriteCond %{REQUEST_URI} ^/laravel-api [NC]
+    RewriteRule ^ - [L]
+
+    # Reverse proxy requests to Next.js standalone Node.js server running on port 3000
+    RewriteCond %{HTTP_HOST} ^(www\.)?domesticrealestate\.us$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+</IfModule>

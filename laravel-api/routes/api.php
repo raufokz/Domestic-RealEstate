@@ -315,26 +315,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{pipelineId}/deals/{dealId}', [PipelineController::class, 'destroyDeal']);
     });
 
-    // Frontend route aliases (frontend calls /api/* without /admin/ prefix)
-    Route::prefix('email-campaigns')->group(function () {
-        Route::get('/', [CampaignEmailController::class, 'index']);
-        Route::post('/', [CampaignEmailController::class, 'store']);
-        Route::get('/{id}', [CampaignEmailController::class, 'show']);
-        Route::put('/{id}', [CampaignEmailController::class, 'update']);
-        Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
-        Route::post('/{id}/send', [CampaignEmailController::class, 'send']);
-        Route::get('/{id}/recipients', [CampaignEmailController::class, 'recipients']);
-    });
-
-    Route::prefix('email-templates')->group(function () {
-        Route::get('/', [CampaignEmailController::class, 'templates']);
-        Route::post('/', [CampaignEmailController::class, 'storeTemplate']);
-        Route::put('/{id}', [CampaignEmailController::class, 'updateTemplate']);
-        Route::delete('/{id}', [CampaignEmailController::class, 'destroyTemplate']);
-    });
-
-    Route::get('/sent-emails', [CampaignEmailController::class, 'indexSentEmails']);
-
     Route::get('/super-admin/dashboard', [PortalController::class, 'superAdminDashboard']);
 });
 

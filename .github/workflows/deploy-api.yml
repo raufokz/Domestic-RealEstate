@@ -6,73 +6,89 @@ on:
       - main
     paths:
       - "laravel-api/**"
+      - ".github/workflows/deploy-api.yml"
 
   workflow_dispatch:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Setup SSH Key & Known Hosts
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          ssh-keyscan -p ${{ secrets.PORT }} \
-          ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy Laravel
+      - name: Sync Files to Hostinger Server via rsync
         run: |
           rsync -az --delete \
-          --exclude=.env \
-          --exclude=vendor \
-          --exclude=node_modules \
-          --exclude=storage/logs \
-          --exclude=storage/framework/cache \
-          -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }}" \
-          laravel-api/ \
-          ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
+            --exclude='.env' \
+            --exclude='vendor' \
+            --exclude='node_modules' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='.git' \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no" \
+            laravel-api/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
 
-      - name: Install Dependencies & Optimize
+      - name: Remote Optimization & Artisan Commands
         run: |
-          ssh -i ~/.ssh/id_ed25519 \
-          -p ${{ secrets.PORT }} \
-          ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+            set -e
 
-          cd ~/domains/domesticrealestate.us/public_html/laravel-api
+            export PATH="$HOME/bin:$HOME/.local/bin:$HOME/.config/composer/vendor/bin:/usr/local/bin:$PATH"
 
-          if ! command -v composer >/dev/null 2>&1; then
-            echo "::error::composer not found on PATH for ${{ secrets.USERNAME }}@${{ secrets.HOST }} — install it or update this script's PATH"
-            exit 1
-          fi
+            TARGET_DIR="$HOME/domains/domesticrealestate.us/public_html/laravel-api"
+            cd "$TARGET_DIR"
 
-          composer install --no-dev --optimize-autoloader --no-interaction
+            # Check or locate Composer
+            if command -v composer >/dev/null 2>&1; then
+              COMPOSER_CMD="composer"
+            elif [ -f "$HOME/bin/composer" ]; then
+              COMPOSER_CMD="$HOME/bin/composer"
+            elif [ -f "composer.phar" ]; then
+              COMPOSER_CMD="php composer.phar"
+            else
+              echo "Composer binary missing, downloading..."
+              php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+              php composer-setup.php --install-dir=. --filename=composer.phar
+              php -r "unlink('composer-setup.php');"
+              COMPOSER_CMD="php composer.phar"
+            fi
 
-          php artisan storage:link || true
+            echo "Installing composer dependencies..."
+            $COMPOSER_CMD install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-          php artisan optimize:clear
+            # Directory permissions
+            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+            chmod -R 775 storage bootstrap/cache || true
 
-          php artisan config:cache
+            # Artisan optimize
+            php artisan storage:link || true
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan migrate --force
 
-          php artisan route:cache
-
-          php artisan view:cache
-
-          php artisan migrate --force
-
+            echo "Backend API Deployment Completed Successfully!"
           EOF
 
-      - name: Verify health endpoint
+      - name: Health Check Verification
         run: |
           sleep 5
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.domesticrealestate.us/up || echo "000")
           if [ "$HTTP_STATUS" = "200" ]; then
             echo "Health check passed (HTTP $HTTP_STATUS)"
           else
-            echo "::warning::Health check returned HTTP $HTTP_STATUS — verify deployment manually"
+            echo "::warning::Health check returned HTTP $HTTP_STATUS — verify API manually at https://api.domesticrealestate.us/up"
           fi
