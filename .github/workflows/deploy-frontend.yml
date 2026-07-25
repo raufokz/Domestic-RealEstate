@@ -37,7 +37,7 @@ jobs:
         run: |
           cat > .env.production << EOF
           NEXT_PUBLIC_SITE_URL=https://domesticrealestate.us
-          NEXT_PUBLIC_API_URL=https://api.domesticrealestate.us
+          NEXT_PUBLIC_API_URL=https://api.domesticrealestate.us/api
           EOF
 
       - name: Build

@@ -38,13 +38,17 @@ jobs:
           laravel-api/ \
           ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/domains/domesticrealestate.us/public_html/laravel-api/
 
-      - name: Run Artisan
+      - name: Install Dependencies & Optimize
         run: |
           ssh -i ~/.ssh/id_ed25519 \
           -p ${{ secrets.PORT }} \
           ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
 
           cd ~/domains/domesticrealestate.us/public_html/laravel-api
+
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+          php artisan storage:link || true
 
           php artisan optimize:clear
 
@@ -54,4 +58,16 @@ jobs:
 
           php artisan view:cache
 
+          php artisan migrate --force
+
           EOF
+
+      - name: Verify health endpoint
+        run: |
+          sleep 5
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.domesticrealestate.us/up || echo "000")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "Health check passed (HTTP $HTTP_STATUS)"
+          else
+            echo "::warning::Health check returned HTTP $HTTP_STATUS — verify deployment manually"
+          fi

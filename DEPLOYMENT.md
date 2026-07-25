@@ -105,13 +105,13 @@ Push to `main` triggers GitHub Actions:
 - **Changes in `nextjs-frontend/`** → `deploy-frontend.yml` runs
   - Builds standalone Node.js server (`output: "standalone"`)
   - Copies static assets into `.next/standalone`
-  - Deploys to `public_html/frontend/`
+  - Deploys to `public_html/nextjs-frontend/`
   - Restarts PM2 process via SSH
 
-- **Changes in `laravel-api/`** → `deploy-backend.yml` runs
-  - Installs composer deps (no-dev)
+- **Changes in `laravel-api/`** → `deploy-api.yml` runs
   - rsync to `public_html/laravel-api/` (preserves `.env`, `storage/`)
-  - Runs `optimize:clear`, `config:cache`, `route:cache`, `view:cache`
+  - Installs composer deps (no-dev) on the server
+  - Runs `storage:link`, `optimize:clear`, `config:cache`, `route:cache`, `view:cache`
   - Runs `migrate --force`
   - Verifies health endpoint
 
@@ -126,7 +126,7 @@ Both workflows support **workflow_dispatch** — trigger manually from GitHub Ac
 ### Frontend (`deploy-frontend.yml`)
 
 ```
-public_html/frontend/
+public_html/nextjs-frontend/
 ├── server.js                  ← Node.js entry point
 ├── .next/                     ← Next.js build output
 │   ├── standalone/            ← Self-contained Node.js app
@@ -160,8 +160,8 @@ public_html/laravel-api/
 ### Frontend rsync
 
 ```
-# Deploys to public_html/frontend/ (NOT public_html/ directly)
-# PM2 runs: pm2 start server.js --name domestic-frontend --cwd ~/domains/domesticrealestate.us/public_html/frontend
+# Deploys to public_html/nextjs-frontend/ (NOT public_html/ directly)
+# PM2 runs: pm2 start server.js --name domestic-frontend --cwd ~/domains/domesticrealestate.us/public_html/nextjs-frontend
 ```
 
 ### Backend rsync
@@ -247,7 +247,7 @@ php artisan route:cache
 
 | Variable | Value | Type |
 |----------|-------|------|
-| `NEXT_PUBLIC_API_URL` | `https://api.domesticrealestate.us` | Client (built into JS) |
+| `NEXT_PUBLIC_API_URL` | `https://api.domesticrealestate.us/api` | Client (built into JS) |
 | `NEXT_PUBLIC_SITE_URL` | `https://domesticrealestate.us` | Client (built into JS) |
 | `PORT` | `3000` | Server (PM2 starts on this port) |
 | `HOSTNAME` | `0.0.0.0` | Server (listen on all interfaces) |
@@ -280,7 +280,7 @@ pm2 logs domestic-frontend
 # If crashed, restart:
 pm2 restart domestic-frontend
 # If missing:
-cd ~/domains/domesticrealestate.us/public_html/frontend
+cd ~/domains/domesticrealestate.us/public_html/nextjs-frontend
 pm2 start server.js --name domestic-frontend
 pm2 save
 ```

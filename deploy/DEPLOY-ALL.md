@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED — do not follow this doc.** It describes an abandoned architecture (Vercel frontend + path-based `domesticrealestate.us/api` backend). The current, live setup is Hostinger PM2 (Next.js standalone) + `api.domesticrealestate.us` subdomain, documented in `/DEPLOYMENT.md` at the repo root and automated by `.github/workflows/deploy-frontend.yml` + `deploy-api.yml`. Kept here for history only.
+
 # Domestic Real Estate — Deployment Guide
 ## Hostinger hPanel + Vercel
 

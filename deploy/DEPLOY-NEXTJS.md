@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED — do not follow this doc.** The frontend is now deployed to Hostinger via PM2 (Next.js standalone mode), not Vercel. See `/DEPLOYMENT.md` at the repo root and `.github/workflows/deploy-frontend.yml`. Kept here for history only.
+
 # Deploy Next.js Frontend to Vercel
 
 ## Why Vercel?

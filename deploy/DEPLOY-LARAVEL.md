@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED — do not follow this doc.** It describes the old path-based `domesticrealestate.us/api` layout. The backend now lives on the `api.domesticrealestate.us` subdomain with document root `laravel-api/public/`. See `/DEPLOYMENT.md` at the repo root and `.github/workflows/deploy-api.yml`. Kept here for history only.
+
 # Deploy Laravel Backend to Hostinger hPanel
 
 ## Prerequisites
