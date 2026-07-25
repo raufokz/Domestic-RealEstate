@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { API_BASE } from "@/lib/api";
 
 export default function VerifyEmailPage() {
   const [resending, setResending] = useState(false);
@@ -18,7 +19,7 @@ export default function VerifyEmailPage() {
     setResending(true);
     setError("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api"}/auth/resend-verification`, {
+      const res = await fetch(`${API_BASE}/auth/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

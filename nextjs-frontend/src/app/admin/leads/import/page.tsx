@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useToast } from "@/components/Toast";
 import HowTo from "@/components/ui/HowTo";
+import { API_BASE } from "@/lib/api";
 
 export default function ImportLeadsPage() {
   const { success, notifyError } = useToast();
@@ -104,8 +105,7 @@ export default function ImportLeadsPage() {
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
       setProgress(50);
-      const host = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
-      const res = await fetch(`${host}/leads/import`, {
+      const res = await fetch(`${API_BASE}/leads/import`, {
         method: "POST",
         headers,
         body: formData,

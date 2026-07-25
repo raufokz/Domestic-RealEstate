@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { API_BASE } from '@/lib/api';
 
-const LARAVEL_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001/api';
+const LARAVEL_API = API_BASE;
 
 /** Keyword-based smart fallback (no AI key required) */
 function getSmartFallback(message: string): string {
