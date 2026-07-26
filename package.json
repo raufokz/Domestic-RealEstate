@@ -1,0 +1,14 @@
+{
+  "name": "domestic-real-estate",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "nextjs-frontend"
+  ],
+  "scripts": {
+    "dev": "npm --prefix nextjs-frontend run dev",
+    "build": "npm --prefix nextjs-frontend run build",
+    "start": "npm --prefix nextjs-frontend run start",
+    "lint": "npm --prefix nextjs-frontend run lint"
+  }
+}
