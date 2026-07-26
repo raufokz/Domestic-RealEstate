@@ -35,16 +35,13 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel environment
-        working-directory: nextjs-frontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build
-        working-directory: nextjs-frontend
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to production
         id: deploy
-        working-directory: nextjs-frontend
         run: vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deployment summary
