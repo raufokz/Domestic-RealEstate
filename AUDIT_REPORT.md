@@ -93,7 +93,7 @@ All routes properly defined in `routes/api.php` with appropriate middleware and 
 **File**: `laravel-api/app/Services/AiService.php`
 
 **Features:**
-- Invisible AI provider layer with fallback chain: Gemini → OpenAI → Claude → Default
+- Invisible AI provider layer with fallback chain: Gemini → OpenAI → Default
 - Agent configuration management
 - Statistics tracking
 - Error handling for unavailable features
@@ -276,7 +276,7 @@ All routes properly defined in `routes/api.php` with appropriate middleware and 
 
 3. **AI Chatbot Fallback**
    - **Issue**: AI chatbot needed proper error handling
-   - **Fix**: AiService already has fallback chain (Gemini → OpenAI → Claude → default)
+   - **Fix**: AiService already has fallback chain (Gemini → OpenAI → default)
    - **File**: `laravel-api/app/Services/AiService.php`
 
 ### ✅ Fixed During Audit

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Invisible AI provider layer: Gemini (primary) → OpenAI → Claude → null/fallback.
+ * Invisible AI provider layer: Gemini (primary) → OpenAI → null/fallback.
  * Callers never expose which vendor served the response.
  */
 class AiService
@@ -42,18 +42,13 @@ class AiService
                 return ['text' => $openai, 'provider' => 'openai'];
             }
 
-            $claude = self::callClaude($messages, $temperature, $maxTokens);
-            if ($claude) {
-                return ['text' => $claude, 'provider' => 'claude'];
-            }
-
             if ($softFail) {
                 return ['text' => $fallback, 'provider' => 'fallback'];
             }
 
             throw new FeatureUnavailableException(
                 feature: 'AI tools',
-                reason: 'no AI provider is connected (Gemini, OpenAI, and Claude all unavailable)',
+                reason: 'no AI provider is connected (Gemini and OpenAI unavailable)',
                 fix: 'Go to Admin → Integrations, connect Google Gemini (free tier), save your API key, then click Test.',
                 actionUrl: '/admin/integrations',
                 codeKey: 'ai_not_connected',
@@ -309,62 +304,6 @@ class AiService
             }
         } catch (\Throwable $e) {
             IntegrationGate::markError('openai', $e->getMessage());
-        }
-
-        return null;
-    }
-
-    /**
-     * @param  array<int, array{role: string, content: string}>  $messages
-     */
-    protected static function callClaude(array $messages, float $temperature, int $maxTokens): ?string
-    {
-        $apiKey = IntegrationGate::credentialOrEnv('anthropic', 'api_key', ['ANTHROPIC_API_KEY']);
-        if (! $apiKey) {
-            return null;
-        }
-
-        $system = '';
-        $claudeMessages = [];
-        foreach ($messages as $m) {
-            if (($m['role'] ?? '') === 'system') {
-                $system .= ($m['content'] ?? '')."\n";
-                continue;
-            }
-            $claudeMessages[] = [
-                'role' => ($m['role'] ?? 'user') === 'assistant' ? 'assistant' : 'user',
-                'content' => $m['content'] ?? '',
-            ];
-        }
-        if (empty($claudeMessages)) {
-            $claudeMessages[] = ['role' => 'user', 'content' => self::flattenMessages($messages)];
-        }
-
-        try {
-            $response = Http::timeout(30)->withHeaders([
-                'x-api-key' => $apiKey,
-                'anthropic-version' => '2023-06-01',
-                'Content-Type' => 'application/json',
-            ])->post('https://api.anthropic.com/v1/messages', [
-                'model' => 'claude-3-haiku-20240307',
-                'max_tokens' => $maxTokens,
-                'temperature' => $temperature,
-                'system' => trim($system) ?: self::DEFAULT_SYSTEM,
-                'messages' => $claudeMessages,
-            ]);
-            if (! $response->successful()) {
-                IntegrationGate::markError('anthropic', 'Claude returned HTTP '.$response->status());
-
-                return null;
-            }
-            $text = $response->json('content.0.text');
-            if ($text) {
-                IntegrationGate::markConnected('anthropic');
-
-                return $text;
-            }
-        } catch (\Throwable $e) {
-            IntegrationGate::markError('anthropic', $e->getMessage());
         }
 
         return null;

@@ -233,7 +233,7 @@ export default function AiTestingPage() {
         {/* Provider Comparison */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
           <h3 className="font-semibold text-[#0A2647] mb-2">Provider Comparison</h3>
-          <p className="text-sm text-slate-500 mb-4">Compare responses from Gemini, OpenAI, and Claude side by side.</p>
+          <p className="text-sm text-slate-500 mb-4">Compare responses from Gemini and OpenAI side by side.</p>
           <div className="flex gap-3 mb-4">
             <input
               type="text"

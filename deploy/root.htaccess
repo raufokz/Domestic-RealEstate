@@ -20,7 +20,6 @@ Options -Indexes
     RewriteBase /
 
     RewriteRule ^\.git(/|$) - [F,L]
-    RewriteRule ^\.claude(/|$) - [F,L]
     RewriteRule ^\.github(/|$) - [F,L]
     RewriteRule ^deploy(/|$) - [F,L]
     RewriteRule ^laravel-api/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]

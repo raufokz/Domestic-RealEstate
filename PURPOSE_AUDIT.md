@@ -92,7 +92,7 @@ service_request           1
 | **Own CRM — pipeline/Kanban** | BROKEN | ✅ | ✅ | ❌ 0 pipelines | ❌ | ❌ | Seeder never run; assignment silently no-ops |
 | **Own CRM — tasks/notes/deals** | UI ONLY | ✅ | ✅ | ❌ 0 rows | — | ❌ | Never exercised |
 | **Lead scoring** | PARTIAL | ✅ | ✅ | ✅ | — | ❌ | 6-dimension algorithm in code, unverified against real data |
-| **Own AI — orchestration** | BLOCKED | ✅ | ✅ | ✅ | ✅ | ❌ | Gemini→OpenAI→Claude→fallback chain correct; **keys are placeholders** |
+| **Own AI — orchestration** | BLOCKED | ✅ | ✅ | ✅ | ✅ | ❌ | Gemini→OpenAI→fallback chain correct; **keys are placeholders** |
 | **Own AI — 13 agents** | BLOCKED | ✅ | ✅ | ✅ 13 configs | — | ❌ | Admin toggle/prompt/test/logs exist; all responses are canned fallback |
 | **Chat widget** | PARTIAL | ✅ | ✅ | ✅ 12 convos | ✅ | ⚠️ | Opens/sends/captures leads. Answers are fallback text, not AI |
 | **Buyer journey** | PARTIAL | ✅ | ✅ | ⚠️ | ❌ | ❌ | Forms work; portal data thin |

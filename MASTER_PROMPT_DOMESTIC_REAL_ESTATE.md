@@ -40,7 +40,7 @@ Existing monorepo:
 | Frontend | Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + Framer Motion + Leaflet |
 | Backend | Laravel 12 + PHP 8.2 + MySQL + Sanctum + Spatie Permissions + Queues (Redis/Predis) |
 | Email | Namecheap Private Email SMTP (mail.privateemail.com) — primary |
-| AI | Google Gemini (primary free tier) + OpenAI/Claude pluggable fallbacks |
+| AI | Google Gemini (primary free tier) + OpenAI pluggable fallback |
 | Maps | Google Maps / Places when key exists → **OpenStreetMap + Leaflet fallback** |
 | Payments | **Payoneer ONLY** (manual invoice workflow) — NO Stripe, NO PayPal, NO card gateways |
 | CRM | **Internal CRM** — MUST fully replace GoHighLevel. GHL is optional/legacy only; never required. |
@@ -473,7 +473,7 @@ Build Domestic Real Estate — **Your Key to Home**.
 
 | Use | Instruction |
 |-----|-------------|
-| Cursor / Claude / GPT builder | Paste full prompt + attach `laravel-api/` + `nextjs-frontend/` |
+| Cursor / GPT builder | Paste full prompt + attach `laravel-api/` + `nextjs-frontend/` |
 | Sprint planning | Ask: “Audit repo against MASTER_PROMPT and produce gap list only” |
 | Feature slice | Paste prompt + “Implement only section X; do not remove existing features” |
 | QA | Paste section 13 + 14 checklist and demand real Test button results |
