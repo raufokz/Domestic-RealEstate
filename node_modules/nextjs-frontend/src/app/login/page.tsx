@@ -99,44 +99,48 @@ export default function LoginPage() {
 
           <h2 className="text-3xl font-bold text-[#0A2647]">Welcome back</h2>
           <p className="text-slate-500 mt-2 mb-6">
-            Sign in to your account to continue or select a demo role below.
+            {process.env.NODE_ENV !== "production"
+              ? "Sign in to your account to continue or select a demo role below."
+              : "Sign in to your account to continue."}
           </p>
 
           {/* Quick Fill Helper */}
-          <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Quick Demo Autofill
-              </span>
-              <span className="text-[11px] text-amber-700">1-click test credentials</span>
+          {process.env.NODE_ENV !== "production" && (
+            <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Quick Demo Autofill
+                </span>
+                <span className="text-[11px] text-amber-700">1-click test credentials</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickFill("admin")}
+                  className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
+                >
+                  Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickFill("agent")}
+                  className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
+                >
+                  Agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickFill("buyer")}
+                  className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
+                >
+                  Buyer
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickFill("admin")}
-                className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill("agent")}
-                className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
-              >
-                Agent
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill("buyer")}
-                className="py-1.5 px-2 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-950 font-semibold text-xs rounded-lg transition shadow-sm"
-              >
-                Buyer
-              </button>
-            </div>
-          </div>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-start gap-2">
