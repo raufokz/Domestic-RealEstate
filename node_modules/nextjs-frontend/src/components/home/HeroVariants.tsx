@@ -47,18 +47,18 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
           >
             <div className="inline-flex items-center gap-2 bg-[#C9A227]/20 border border-[#C9A227]/50 text-[#C9A227] px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#C9A227] animate-pulse" />
-              #1 Real Estate Lead & Software Platform
+              #1 Domestic Real Estate Lead Platform | DomesticRealEstate
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
-              Empowering Top Real Estate <br />
+              Empowering Domestic Real Estate <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-[#C9A227] to-amber-400">
                 Investors & Agencies
               </span>
             </h1>
 
             <p className="mt-5 text-slate-100 text-base sm:text-lg leading-relaxed font-normal drop-shadow-sm">
-              Unlock high-intent motivated seller leads, off-market comp analytics, and direct-to-seller communications through our nationwide network.
+              Welcome to <strong className="text-amber-200 font-semibold">Domestic Real Estate</strong> — your premier <strong className="text-amber-200 font-semibold">domestic realestate</strong> network. Unlock high-intent motivated seller leads, off-market comp analytics, and direct-to-seller communications on <strong className="text-amber-200 font-semibold">DomesticRealEstate</strong>.
             </p>
 
             {/* KPI Stat Badges */}
@@ -68,7 +68,7 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                 className="bg-slate-800/95 border border-slate-700 p-4 rounded-2xl shadow-xl backdrop-blur-md"
               >
                 <div className="text-3xl font-extrabold text-[#C9A227] font-mono">15,400+</div>
-                <div className="text-xs text-slate-200 font-bold mt-1">Active Monthly Leads</div>
+                <div className="text-xs text-slate-200 font-bold mt-1">Domestic Real Estate Leads</div>
               </motion.div>
 
               <motion.div
@@ -76,7 +76,7 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                 className="bg-slate-800/95 border border-slate-700 p-4 rounded-2xl shadow-xl backdrop-blur-md"
               >
                 <div className="text-3xl font-extrabold text-emerald-400 font-mono">$2.8B+</div>
-                <div className="text-xs text-slate-200 font-bold mt-1">Total Deals Closed</div>
+                <div className="text-xs text-slate-200 font-bold mt-1">DomesticRealEstate Closed Deals</div>
               </motion.div>
             </div>
 
@@ -88,7 +88,7 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                 whileTap={{ scale: 0.96 }}
                 className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-8 py-4 rounded-xl text-sm shadow-[0_8px_20px_rgba(201,162,39,0.35)] border-b-4 border-amber-600 active:translate-y-1 transition-all cursor-pointer inline-flex items-center gap-2"
               >
-                <span>Explore Lead Marketplace</span>
+                <span>Explore Domestic Real Estate Marketplace</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -100,7 +100,7 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                 whileTap={{ scale: 0.96 }}
                 className="bg-slate-800 hover:bg-slate-700 text-white font-extrabold px-6 py-4 rounded-xl text-sm border-b-4 border-slate-950 transition-all cursor-pointer inline-flex items-center gap-2"
               >
-                <span>View Platform Demo</span>
+                <span>View DomesticRealEstate Demo</span>
               </motion.a>
             </div>
           </motion.div>
@@ -114,10 +114,10 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
               {[
-                { title: "Off-Market Single Family", loc: "Dallas, TX", score: "99 Match", price: "$310,000", tag: "Hot Seller", icon: "🏡" },
-                { title: "Pre-Foreclosure Duplex", loc: "Tampa, FL", score: "96 Match", price: "$490,000", tag: "Exclusive", icon: "🏢" },
-                { title: "Absentee Owner Home", loc: "Phoenix, AZ", score: "94 Match", price: "$280,000", tag: "High Yield", icon: "🔑" },
-                { title: "High-Equity Penthouse", loc: "Atlanta, GA", score: "92 Match", price: "$360,000", tag: "Verified", icon: "🏙️" },
+                { title: "Domestic Real Estate Single Family", loc: "Dallas, TX", score: "99 Match", price: "$310,000", tag: "DomesticRealEstate Hot", icon: "🏡" },
+                { title: "Pre-Foreclosure Duplex Deal", loc: "Tampa, FL", score: "96 Match", price: "$490,000", tag: "Domestic RealEstate", icon: "🏢" },
+                { title: "Absentee Owner Property", loc: "Phoenix, AZ", score: "94 Match", price: "$280,000", tag: "Domestic Real Estate", icon: "🔑" },
+                { title: "High-Equity Penthouse Deal", loc: "Atlanta, GA", score: "92 Match", price: "$360,000", tag: "DomesticRealEstate", icon: "🏙️" },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}

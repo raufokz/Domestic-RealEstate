@@ -4,11 +4,18 @@ import JsonLd from "@/components/seo/JsonLd";
 import HomeClient from "@/components/home/HomeClient";
 
 export const metadata: Metadata = buildMetadata({
-  title: "AI-Powered Real Estate Platform | Buy, Sell & Invest",
+  title: "Domestic Real Estate | AI-Powered DomesticRealEstate & Property Network",
   description:
-    "Domestic Real Estate — your key to home. Search thousands of MLS listings, get instant AI property valuations, off-market deal flow, and connect with top 1% agents across the US and Canada.",
+    "Domestic Real Estate (domesticrealestate.us) — your premier domestic realestate portal. Search thousands of MLS listings, get instant AI property valuations, off-market deal flow, and connect with top agents.",
   path: "/",
   keywords: [
+    "Domestic Real Estate",
+    "domestic real estate",
+    "DomesticRealEstate",
+    "domesticrealestate",
+    "Domestic RealEstate",
+    "domestic realestate",
+    "domesticrealestate.us",
     "real estate platform",
     "buy home online",
     "sell home fast",
@@ -20,18 +27,18 @@ export const metadata: Metadata = buildMetadata({
     "mortgage calculator",
     "home buyer assistance",
     "cash offers real estate",
-    "Domestic Real Estate",
   ],
 });
 
 const orgSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: SITE_NAME,
+  name: "Domestic Real Estate",
+  alternateName: ["DomesticRealEstate", "domestic realestate"],
   url: SITE_URL,
   logo: `${SITE_URL}/Domestic-logo.png`,
   description:
-    "AI-powered real estate platform connecting buyers, sellers, and investors with top agents and off-market deals across the United States and Canada.",
+    "Domestic Real Estate (DomesticRealEstate) is an AI-powered domestic realestate platform connecting buyers, sellers, and investors with top agents and off-market deals across the United States and Canada.",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",
