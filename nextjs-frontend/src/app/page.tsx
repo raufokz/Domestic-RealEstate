@@ -4,18 +4,18 @@ import JsonLd from "@/components/seo/JsonLd";
 import HomeClient from "@/components/home/HomeClient";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Domestic Real Estate | AI-Powered DomesticRealEstate & Property Network",
+  fullTitle: "Domestic Real Estate | #1 AI Property & Off-Market Marketplace (DomesticRealEstate)",
+  title: "Domestic Real Estate | Buy, Sell & Invest Properties",
   description:
-    "Domestic Real Estate (domesticrealestate.us) — your premier domestic realestate portal. Search thousands of MLS listings, get instant AI property valuations, off-market deal flow, and connect with top agents.",
+    "Domestic Real Estate (DomesticRealEstate / Domestic Realestate) — Your key to home. Search thousands of MLS listings, get instant AI property valuations, off-market deal flow, and connect with top 1% agents across the US and Canada.",
   path: "/",
   keywords: [
     "Domestic Real Estate",
     "domestic real estate",
     "DomesticRealEstate",
     "domesticrealestate",
-    "Domestic RealEstate",
+    "Domestic Realestate",
     "domestic realestate",
-    "domesticrealestate.us",
     "real estate platform",
     "buy home online",
     "sell home fast",
@@ -33,12 +33,12 @@ export const metadata: Metadata = buildMetadata({
 const orgSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Domestic Real Estate",
-  alternateName: ["DomesticRealEstate", "domestic realestate"],
+  name: SITE_NAME,
+  alternateName: ["Domestic Realestate", "DomesticRealEstate", "domestic real estate"],
   url: SITE_URL,
   logo: `${SITE_URL}/Domestic-logo.png`,
   description:
-    "Domestic Real Estate (DomesticRealEstate) is an AI-powered domestic realestate platform connecting buyers, sellers, and investors with top agents and off-market deals across the United States and Canada.",
+    "Domestic Real Estate (DomesticRealEstate / Domestic Realestate) is an AI-powered real estate platform connecting buyers, sellers, and investors with top agents and off-market deals across the United States and Canada.",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",
@@ -52,6 +52,7 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: SITE_NAME,
+  alternateName: ["Domestic Realestate", "DomesticRealEstate"],
   url: SITE_URL,
   potentialAction: {
     "@type": "SearchAction",

@@ -92,7 +92,7 @@ export default function FooterVariants() {
           <div className="lg:col-span-5">
             <Logo size="xl" href="/" dark />
             <p className="text-slate-400 text-sm mt-4 max-w-md leading-relaxed">
-              Your trusted platform for real estate investments, agent connections, and property discovery across the United States and Canada.
+              Domestic Real Estate (DomesticRealEstate / Domestic Realestate) — Your trusted platform for real estate investments, agent connections, and property discovery across the United States and Canada.
             </p>
             <form onSubmit={handleSubscribe} className="mt-6 flex items-center gap-2">
               <input

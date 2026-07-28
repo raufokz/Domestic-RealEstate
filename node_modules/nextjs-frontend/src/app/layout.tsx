@@ -34,9 +34,8 @@ export const metadata: Metadata = {
     "domestic real estate",
     "DomesticRealEstate",
     "domesticrealestate",
-    "Domestic RealEstate",
+    "Domestic Realestate",
     "domestic realestate",
-    "domesticrealestate.us",
     "real estate",
     "domestic properties",
     "buy home",
@@ -63,7 +62,7 @@ export const metadata: Metadata = {
     siteName: "Domestic Real Estate",
     title: "Domestic Real Estate | Your Key to Home",
     description:
-      "Domestic Real Estate (DomesticRealEstate) — the premier AI-powered domestic realestate platform. Buy, sell, and invest in properties across the US & Canada with intelligent search and expert guidance.",
+      "Domestic Real Estate (DomesticRealEstate / Domestic Realestate) — The premium AI-powered real estate platform. Buy, sell, and invest in properties across the US & Canada.",
     images: [
       {
         url: "/og-image.png",
@@ -75,9 +74,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Domestic Real Estate | DomesticRealEstate",
+    title: "Domestic Real Estate | Your Key to Home",
     description:
-      "Domestic Real Estate (domestic realestate) — premier AI-powered property platform. Buy, sell, and invest in properties across the US & Canada.",
+      "Domestic Real Estate (DomesticRealEstate / Domestic Realestate) — The premium AI-powered real estate platform.",
     images: ["/og-image.png"],
     creator: "@domesticrealestate",
   },
@@ -107,11 +106,11 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
   name: "Domestic Real Estate",
-  alternateName: ["DomesticRealEstate", "domestic realestate", "DomesticRE"],
+  alternateName: ["Domestic Realestate", "DomesticRealEstate", "DomesticRE", "domestic real estate"],
   url: "https://domesticrealestate.us",
   logo: "https://domesticrealestate.us/Domestic-logo.png",
   description:
-    "Domestic Real Estate (DomesticRealEstate) is the premier AI-powered domestic realestate platform for buying, selling, and investing in properties across the US & Canada.",
+    "Domestic Real Estate (also known as DomesticRealEstate and Domestic Realestate) is the premier AI-powered platform for buying, selling, and investing in residential & commercial properties across North America.",
   email: "info@domesticrealestate.us",
   address: {
     "@type": "PostalAddress",

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Real Estate Services & Solutions | Domestic Real Estate",
+  title: "Domestic Real Estate Services | Premier Solutions & Lead Generation",
   description:
-    "Explore Domestic Real Estate's full suit of real estate solutions: AI deal matching, off-market lead generation, MLS search, skip tracing, PPC management, branding, and virtual assistants.",
+    "Explore Domestic Real Estate Services: AI deal matching, off-market motivated seller lead generation, MLS search, skip tracing, PPC management, and virtual assistants.",
   keywords: [
+    "Domestic Real Estate Services",
     "real estate services",
     "lead generation",
     "AI real estate assistant",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     "off market property search",
   ],
   openGraph: {
-    title: "Real Estate Services & Solutions | Domestic Real Estate",
+    title: "Domestic Real Estate Services | Premier Solutions & Lead Generation",
     description: "Empowering real estate agents, buyers, sellers, investors, and lenders with technology.",
     url: "https://domesticrealestate.us/services",
     siteName: "Domestic Real Estate",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  serviceType: "Real Estate Platform & Intelligence Services",
+  serviceType: "Domestic Real Estate Services",
   provider: {
     "@type": "Organization",
     name: "Domestic Real Estate",
@@ -122,15 +123,15 @@ export default function ServicesPage() {
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
             <span className="w-2.5 h-2.5 bg-[#C9A227] rounded-full animate-pulse" />
             <span className="text-white text-xs sm:text-sm font-semibold tracking-wider uppercase">
-              Full-Spectrum Real Estate Solutions
+              Full-Spectrum Domestic Real Estate Services
             </span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl font-bold text-white max-w-4xl mx-auto leading-tight">
-            Accelerate Your Growth With <span className="text-[#C9A227]">Intelligent Services</span>
+            Accelerate Growth With <span className="text-[#C9A227]">Domestic Real Estate Services</span>
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-slate-200 max-w-3xl mx-auto font-body leading-relaxed">
-            Whether you are a listing agent, cash buyer, mortgage lender, or individual homeowner, our technology suite turns real estate goals into closed transactions.
+            Whether you are a listing agent, cash buyer, mortgage lender, or investor, our comprehensive Domestic Real Estate Services turn property targets into closed transactions.
           </p>
         </div>
       </section>

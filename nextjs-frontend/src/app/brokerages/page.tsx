@@ -2,10 +2,17 @@ import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Real Estate Brokerage Solutions",
-  description: "White-label real estate platform solutions for brokerages. Custom branding, agent management, and deal flow tools.",
+  title: "Domestic Real Estate Brokers & Brokerage Solutions | Company Tech",
+  description: "Enterprise solutions for Domestic Real Estate Brokers and agent teams. Scale your Domestic Real Estate Company with automated lead distribution, white-label branding, and CRM integrations.",
   path: "/brokerages",
-  keywords: ["real estate brokerage", "brokerage solutions", "white label real estate", "agent management"],
+  keywords: [
+    "Domestic Real Estate Brokers",
+    "Domestic Real Estate Company",
+    "real estate brokerage",
+    "brokerage solutions",
+    "white label real estate",
+    "agent management",
+  ],
 });
 
 export default function BrokeragesPage() {
@@ -17,15 +24,15 @@ export default function BrokeragesPage() {
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
             <span className="w-2.5 h-2.5 bg-[#C9A227] rounded-full animate-pulse" />
             <span className="text-white text-xs sm:text-sm font-semibold tracking-wider uppercase">
-              Brokerage Platform
+              Domestic Real Estate Brokers Platform
             </span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl font-bold text-white max-w-4xl mx-auto leading-tight">
-            Scale Your Entire <span className="text-[#C9A227]">Brokerage Team</span>
+            Empowering <span className="text-[#C9A227]">Domestic Real Estate Brokers</span> & Teams
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-slate-200 max-w-3xl mx-auto font-body leading-relaxed">
-            Empower your team of agents with automated lead routing, zip code market protection, and institutional CRM integrations.
+            Scale your Domestic Real Estate Company with automated lead routing, zip code market protection, white-label transaction management, and institutional CRM integrations.
           </p>
 
           <div className="mt-10 flex justify-center gap-4">

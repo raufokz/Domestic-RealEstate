@@ -25,18 +25,18 @@ export default function RealEstateBeesHome() {
   const proSegments = [
     {
       id: "01",
-      title: "Domestic Real Estate Investors",
-      tagline: "High-Yield Domestic Real Estate Lead Flow & Investment Software",
-      desc: "Connect directly with motivated off-market sellers, distressed property leads, and institutional funding partners on DomesticRealEstate. Access real-time ROI tracking, automated comps, and instant skip-tracing tools.",
+      title: "Investors",
+      tagline: "High-Yield Real Estate Lead Flow & Investment Software",
+      desc: "Connect directly with motivated off-market sellers, distressed property leads, and institutional funding partners. Access real-time ROI tracking, automated comps, and instant skip-tracing tools.",
       cta: "Explore Investor Tools",
       icon: "💼",
       href: "/investors",
     },
     {
       id: "02",
-      title: "Domestic Real Estate Agents",
-      tagline: "Exclusive Domestic RealEstate Buyer & Seller Leads in Your Zip Code",
-      desc: "Supercharge your commission pipeline with pre-vetted buyer & seller inquiries from domestic realestate campaigns. Utilize automated CRM integrations, drip campaigns, and targeted local advertising.",
+      title: "Agents",
+      tagline: "Exclusive Buyer & Seller Leads in Your Local Zip Code",
+      desc: "Supercharge your commission pipeline with pre-vetted buyer & seller inquiries. Utilize automated CRM integrations, drip campaigns, and targeted local advertising.",
       cta: "Explore Agent Solutions",
       icon: "🏆",
       href: "/realtors",
@@ -44,8 +44,8 @@ export default function RealEstateBeesHome() {
     {
       id: "03",
       title: "Brokers",
-      tagline: "Enterprise Brokerage Management on DomesticRealEstate",
-      desc: "Scale your team with intelligent domestic real estate lead routing, agent performance analytics, automated compliance reporting, and white-label transaction management.",
+      tagline: "Enterprise Brokerage Management & Lead Distribution",
+      desc: "Scale your team with intelligent lead routing, agent performance analytics, automated compliance reporting, and white-label transaction management.",
       cta: "Explore Brokerage Tech",
       icon: "🏢",
       href: "/brokerages",
@@ -53,8 +53,8 @@ export default function RealEstateBeesHome() {
     {
       id: "04",
       title: "Lenders",
-      tagline: "Qualified Loan Applicants & Domestic Real Estate Mortgage Leads",
-      desc: "Receive pre-qualified mortgage, refinance, and hard-money loan requests directly from active domestic real estate buyers and property investors on DomesticRealEstate.",
+      tagline: "Qualified Loan Applicants & Mortgage Lead Generation",
+      desc: "Receive pre-qualified mortgage, refinance, and hard-money loan requests directly from active home buyers and property investors.",
       cta: "Explore Lending Leads",
       icon: "💳",
       href: "/lenders",
@@ -62,8 +62,8 @@ export default function RealEstateBeesHome() {
     {
       id: "05",
       title: "Tech Pros",
-      tagline: "Domestic Real Estate API, SaaS Integrations & Data Feeds",
-      desc: "Integrate nationwide MLS feeds, property valuation APIs, AI skip tracing, and automated marketing Webhooks with DomesticRealEstate developer tools.",
+      tagline: "Real Estate API, SaaS Integrations & Data Feeds",
+      desc: "Integrate nationwide MLS feeds, property valuation APIs, AI skip tracing, and automated marketing Webhooks into your software platform.",
       cta: "Explore Developer APIs",
       icon: "⚡",
       href: "/resources",
@@ -71,8 +71,8 @@ export default function RealEstateBeesHome() {
     {
       id: "06",
       title: "Services",
-      tagline: "Connect with Domestic Real Estate Buyers, Sellers & Agents",
-      desc: "Showcase your title, inspection, appraisal, or legal services directly to active domestic realestate transactions on Domestic Real Estate.",
+      tagline: "Connect with Buyers, Sellers & Top-Producing Agents",
+      desc: "Showcase your title, inspection, appraisal, or legal services directly to active real estate transactions in your regional market.",
       cta: "List Your Service",
       icon: "🛠️",
       href: "/services",
@@ -183,20 +183,24 @@ export default function RealEstateBeesHome() {
 
   const faqItems = [
     {
-      q: "How does the Domestic Real Estate (DomesticRealEstate) Lead Generation Marketplace work?",
-      a: "Our Domestic Real Estate network connects real estate agents, investors, and brokers directly with motivated seller leads, off-market property owners, and pre-screened home buyers. Leads are verified using real-time skip tracing and domestic realestate property data feeds.",
+      q: "What is Domestic Real Estate (DomesticRealEstate / Domestic Realestate)?",
+      a: "Domestic Real Estate (commonly searched as DomesticRealEstate or Domestic Realestate) is an AI-powered proptech marketplace connecting buyers, sellers, property investors, and licensed real estate agents with verified seller leads, off-market listings, and market analytics.",
     },
     {
-      q: "Are Domestic Real Estate leads exclusive or shared among multiple agents?",
-      a: "We offer both 100% exclusive zip code lead packages assigned to a single agent as well as shared marketplace inquiries on DomesticRealEstate for wholesalers and private lenders.",
+      q: "How does the Domestic Real Estate Lead Generation Marketplace work?",
+      a: "Our Domestic Real Estate network connects agents, investors, and brokers directly with motivated seller leads, off-market property owners, and pre-screened home buyers. Leads are verified using real-time skip tracing and property data feeds.",
     },
     {
-      q: "Can I integrate domestic realestate leads with my existing CRM?",
-      a: "Yes! Our DomesticRealEstate platform features native Webhook and API integrations supporting Follow Up Boss, KVCore, Salesforce, HubSpot, Zapier, and leading real estate CRMs.",
+      q: "Are the leads exclusive or shared among multiple agents?",
+      a: "We offer both 100% exclusive lead packages assigned to a single zip code agent as well as shared marketplace inquiries for wholesalers and private lenders across Domestic Realestate markets.",
     },
     {
-      q: "How are domestic real estate software platforms evaluated and reviewed on DomesticRealEstate?",
-      a: "Our Domestic Real Estate editorial board benchmarks software based on conversion ROI, customer service ratings, platform uptime, API access, and verified user testimonials.",
+      q: "Can I integrate Domestic Real Estate leads with my existing CRM?",
+      a: "Yes! The DomesticRealEstate platform features native Webhook and API integrations supporting Follow Up Boss, KVCore, Salesforce, HubSpot, Zapier, and leading real estate CRMs.",
+    },
+    {
+      q: "How are Domestic Real Estate software platforms evaluated and reviewed?",
+      a: "Our editorial board benchmarks software based on conversion ROI, customer service ratings, platform uptime, API access, and verified user testimonials across domestic real estate markets.",
     },
   ];
 
@@ -218,14 +222,14 @@ export default function RealEstateBeesHome() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-[#C9A227] text-xs font-mono font-bold uppercase tracking-wider">Live Domestic Real Estate Deal Marketplace Feed</span>
+              <span className="text-[#C9A227] text-xs font-mono font-bold uppercase tracking-wider">Live Deal Marketplace Feed</span>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
               <p className="text-xs text-slate-200 font-medium">
-                ⚡ Real-time motivated seller inquiries claimed on DomesticRealEstate in the last 60 minutes
+                ⚡ Real-time motivated seller inquiries claimed by agents & investors in the last 60 minutes
               </p>
               <Link href="/register" className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-4 py-2 rounded-lg text-xs transition-all shadow-md shrink-0 text-center">
-                Claim Domestic Real Estate Deals
+                Claim All Deals
               </Link>
             </div>
           </div>
@@ -262,12 +266,44 @@ export default function RealEstateBeesHome() {
         </div>
       </section>
 
+      {/* ── ABOUT SECTION: DOMESTIC REAL ESTATE SOLUTIONS ── */}
+      <section className="py-16 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-6 text-left">
+              <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">About Our Platform</span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
+                Innovative Domestic Real Estate Solutions
+              </h2>
+              <p className="mt-4 text-slate-700 text-base leading-relaxed font-medium">
+                As an industry-leading <strong>Domestic Real Estate Company</strong>, we deliver end-to-end <strong>Domestic Real Estate Solutions</strong> for property buyers, sellers, investors, and licensed <strong>Domestic Real Estate Brokers</strong> across the United States and Canada.
+              </p>
+              <p className="mt-3 text-slate-600 text-sm leading-relaxed">
+                From real-time skip tracing and verified motivated seller lead pipelines to instant AI property valuation algorithms, our platform powers high-intent property transactions across every major <strong>Domestic Real Estate Market</strong>.
+              </p>
+            </div>
+            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
+                <div className="text-3xl mb-2">🏢</div>
+                <h3 className="font-extrabold text-[#0A2647] text-base mb-1">Company Leadership</h3>
+                <p className="text-xs text-slate-600">Nationwide network connecting top 1% agents, buyers, and sellers.</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
+                <div className="text-3xl mb-2">⚙️</div>
+                <h3 className="font-extrabold text-[#0A2647] text-base mb-1">Intelligent Solutions</h3>
+                <p className="text-xs text-slate-600">Off-market deal matching, skip-tracing, and automated CRM sync.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── "EMPOWERING REAL ESTATE PROS" HEXAGONAL SELECTOR ── */}
       <section className="py-20 bg-slate-100 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Tailored Domestic Real Estate Solutions</span>
+          <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Tailored Solutions</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1 mb-12">
-            Empowering Domestic Real Estate Professionals | DomesticRealEstate
+            Empowering Domestic Real Estate Professionals
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center text-left">
@@ -344,10 +380,10 @@ export default function RealEstateBeesHome() {
         <div className="text-center mb-10">
           <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Complete Directory</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
-            One-Stop Shop for All Domestic Real Estate & DomesticRealEstate Resources
+            Domestic Real Estate Services & Resource Directory
           </h2>
           <p className="mt-2 text-sm text-slate-600 font-medium max-w-2xl mx-auto">
-            Browse verified domestic real estate tools, lead sources, lenders, and service providers on domestic realestate.
+            Browse verified tools, lead sources, lenders, and service providers tailored to your real estate role.
           </p>
 
           {/* Directory Category Filter Tabs */}
@@ -380,7 +416,7 @@ export default function RealEstateBeesHome() {
             <span className="text-slate-400">🔍</span>
             <input
               type="text"
-              placeholder="Search 500+ domestic real estate lead tools, CRMs, DomesticRealEstate resources..."
+              placeholder="Search 500+ real estate lead tools, CRMs, lenders..."
               value={directorySearch}
               onChange={(e) => setDirectorySearch(e.target.value)}
               className="w-full text-xs font-semibold text-slate-800 bg-transparent focus:outline-none placeholder-slate-400"
@@ -449,12 +485,12 @@ export default function RealEstateBeesHome() {
       <section className="py-20 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Domestic RealEstate Benchmarks</span>
+            <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Platform Benchmarks</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
-              Domestic Real Estate Tech Comparison Matrix
+              Real Estate Tech Comparison Matrix
             </h2>
             <p className="text-xs text-slate-600 font-medium max-w-xl mx-auto mt-2">
-              Compare domestic real estate lead quality, automation features, and verified DomesticRealEstate user ratings across top platforms.
+              Compare lead quality, automation features, and verified user ratings across top platforms.
             </p>
           </div>
 
@@ -499,11 +535,11 @@ export default function RealEstateBeesHome() {
       <section className="py-20 bg-slate-100 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Interactive Domestic Real Estate Modeler</span>
+            <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Interactive Modeler</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
-              Domestic Real Estate Investor & Agent Financial Tools Hub
+              Investor & Agent Financial Tools Hub
             </h2>
-            <p className="text-xs text-slate-600 font-medium mt-1">Run quick calculations on deal profitability and property returns in real time with DomesticRealEstate tools.</p>
+            <p className="text-xs text-slate-600 font-medium mt-1">Run quick calculations on deal profitability and property returns in real time.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -576,10 +612,10 @@ export default function RealEstateBeesHome() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10">
             <div>
               <span className="text-[#C9A227] text-xs font-mono uppercase tracking-widest">Regional Intelligence</span>
-              <h2 className="text-3xl font-extrabold text-white mt-1">Top City Domestic Real Estate Markets</h2>
+              <h2 className="text-3xl font-extrabold text-white mt-1">Top City Real Estate Lead Markets</h2>
             </div>
             <p className="text-xs text-slate-200 max-w-md mt-2 md:mt-0 font-medium">
-              Explore active motivated seller deals and average pricing metrics across major domestic real estate metropolitan areas on DomesticRealEstate.
+              Explore active motivated seller deals and average pricing metrics across major high-growth metropolitan areas.
             </p>
           </div>
 
@@ -610,10 +646,10 @@ export default function RealEstateBeesHome() {
             <div className="lg:col-span-6 text-left">
               <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Interactive Calculator</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1 leading-tight">
-                Calculate Your Domestic Real Estate Commission Pipeline & ROI
+                Calculate Your Commission Pipeline & ROI
               </h2>
               <p className="mt-4 text-slate-800 text-base leading-relaxed font-medium">
-                Estimate your annual domestic realestate deal revenue based on monthly lead volume and average commission size using our DomesticRealEstate pipeline modeler.
+                Estimate your annual deal revenue based on monthly lead volume and average commission size using our real estate pipeline modeler.
               </p>
 
               <div className="mt-8 space-y-6">
@@ -681,11 +717,11 @@ export default function RealEstateBeesHome() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-10">
             <div>
-              <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Domestic Real Estate Directory</span>
-              <h2 className="text-3xl font-extrabold text-[#0A2647] mt-1">Top Rated Domestic Real Estate Agents & Advisors</h2>
+              <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Industry Directory</span>
+              <h2 className="text-3xl font-extrabold text-[#0A2647] mt-1">Top Rated Agents & Advisors</h2>
             </div>
             <Link href="/realtors/agent-directory" className="text-xs font-extrabold text-[#0A2647] hover:underline">
-              View Full DomesticRealEstate Agent Directory →
+              View Full Agent Directory →
             </Link>
           </div>
 
@@ -769,24 +805,24 @@ export default function RealEstateBeesHome() {
             
             <div className="lg:col-span-7">
               <span className="bg-[#C9A227] text-[#0A2647] text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-                DomesticRealEstate Network
+                Industry Network
               </span>
               <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 leading-tight">
-                Join The Largest Rapidly Growing Community of <span className="text-[#C9A227]">Domestic Real Estate Experts</span>
+                Join The Largest Rapidly Growing Community of <span className="text-[#C9A227]">Real Estate Experts</span>
               </h2>
 
               <ul className="mt-6 space-y-3 text-sm text-slate-100 font-medium">
                 <li className="flex items-center gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Access exclusive off-market deals and verified domestic realestate motivated seller lead channels.
+                  Access exclusive off-market deals and verified motivated seller lead channels.
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Network directly with 45,000+ domestic real estate investors, top brokers, lenders, and tech partners.
+                  Network directly with 45,000+ investors, top brokers, lenders, and tech partners.
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Get featured in nationwide DomesticRealEstate directories and rank higher locally.
+                  Get featured in nationwide real estate directories and rank higher locally.
                 </li>
               </ul>
 
@@ -820,7 +856,7 @@ export default function RealEstateBeesHome() {
         <div className="max-w-4xl mx-auto px-4 text-left">
           <div className="text-center mb-12">
             <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Frequently Asked Questions</span>
-            <h2 className="text-3xl font-extrabold text-[#0A2647] mt-1">Everything You Need to Know About Domestic Real Estate</h2>
+            <h2 className="text-3xl font-extrabold text-[#0A2647] mt-1">Everything You Need to Know</h2>
           </div>
 
           <div className="space-y-4">
