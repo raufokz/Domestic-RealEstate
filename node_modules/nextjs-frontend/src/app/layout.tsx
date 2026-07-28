@@ -91,6 +91,9 @@ export const metadata: Metadata = {
     apple: "/Domestic-logo.png",
   },
   manifest: "/manifest.json",
+  verification: {
+    google: "qbZTuhuvcr5vDJ_QcIlUwv2wiFIdyYJCOPSpaW3OTWE",
+  },
 };
 
 const organizationSchema = {
