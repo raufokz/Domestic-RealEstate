@@ -101,21 +101,50 @@ export default function HeaderVariants() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="w-full sticky top-0 z-50 bg-[#07162C]/95 border-b border-[#C9A227]/40 shadow-2xl backdrop-blur-xl transition-all">
-      {/* ── HIGH-ACCESSIBILITY UNIFIED FLOATING HEADER ── */}
-      <header className="max-w-[1440px] mx-auto py-3 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 xl:gap-4">
-          
-          {/* Brand Logo & Status Indicator */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Logo size="md" href="/" dark />
-            <span className="hidden xl:inline-flex items-center gap-1.5 bg-[#C9A227]/20 border border-[#C9A227]/50 text-[#C9A227] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-[#C9A227] animate-pulse" />
+    <div className="w-full sticky top-0 z-50 transition-all font-body">
+      {/* ── TOP UTILITY TIER (DARK High Contrast Crown) ── */}
+      <div className="w-full bg-[#07162C] text-slate-350 border-b border-[#C9A227]/30 py-2 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between text-[11px] font-bold tracking-wide uppercase">
+          {/* Left Side: status info & direct links */}
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center gap-1.5 bg-[#C9A227]/10 border border-[#C9A227]/30 !text-[#C9A227] px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227] animate-pulse" />
               Pro Network
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1 text-slate-400">
+              <span>📞</span> <span className="text-slate-300 font-medium">+1 (800) 555-REAL</span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-1 text-slate-400">
+              <span>✉️</span> <span className="text-slate-300 font-medium">info@domesticrealestate.us</span>
             </span>
           </div>
 
-          {/* Clean Spaced Navigation Menu Items */}
+          {/* Right Side: Quick secondary actions */}
+          <div className="flex items-center gap-4 text-slate-300 font-extrabold">
+            <Link href="/about" className="hover:text-[#C9A227] transition-colors">
+              About
+            </Link>
+            <Link href="/contact" className="hover:text-[#C9A227] transition-colors">
+              Contact
+            </Link>
+            <span className="text-slate-700">|</span>
+            <Link href="/login" className="hover:text-[#C9A227] transition-colors flex items-center gap-1 text-white">
+              <span>👤</span> Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MAIN BOTTOM NAVIGATION TIER (Light high-contrast base) ── */}
+      <header className="w-full bg-white border-b border-slate-200/80 shadow-md backdrop-blur-xl transition-all py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+          
+          {/* Brand Logo - Uses light bg version */}
+          <div className="flex items-center shrink-0">
+            <Logo size="md" href="/" dark={false} />
+          </div>
+
+          {/* Spaced Nav links for Desktop */}
           <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2 font-extrabold text-sm shrink-0">
             {navCategories.map((cat) => {
               const isOpen = activeDropdown === cat.id;
@@ -127,10 +156,10 @@ export default function HeaderVariants() {
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <button
-                    className={`px-3 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1.5 font-extrabold text-xs xl:text-sm tracking-wide whitespace-nowrap shrink-0 ${
+                    className={`px-3 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1 font-extrabold text-xs xl:text-sm tracking-wide whitespace-nowrap shrink-0 ${
                       isOpen
-                        ? "bg-[#C9A227] !text-[#0A2647] shadow-lg scale-105"
-                        : "!text-white hover:!text-[#C9A227] hover:bg-slate-800/90"
+                        ? "bg-[#0A2647] text-white shadow-md scale-105"
+                        : "text-slate-705 hover:text-[#0A2647] hover:bg-slate-100"
                     }`}
                   >
                     <span className="font-extrabold whitespace-nowrap">{cat.label}</span>
@@ -138,7 +167,7 @@ export default function HeaderVariants() {
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.25, ease: "easeInOut" }}
                       className={`w-3.5 h-3.5 transition-colors shrink-0 ${
-                        isOpen ? "!text-[#0A2647]" : "!text-[#C9A227]"
+                        isOpen ? "text-white" : "text-[#C9A227]"
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -155,9 +184,9 @@ export default function HeaderVariants() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 12, scale: 0.96 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 bg-[#07162C] border-2 border-[#C9A227] rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl z-50"
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 bg-white border-2 border-[#0A2647] rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.12)] z-50"
                       >
-                        <div className="text-[10px] font-mono text-[#C9A227] font-extrabold uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">
+                        <div className="text-[10px] font-mono text-[#C9A227] font-extrabold uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">
                           {cat.label}
                         </div>
                         <div className="grid grid-cols-1 gap-0.5">
@@ -166,13 +195,13 @@ export default function HeaderVariants() {
                               key={idx}
                               href={sub.href}
                               onClick={() => setActiveDropdown(null)}
-                              className="px-3 py-2 rounded-lg hover:bg-slate-800/90 transition-all flex items-center justify-between group cursor-pointer border border-transparent hover:border-[#C9A227]/30"
+                              className="px-3 py-2 rounded-lg hover:bg-slate-50 transition-all flex items-center justify-between group cursor-pointer border border-transparent hover:border-slate-100"
                             >
-                              <span className="text-xs font-bold text-slate-200 group-hover:text-[#C9A227] transition-colors">
+                              <span className="text-xs font-bold text-slate-700 group-hover:text-[#0A2647] transition-colors">
                                 {sub.title}
                               </span>
                               {sub.badge && (
-                                <span className="bg-[#C9A227] text-[#0A2647] text-[9px] font-extrabold px-2 py-0.5 rounded-full font-mono">
+                                <span className="bg-[#C9A227] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full font-mono">
                                   {sub.badge}
                                 </span>
                               )}
@@ -185,45 +214,33 @@ export default function HeaderVariants() {
                 </div>
               );
             })}
-
-            <Link href="/about" className="px-3 py-2 text-xs xl:text-sm font-extrabold !text-white hover:!text-[#C9A227] whitespace-nowrap transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="px-3 py-2 text-xs xl:text-sm font-extrabold !text-white hover:!text-[#C9A227] whitespace-nowrap transition-colors">
-              Contact
-            </Link>
           </nav>
 
-          {/* Right Actions & 3D Chamfered Single-Line Button */}
-          <div className="flex items-center gap-2 xl:gap-3 shrink-0">
+          {/* Right Actions & 3D Gold Accent Button */}
+          <div className="flex items-center gap-2 xl:gap-3.5 shrink-0">
+            {/* Round Search Button */}
             <button
               onClick={() => setSearchModalOpen(true)}
-              className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] text-xs font-extrabold px-4 py-2 rounded-full border border-[#C9A227] shadow-[0_2px_10px_rgba(201,162,39,0.3)] transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-105"
+              className="bg-slate-55 hover:bg-slate-100 text-slate-800 text-xs font-extrabold px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-full border border-slate-200/80 shadow-sm transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-105"
               title="Search Portal"
             >
               <span className="text-sm">🔍</span>
-              <span className="text-xs font-extrabold text-[#0A2647]">Search</span>
+              <span className="hidden sm:inline text-xs font-extrabold text-slate-700">Search</span>
             </button>
 
-            <Link
-              href="/login"
-              className="hidden sm:inline-block text-xs font-extrabold !text-slate-200 hover:!text-white px-3 py-2 whitespace-nowrap shrink-0"
-            >
-              Sign In
-            </Link>
-
+            {/* Marketplace Button */}
             <Link
               href="/properties"
-              className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] text-xs font-extrabold px-5 py-2.5 rounded-full shadow-[0_0_20px_rgba(201,162,39,0.5)] border-b-2 border-amber-600 cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
+              className="bg-[#C9A227] hover:bg-[#B59123] text-[#07162C] text-xs font-extrabold px-4 py-2.5 sm:px-5 sm:py-3 rounded-full shadow-[0_4px_16px_rgba(201,162,39,0.35)] border-b-2 border-[#A1821F] cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
             >
               <span>Explore Marketplace</span>
               <span>→</span>
             </Link>
 
-            {/* Mobile Hamburger Menu Toggle */}
+            {/* Mobile Hamburger menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-white bg-slate-800 rounded-full border border-slate-700 shrink-0"
+              className="lg:hidden p-2 text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 shrink-0"
             >
               {mobileMenuOpen ? "✕" : "☰"}
             </button>
@@ -232,31 +249,31 @@ export default function HeaderVariants() {
         </div>
       </header>
 
-      {/* ── MOBILE NAV DRAWER (SMARTPHONES) ── */}
+      {/* ── MOBILE NAV DRAWER (Drawer content styled for light mode) ── */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="lg:hidden mt-2 max-w-lg mx-auto bg-[#07162C] border-2 border-[#C9A227] text-white rounded-3xl p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto"
+            className="lg:hidden mt-2 max-w-lg mx-auto bg-white border-2 border-[#0A2647] text-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto"
           >
             {navCategories.map((cat) => (
-              <div key={cat.id} className="border-b border-slate-800 pb-3">
-                <h4 className="text-xs font-extrabold text-[#C9A227] uppercase tracking-wider mb-2">
+              <div key={cat.id} className="border-b border-slate-100 pb-3">
+                <h4 className="text-xs font-extrabold text-[#0D2C54] uppercase tracking-wider mb-2">
                   {cat.label}
                 </h4>
-                <div className="grid grid-cols-1 gap-1 text-xs font-bold">
+                <div className="grid grid-cols-1 gap-1 text-xs font-bold font-heading">
                   {cat.items.map((sub, idx) => (
                     <Link
                       key={idx}
                       href={sub.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="p-2.5 bg-slate-800/80 rounded-xl text-slate-200 hover:text-[#C9A227] flex items-center justify-between"
+                      className="p-2.5 bg-slate-50 rounded-xl text-slate-700 hover:text-[#0A2647] flex items-center justify-between"
                     >
                       <span className="truncate">{sub.title}</span>
                       {sub.badge && (
-                        <span className="bg-[#C9A227] text-[#0A2647] text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
+                        <span className="bg-[#C9A227] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
                           {sub.badge}
                         </span>
                       )}
@@ -265,13 +282,13 @@ export default function HeaderVariants() {
                 </div>
               </div>
             ))}
-            <div className="border-b border-slate-800 pb-3">
-              <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-200 hover:text-[#C9A227]">About Us</Link>
-              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-200 hover:text-[#C9A227]">Contact Us</Link>
-              <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-200 hover:text-[#C9A227]">Blog</Link>
+            <div className="border-b border-slate-100 pb-3">
+              <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-600 hover:text-slate-900">About Us</Link>
+              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-600 hover:text-slate-900">Contact Us</Link>
+              <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-600 hover:text-slate-900">Blog</Link>
             </div>
             <div className="flex gap-3 pt-2">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-white">
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl border border-slate-350 text-xs font-bold text-slate-700">
                 Sign In
               </Link>
               <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl bg-[#C9A227] text-[#0A2647] text-xs font-extrabold">
@@ -289,7 +306,7 @@ export default function HeaderVariants() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-start justify-center pt-24 px-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-start justify-center pt-24 px-4"
             onClick={() => setSearchModalOpen(false)}
           >
             <motion.div
@@ -297,37 +314,37 @@ export default function HeaderVariants() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#07162C] border-2 border-[#C9A227] rounded-3xl p-6 w-full max-w-xl shadow-2xl text-white relative"
+              className="bg-white border-2 border-[#0A2647] rounded-3xl p-6 w-full max-w-xl shadow-2xl text-slate-800 relative z-50"
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base font-extrabold text-[#C9A227]">🔍 Search Real Estate Portal</h3>
+                <h3 className="text-base font-extrabold text-[#0a2647]">🔍 Search Real Estate Portal</h3>
                 <button
                   onClick={() => setSearchModalOpen(false)}
-                  className="text-slate-400 hover:text-white font-bold text-sm bg-slate-800 w-7 h-7 rounded-full flex items-center justify-center"
+                  className="text-slate-400 hover:text-slate-600 font-bold text-sm bg-slate-100 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-2xl p-3 focus-within:border-[#C9A227]">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-205 rounded-xl p-3 focus-within:border-[#0A2647] transition-all">
                 <input
                   type="text"
                   placeholder="Search zip codes, motivated seller leads, top agents, CRMs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent text-sm text-white focus:outline-none placeholder-slate-400 font-semibold"
+                  className="w-full bg-transparent text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-semibold"
                   autoFocus
                 />
-                <button className="bg-[#C9A227] text-[#0A2647] font-extrabold px-4 py-2 rounded-xl text-xs">
+                <button className="bg-[#0A2647] text-white font-extrabold px-4 py-2 rounded-xl text-xs hover:bg-[#07162C] transition-colors cursor-pointer shrink-0">
                   Search
                 </button>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
-                <span className="text-slate-500 font-normal">Popular Searches:</span>
-                <span className="bg-slate-800 hover:bg-[#C9A227] hover:text-[#0A2647] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Miami Off-Market</span>
-                <span className="bg-slate-800 hover:bg-[#C9A227] hover:text-[#0A2647] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Dallas Wholesalers</span>
-                <span className="bg-slate-800 hover:bg-[#C9A227] hover:text-[#0A2647] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Hard Money Lenders</span>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
+                <span className="text-slate-400 font-normal">Popular Searches:</span>
+                <span className="bg-slate-100 hover:bg-[#C9A227] hover:text-[#07162C] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Miami Off-Market</span>
+                <span className="bg-slate-100 hover:bg-[#C9A227] hover:text-[#07162C] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Dallas Wholesalers</span>
+                <span className="bg-slate-100 hover:bg-[#C9A227] hover:text-[#07162C] px-2.5 py-1 rounded-full cursor-pointer transition-colors">Hard Money Lenders</span>
               </div>
             </motion.div>
           </motion.div>
