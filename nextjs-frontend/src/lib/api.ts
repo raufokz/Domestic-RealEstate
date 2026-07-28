@@ -1,4 +1,8 @@
-const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api";
+const fallback = process.env.NODE_ENV === "production"
+  ? "https://api.domesticrealestate.us/api"
+  : "http://127.0.0.1:8001/api";
+
+const rawBase = process.env.NEXT_PUBLIC_API_URL || fallback;
 const API_BASE = rawBase.endsWith("/") ? rawBase.slice(0, -1) : rawBase;
 
 export class ApiError extends Error {
