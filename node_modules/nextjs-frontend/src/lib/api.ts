@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/";
+const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api";
+const API_BASE = rawBase.endsWith("/") ? rawBase.slice(0, -1) : rawBase;
 
 export class ApiError extends Error {
   status: number;
