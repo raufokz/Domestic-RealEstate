@@ -18,32 +18,71 @@ export default function ImportLeadsPage() {
   const [successCount, setSuccessCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
 
-  const [columns] = useState([
-    { source: "Name", target: "name", mapped: true },
-    { source: "Email", target: "email", mapped: true },
-    { source: "Phone", target: "phone", mapped: true },
-    { source: "Type", target: "type", mapped: true },
-    { source: "Notes", target: "notes", mapped: true },
-    { source: "Budget", target: "budget", mapped: false },
-  ]);
-
+  const [fileHeaders, setFileHeaders] = useState<string[]>([]);
+  const [mappings, setMappings] = useState<Record<string, string>>({});
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const [allowWithoutEmail, setAllowWithoutEmail] = useState(false);
+
+  const CRM_FIELDS = [
+    { key: "name", label: "Full Name / Name", required: false },
+    { key: "email", label: "Email Address", required: true },
+    { key: "phone", label: "Phone Number", required: false },
+    { key: "type", label: "Lead Type (buyer, seller, investor)", required: false },
+    { key: "source", label: "Lead Source", required: false },
+    { key: "notes", label: "Notes / Comments", required: false },
+    { key: "budget", label: "Budget Range", required: false },
+    { key: "location", label: "Location / City", required: false },
+  ];
+
+  const autoDetectMappings = (headers: string[]) => {
+    const initialMappings: Record<string, string> = {};
+    const normalize = (h: string) => h.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const aliases: Record<string, string[]> = {
+      email: ["email", "emailaddress", "e_mail", "mail", "contactemail", "primaryemail"],
+      name: ["name", "fullname", "contactname", "firstname", "first_name"],
+      phone: ["phone", "phonenumber", "mobile", "cell", "telephone", "tel"],
+      type: ["type", "leadtype", "category"],
+      source: ["source", "leadsource", "origin"],
+      notes: ["notes", "note", "comment", "comments", "message", "description"],
+      budget: ["budget", "price", "pricerange", "maxbudget"],
+      location: ["location", "city", "town", "address"],
+    };
+
+    CRM_FIELDS.forEach(field => {
+      const list = aliases[field.key] || [];
+      const match = headers.find(h => {
+        const norm = normalize(h);
+        return list.some(alias => norm === alias || norm.includes(alias) || alias.includes(norm));
+      });
+      if (match) {
+        initialMappings[field.key] = match;
+      }
+    });
+
+    return initialMappings;
+  };
 
   const parseFilePreview = (f: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
+        let headers: string[] = [];
+        const rawRows: any[] = [];
+
         if (f.name.endsWith(".json")) {
           const parsed = JSON.parse(text);
           const list = Array.isArray(parsed) ? parsed : [parsed];
-          setPreviewData(list.slice(0, 5));
+          rawRows.push(...list.slice(0, 5));
+          if (list.length > 0) {
+            headers = Object.keys(list[0]);
+          }
         } else {
           // Parse CSV lines
           const lines = text.split("\n");
           if (lines.length > 0) {
-            const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, "").toLowerCase());
-            const parsedRows = [];
+            headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
             for (let i = 1; i < Math.min(lines.length, 6); i++) {
               if (!lines[i].trim()) continue;
               const values = lines[i].split(",").map(v => v.trim().replace(/^["']|["']$/g, ""));
@@ -51,16 +90,14 @@ export default function ImportLeadsPage() {
               headers.forEach((h, idx) => {
                 row[h] = values[idx] || "";
               });
-              parsedRows.push({
-                name: row.name || row.fullname || `${row.first_name || row.firstname || ""} ${row.last_name || row.lastname || ""}`.trim() || "Guest",
-                email: row.email || row.emailaddress || row.email_address || "",
-                phone: row.phone || row.phonenumber || row.mobile || "",
-                type: row.type || "buyer",
-              });
+              rawRows.push(row);
             }
-            setPreviewData(parsedRows);
           }
         }
+
+        setFileHeaders(headers);
+        setPreviewData(rawRows);
+        setMappings(autoDetectMappings(headers));
       } catch (err) {
         console.error(err);
       }
@@ -88,6 +125,13 @@ export default function ImportLeadsPage() {
     }
   };
 
+  const handleMappingChange = (fieldKey: string, headerName: string) => {
+    setMappings(prev => ({
+      ...prev,
+      [fieldKey]: headerName
+    }));
+  };
+
   const handleImport = async () => {
     if (!file) return;
     setImporting(true);
@@ -97,6 +141,13 @@ export default function ImportLeadsPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("column_map", JSON.stringify(mappings));
+      if (mappings.email) {
+        formData.append("email_column", mappings.email);
+      }
+      if (allowWithoutEmail) {
+        formData.append("allow_without_email", "1");
+      }
 
       const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
       const headers: Record<string, string> = {
@@ -192,32 +243,55 @@ export default function ImportLeadsPage() {
             <h3 className="text-lg font-bold text-[#0A2647] mb-2">Map Columns</h3>
             <p className="text-sm text-slate-500 mb-6">File: {file?.name}</p>
             <div className="space-y-3">
-              {columns.map((col, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                  <span className="text-sm font-medium text-slate-700 w-32">{col.source}</span>
+              {CRM_FIELDS.map((col) => (
+                <div key={col.key} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                  <span className="text-sm font-medium text-slate-750 w-44">
+                    {col.label} {col.required && <span className="text-red-500">*</span>}
+                  </span>
                   <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                  <select defaultValue={col.target} className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none">
-                    <option value="name">Name</option>
-                    <option value="email">Email</option>
-                    <option value="phone">Phone</option>
-                    <option value="type">Type</option>
-                    <option value="source">Source</option>
-                    <option value="notes">Notes</option>
-                    <option value="budget">Budget</option>
-                    <option value="location">Location</option>
-                    <option value="">-- Skip --</option>
+                  <select
+                    value={mappings[col.key] || ""}
+                    onChange={(e) => handleMappingChange(col.key, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none bg-white"
+                  >
+                    <option value="">-- Skip Field --</option>
+                    {fileHeaders.map((header) => (
+                      <option key={header} value={header}>{header}</option>
+                    ))}
                   </select>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${col.mapped ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
-                    {col.mapped ? "Mapped" : "Optional"}
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${mappings[col.key] ? "bg-green-100 text-green-700 font-medium" : "bg-slate-100 text-slate-500"}`}>
+                    {mappings[col.key] ? "Mapped" : "Unmapped"}
                   </span>
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <input
+                type="checkbox"
+                id="allow_without_email"
+                checked={allowWithoutEmail}
+                onChange={(e) => setAllowWithoutEmail(e.target.checked)}
+                className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] rounded"
+              />
+              <label htmlFor="allow_without_email" className="text-xs text-amber-850 font-medium cursor-pointer">
+                Allow importing leads without a valid email address (e.g. phone-only or notes-only records)
+              </label>
+            </div>
+
             <div className="flex justify-between mt-6">
               <button onClick={() => setStep("upload")} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50">Back</button>
-              <button onClick={() => setStep("preview")} className="px-6 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">Preview Import</button>
+              <button
+                onClick={() => {
+                  if (colRequiredNotMapped()) return;
+                  setStep("preview");
+                }}
+                className="px-6 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition"
+              >
+                Preview Import
+              </button>
             </div>
           </div>
         )}
@@ -249,10 +323,10 @@ export default function ImportLeadsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {previewData.map((row, i) => (
                     <tr key={i} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{row.name}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{row.email}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{row.phone}</td>
-                      <td className="px-4 py-3"><span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full capitalize">{row.type}</span></td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{mappings.name ? row[mappings.name] : (mappings.first_name ? row[mappings.first_name] : "Guest")}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{mappings.email ? row[mappings.email] : "N/A"}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{mappings.phone ? row[mappings.phone] : "N/A"}</td>
+                      <td className="px-4 py-3"><span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full capitalize">{mappings.type ? row[mappings.type] : "buyer"}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -261,7 +335,7 @@ export default function ImportLeadsPage() {
             <div className="flex justify-between">
               <button onClick={() => setStep("mapping")} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50">Back</button>
               <button onClick={handleImport} disabled={importing} className="px-6 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition disabled:opacity-50">
-                {importing ? "Importing..." : "Import Leads"}
+                {importing ? "Importing..." : "Confirm Import"}
               </button>
             </div>
           </div>
@@ -286,4 +360,12 @@ export default function ImportLeadsPage() {
       </div>
     </AdminLayout>
   );
+
+  function colRequiredNotMapped() {
+    if (!mappings.email && !allowWithoutEmail) {
+      notifyError("An Email Address column map is required, or toggling Lead Import without email is necessary.");
+      return true;
+    }
+    return false;
+  }
 }

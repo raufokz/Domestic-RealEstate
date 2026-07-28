@@ -72,6 +72,9 @@ class AutomationEngine
         }
 
         foreach ($conditions as $key => $value) {
+            if (is_string($value) && strtolower($value) === 'any') {
+                continue;
+            }
             if (isset($data[$key]) && (string) $data[$key] !== (string) $value) {
                 return false;
             }
@@ -139,12 +142,16 @@ class AutomationEngine
         $subject = $params['subject'] ?? 'Update from Domestic Real Estate';
         $htmlBody = $params['body'] ?? $params['message'] ?? '';
 
+        $template = null;
         if (! empty($params['template_id'])) {
             $template = EmailTemplate::find($params['template_id']);
-            if ($template) {
-                $subject = $template->subject ?: $subject;
-                $htmlBody = $template->html_body ?: $htmlBody;
-            }
+        } elseif (! empty($params['template'])) {
+            $template = EmailTemplate::where('slug', $params['template'])->first();
+        }
+
+        if ($template) {
+            $subject = $template->subject ?: $subject;
+            $htmlBody = $template->html_body ?: $htmlBody;
         }
 
         if ($htmlBody === '') {
@@ -209,13 +216,15 @@ class AutomationEngine
             return ['status' => 'skipped', 'reason' => 'No lead_id'];
         }
 
+        $dueHours = $params['due_hours'] ?? $params['due_in_hours'] ?? 24;
+
         LeadTask::create([
             'lead_id' => $leadId,
             'title' => $params['title'] ?? 'Follow up with lead',
             'description' => $params['description'] ?? '',
             'priority' => $params['priority'] ?? 'normal',
             'status' => 'pending',
-            'due_date' => now()->addHours($params['due_hours'] ?? 24),
+            'due_date' => now()->addHours($dueHours),
             'assigned_to' => $params['assign_to'] ?? $data['assigned_to'] ?? null,
         ]);
 

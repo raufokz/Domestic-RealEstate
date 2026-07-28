@@ -711,6 +711,8 @@ export default function UniversalChatWidget({
         type: currentType || 'buyer',
         context: context,
         history,
+        page_url: typeof window !== 'undefined' ? window.location.href : '',
+        page_title: typeof document !== 'undefined' ? document.title : '',
       };
 
       if (propertyId) {

@@ -39,6 +39,10 @@ class AiController extends Controller
             'history' => 'nullable|array|max:20',
             'history.*.role' => 'nullable|string|in:user,assistant',
             'history.*.content' => 'nullable|string|max:2000',
+            'property_id' => 'nullable|integer',
+            'context' => 'nullable|string|max:255',
+            'page_url' => 'nullable|string|max:2000',
+            'page_title' => 'nullable|string|max:255',
         ]);
 
         $leadId = null;
@@ -75,14 +79,40 @@ class AiController extends Controller
                 'consent_given' => $request->input('consent_given'),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'page_url' => $request->header('referer', ''),
+                'page_url' => $request->input('page_url') ?: $request->header('referer', ''),
                 'performed_by' => $request->user()?->id,
             ]);
             $leadId = $lead->id;
         }
 
+        $extraSystem = "You are multilingual and must respond fluently in the language the user speaks or requests. Explicitly support English, Spanish, Urdu, and Hindi. If the user initiates conversation or greets you in Spanish, Urdu, or Hindi, respond appropriately in that same language.";
+        
+        $contextDesc = [];
+        if ($request->filled('context')) {
+            $contextDesc[] = "User is on a " . $request->input('context') . " page/context.";
+        }
+        if ($request->filled('page_url')) {
+            $contextDesc[] = "Current Page URL: " . $request->input('page_url');
+        }
+        if ($request->filled('page_title')) {
+            $contextDesc[] = "Current Page Title: " . $request->input('page_title');
+        }
+        
+        if ($request->filled('property_id')) {
+            $property = \App\Models\Property::find($request->input('property_id'));
+            if ($property) {
+                $contextDesc[] = "The user is looking at property listing ID #{$property->id}: '{$property->title}', Price: \${$property->price}, Address: {$property->address}, {$property->city}, {$property->state} {$property->zip}, Type: " . ($property->propertyType?->name ?? 'N/A') . ", Beds: {$property->bedrooms}, Baths: {$property->bathrooms}, SqFt: {$property->sqft}. Description: '" . \Illuminate\Support\Str::limit($property->description, 300) . "'. Refer to these details if they ask questions about the property.";
+            }
+        }
+        
+        if (!empty($contextDesc)) {
+            $extraSystem .= "\n\n[Current Session Context]\n" . implode("\n", $contextDesc);
+        }
+
+        $systemPrompt = AiService::systemForAgent('chat_assistant', $extraSystem);
+
         $messages = [
-            ['role' => 'system', 'content' => AiService::systemForAgent('chat_assistant')],
+            ['role' => 'system', 'content' => $systemPrompt],
         ];
 
         foreach ($request->input('history', []) as $turn) {
@@ -107,17 +137,27 @@ class AiController extends Controller
             );
         } catch (FeatureUnavailableException $e) {
             $result = [
-                'text' => 'AI Chat is temporarily unavailable. Email us at info@domesticrealestate.us and our team will help — Your Key to Home.',
+                'text' => 'AI is temporarily unavailable.',
                 'provider' => 'fallback',
             ];
         } catch (\Exception $e) {
             $result = [
-                'text' => 'AI Chat is temporarily unavailable. Email us at info@domesticrealestate.us and our team will help — Your Key to Home.',
+                'text' => 'AI is temporarily unavailable.',
                 'provider' => 'fallback',
             ];
         }
 
         if (($result['provider'] ?? '') === 'fallback') {
+            $result['text'] = 'AI is temporarily unavailable.';
+            
+            \App\Models\AuditLog::log(
+                action: 'ai_chat_failed',
+                entityType: 'AiConversation',
+                entityId: null,
+                oldValues: null,
+                newValues: ['error' => 'AI assistant call failed, served safe fallback message to visitor.']
+            );
+
             $cacheKey = 'ai_fallback_notification_sent';
             if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
                 \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addMinutes(15));

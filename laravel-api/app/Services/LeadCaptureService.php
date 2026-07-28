@@ -24,16 +24,23 @@ class LeadCaptureService
             $last = $last ?: ($parts[1] ?? '');
         }
 
-        $lead = Lead::firstOrCreate(
-            ['normalized_email' => $email],
-            [
-                'email' => $data['email'] ?? $email,
+        $phone = isset($data['phone']) ? preg_replace('/[^\d]/', '', (string) $data['phone']) : '';
+
+        $lead = null;
+        if ($email !== '') {
+            $lead = Lead::where('normalized_email', $email)->first();
+        } elseif ($phone !== '') {
+            $lead = Lead::where('normalized_phone', $phone)->first();
+        }
+
+        if (!$lead) {
+            $lead = Lead::create([
+                'email' => $email !== '' ? ($data['email'] ?? $email) : null,
+                'normalized_email' => $email !== '' ? $email : null,
                 'first_name' => $first ?: 'Guest',
                 'last_name' => $last ?? '',
                 'phone' => $data['phone'] ?? null,
-                'normalized_phone' => ! empty($data['phone'])
-                    ? preg_replace('/[^\d]/', '', (string) $data['phone'])
-                    : null,
+                'normalized_phone' => $phone !== '' ? $phone : null,
                 'type' => $data['type'] ?? 'buyer',
                 'source' => $data['source'] ?? 'website',
                 'status' => 'new',
@@ -57,8 +64,11 @@ class LeadCaptureService
                 'ip_address' => $data['ip_address'] ?? null,
                 'user_agent' => $data['user_agent'] ?? null,
                 'page_url' => $data['page_url'] ?? null,
-            ]
-        );
+            ]);
+            $lead->wasRecentlyCreated = true;
+        } else {
+            $lead->wasRecentlyCreated = false;
+        }
 
         if ($lead->wasRecentlyCreated) {
             LeadActivity::create([

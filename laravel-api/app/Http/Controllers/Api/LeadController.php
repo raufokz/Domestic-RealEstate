@@ -257,6 +257,7 @@ class LeadController extends Controller
             'email_column' => 'nullable|string',
             // Allows importing contacts that genuinely have no email address.
             'allow_without_email' => 'nullable|boolean',
+            'column_map' => 'nullable|string',
         ]);
 
         $file = $request->file('file');
@@ -286,6 +287,17 @@ class LeadController extends Controller
         }
 
         $map = \App\Services\ImportColumnMapper::detect($headers, $rows);
+
+        if ($request->filled('column_map')) {
+            $customMap = json_decode($request->input('column_map'), true);
+            if (is_array($customMap)) {
+                foreach ($customMap as $field => $headerName) {
+                    if ($headerName && in_array($headerName, $headers, true)) {
+                        $map[$field] = $headerName;
+                    }
+                }
+            }
+        }
 
         if ($request->filled('email_column') && in_array($request->email_column, $headers, true)) {
             $map['email'] = $request->email_column;
