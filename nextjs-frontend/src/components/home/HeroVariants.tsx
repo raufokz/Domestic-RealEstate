@@ -15,7 +15,6 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
   const heroSlides = [
     "/variant1-hero.jpg",
     "/variant2-hero.jpg",
-    "/variant3-hero.jpg",
     "/variant4-hero.jpg",
   ];
 
@@ -31,6 +30,12 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
      ────────────────────────────────────────────── */
   return (
     <section className="relative py-20 sm:py-28 bg-[#07162C] text-white overflow-hidden border-b border-slate-800">
+      {/* Background Image / Thumbnail loads directly from link */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none transition-all duration-1000 opacity-20"
+        style={{ backgroundImage: `url(${heroSlides[activeSlide]})` }}
+      />
+
       {/* Background Radial Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-amber-500/10 pointer-events-none" />
       <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#C9A227]/10 rounded-full blur-3xl pointer-events-none" />

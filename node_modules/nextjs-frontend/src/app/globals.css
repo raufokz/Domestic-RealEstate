@@ -188,7 +188,7 @@ button {
 }
 
 .bg-gold,
-[class*="bg-[#C9A227]"] {
+[class*="bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]) {
   color: #0A2647;
 }
 
