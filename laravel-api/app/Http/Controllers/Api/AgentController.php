@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AgentDocument;
 use App\Models\AgentProfile;
 use App\Models\Enquiry;
+use App\Models\Lead;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -158,5 +159,42 @@ class AgentController extends Controller
         }
         $doc->delete();
         return response()->json(['message' => 'Document deleted']);
+    }
+
+    /** Agent-scoped dashboard stats (leads assigned to the signed-in agent only). */
+    public function stats(Request $request)
+    {
+        $userId = $request->user()->id;
+        $period = (int) $request->get('period', 30);
+        $start = now()->subDays($period);
+
+        $totalLeads = Lead::where('assigned_to', $userId)->count();
+        $newLeads = Lead::where('assigned_to', $userId)->where('created_at', '>=', $start)->count();
+        $closedLeads = Lead::where('assigned_to', $userId)->whereIn('status', ['closed', 'converted'])->count();
+        $activeListings = Property::where('realtor_id', $userId)->where('approval_status', 'approved')->where('status', 'active')->count();
+        $totalListings = Property::where('realtor_id', $userId)->count();
+        $totalInquiries = Enquiry::where('agent_id', $userId)->count();
+        $conversionRate = $totalLeads > 0 ? round(($closedLeads / $totalLeads) * 100, 1) : 0;
+
+        return response()->json([
+            'total_leads' => $totalLeads,
+            'new_leads' => $newLeads,
+            'converted_leads' => $closedLeads,
+            'closed_deals' => $closedLeads,
+            'active_listings' => $activeListings,
+            'total_listings' => $totalListings,
+            'total_inquiries' => $totalInquiries,
+            'total_views' => 0,
+            'revenue' => 0,
+            'conversion_rate' => $conversionRate,
+        ]);
+    }
+
+    /** Enquiries addressed to the signed-in agent only. */
+    public function enquiries(Request $request)
+    {
+        $query = Enquiry::with('replies')->where('agent_id', $request->user()->id);
+        if ($request->filled('status')) $query->where('status', $request->status);
+        return response()->json($query->latest()->paginate($request->get('per_page', 25)));
     }
 }

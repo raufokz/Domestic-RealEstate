@@ -14,7 +14,7 @@ interface AnalyticsData {
 }
 
 export default function AgentAnalyticsPage() {
-  const { data: stats } = useFetch<AnalyticsData>("/admin/stats");
+  const { data: stats } = useFetch<AnalyticsData>("/agent/stats");
 
   const metrics = [
     { label: "Total Leads", value: stats?.total_leads?.toString() || "0", icon: "👥", change: "+8 this week", changeColor: "text-green-600" },

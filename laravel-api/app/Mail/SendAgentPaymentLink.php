@@ -36,7 +36,7 @@ class SendAgentPaymentLink extends Mailable
             with: [
                 'firstName' => trim(explode(' ', (string) ($this->agentProfile->user?->name ?? 'there'))[0]) ?: 'there',
                 'planName' => $prefs['pricing_plan'] ?? 'Preferred Agent',
-                'billingCycle' => str_contains((string) ($prefs['pricing_plan'] ?? ''), 'Free') ? 'N/A' : (($prefs['billing_cycle'] ?? null) === 'annual' ? 'Annual' : 'Monthly'),
+                'billingCycle' => ($prefs['billing_cycle'] ?? null) === 'annual' ? 'Annual' : 'Monthly',
                 'services' => (array) ($this->agentProfile->specialties ?? []),
                 'checkoutUrl' => $this->agentProfile->payoneer_checkout_url,
             ],

@@ -34,6 +34,31 @@ class AgentProfile extends Model
         return array_merge(...array_values(self::SERVICE_CATALOG));
     }
 
+    /** Preferred Agent pricing tiers. `cap` = max services selectable (null =
+     * unlimited); `categories` = SERVICE_CATALOG keys the tier may pick from
+     * (null = any category). Mirrors the tier cards on the home page & register
+     * form so the server enforces the same rules a user could otherwise bypass
+     * by editing the request directly. */
+    public const PLAN_TIERS = [
+        'Solo' => ['cap' => 2, 'categories' => null],
+        'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech']],
+        'Professional' => ['cap' => 10, 'categories' => null],
+        'Elite' => ['cap' => null, 'categories' => null],
+        'Enterprise Custom' => ['cap' => null, 'categories' => null],
+    ];
+
+    /** Services a given plan name is allowed to include, or null if the plan
+     * doesn't restrict category (still may cap the count). Unknown plan names
+     * return null (no restriction) — registration falls back to "trust the
+     * catalog validation" for plans we don't recognize. */
+    public static function planAllowedServices(?string $planName): ?array {
+        $tier = self::PLAN_TIERS[$planName] ?? null;
+        if (!$tier || $tier['categories'] === null) {
+            return null;
+        }
+        return array_merge(...array_map(fn ($cat) => self::SERVICE_CATALOG[$cat], $tier['categories']));
+    }
+
     protected $fillable = [
         'user_id', 'slug', 'headline', 'bio', 'brokerage_name', 'broker_name',
         'license_number', 'license_status', 'mls_board', 'years_experience',

@@ -2,6 +2,7 @@
 
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useFetch } from "@/hooks/useFetch";
+import { fullName, initials } from "@/lib/name";
 import Link from "next/link";
 
 interface DashboardStats {
@@ -15,7 +16,9 @@ interface DashboardStats {
 
 interface Lead {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
+  full_name?: string;
   email: string;
   status: string;
   score: number;
@@ -32,7 +35,7 @@ interface CalendarEvent {
 }
 
 export default function AgentDashboard() {
-  const { data: stats, loading: statsLoading } = useFetch<DashboardStats>("/admin/stats");
+  const { data: stats, loading: statsLoading } = useFetch<DashboardStats>("/agent/stats");
   const { data: leadsData, loading: leadsLoading } = useFetch<{ data: Lead[] }>("/leads?per_page=5");
 
   const statsDisplay = stats
@@ -137,10 +140,10 @@ export default function AgentDashboard() {
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-[#0A2647] rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">{lead.name.split(" ").map((n: string) => n[0]).join("")}</span>
+                              <span className="text-white text-xs font-bold">{initials(fullName(lead))}</span>
                             </div>
                             <div>
-                              <p className="font-semibold text-[#0A2647] text-sm">{lead.name}</p>
+                              <p className="font-semibold text-[#0A2647] text-sm">{fullName(lead) || "Unknown Lead"}</p>
                               <p className="text-slate-500 text-xs">{lead.email}</p>
                             </div>
                           </div>

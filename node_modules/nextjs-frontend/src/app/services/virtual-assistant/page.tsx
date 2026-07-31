@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Logo from "@/components/Logo";
 import { apiPost } from "@/lib/api";
+import { AGENT_PLAN_TIERS } from "@/lib/agentPlans";
 
 const SERVICE_SLUG = "virtual-assistant";
 const SERVICE_NAME = "Virtual Assistant Services";
@@ -171,6 +172,57 @@ export default function VirtualAssistantPage() {
           >
             Request a Quote
           </a>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#0A2647] text-center mb-4">
+            Plans Starting At
+          </h2>
+          <p className="text-gray-600 text-center max-w-2xl mx-auto mb-12">
+            Pick the services you need from our full catalog — your exact monthly rate is confirmed once we review your request.
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {AGENT_PLAN_TIERS.map((plan) => (
+              <div
+                key={plan.name}
+                className={`rounded-2xl border p-6 text-left flex flex-col justify-between ${
+                  plan.popular ? "border-[#C9A227] shadow-lg ring-2 ring-[#C9A227]/20" : "border-gray-200"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{plan.icon}</span>
+                    <h3 className="font-bold text-[#0A2647]">{plan.name}</h3>
+                    {plan.popular && (
+                      <span className="ml-auto bg-[#C9A227] text-[#0A2647] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Popular</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4">{plan.tagline}</p>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">from</span>
+                    <span className="text-2xl font-extrabold text-[#0A2647]">${plan.monthlyPrice}</span>
+                    <span className="text-xs text-gray-400">/mo</span>
+                  </div>
+                  <ul className="space-y-2 text-xs text-gray-600 mb-6">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2">
+                        <span className="text-[#C9A227]">✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <a
+                  href="#quote"
+                  className="block text-center py-2.5 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-[#0A2647] text-[#0A2647] hover:text-white transition-colors"
+                >
+                  Request This Plan
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

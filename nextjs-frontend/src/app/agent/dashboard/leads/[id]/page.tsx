@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useFetch } from "@/hooks/useFetch";
+import { fullName, initials } from "@/lib/name";
 import { apiPost } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
@@ -11,7 +12,9 @@ import Link from "next/link";
 interface LeadDetail {
   id: number;
   lead_number: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  full_name?: string;
   email: string;
   phone: string;
   status: string;
@@ -95,7 +98,7 @@ export default function LeadDetailPage() {
   };
 
   return (
-    <AgentLayout title="Lead Detail" subtitle={lead?.name || "Loading..."}>
+    <AgentLayout title="Lead Detail" subtitle={fullName(lead) || "Loading..."}>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Link href="/agent/dashboard/leads" className="text-sm text-slate-500 hover:text-[#0A2647]">← Back to Leads</Link>
@@ -111,10 +114,10 @@ export default function LeadDetailPage() {
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-[#0A2647] rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">{lead.name.split(" ").map((n: string) => n[0]).join("")}</span>
+                    <span className="text-white text-lg font-bold">{initials(fullName(lead))}</span>
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-[#0A2647]">{lead.name}</h2>
+                    <h2 className="text-xl font-bold text-[#0A2647]">{fullName(lead) || "Unknown Lead"}</h2>
                     <p className="text-slate-500 text-sm">{lead.lead_number}</p>
                   </div>
                   <div className="text-right">

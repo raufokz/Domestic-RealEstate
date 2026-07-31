@@ -334,6 +334,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/documents', [AgentController::class, 'storeMyDocument']);
     Route::get('/agent/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
     Route::delete('/agent/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+    Route::get('/agent/stats', [AgentController::class, 'stats']);
+    Route::get('/agent/enquiries', [AgentController::class, 'enquiries']);
 });
 
 /*

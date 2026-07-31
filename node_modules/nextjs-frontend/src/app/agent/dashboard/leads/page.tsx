@@ -3,12 +3,15 @@
 import { useState } from "react";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useFetch } from "@/hooks/useFetch";
+import { fullName, initials } from "@/lib/name";
 import Link from "next/link";
 
 interface Lead {
   id: number;
   lead_number: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  full_name?: string;
   email: string;
   phone: string;
   status: string;
@@ -79,10 +82,10 @@ export default function AgentLeadsPage() {
                         <Link key={lead.id} href={`/agent/dashboard/leads/${lead.id}`} className="block bg-slate-50 rounded-lg p-3 border border-slate-100 hover:shadow-md transition cursor-pointer">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 bg-[#0A2647] rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">{lead.name.split(" ").map((n: string) => n[0]).join("")}</span>
+                              <span className="text-white text-xs font-bold">{initials(fullName(lead))}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-[#0A2647] text-sm truncate">{lead.name}</h4>
+                              <h4 className="font-semibold text-[#0A2647] text-sm truncate">{fullName(lead) || "Unknown Lead"}</h4>
                               <p className="text-slate-500 text-xs truncate">{lead.email}</p>
                             </div>
                           </div>
@@ -117,10 +120,10 @@ export default function AgentLeadsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-[#0A2647] rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{lead.name.split(" ").map((n: string) => n[0]).join("")}</span>
+                          <span className="text-white text-xs font-bold">{initials(fullName(lead))}</span>
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900 text-sm">{lead.name}</p>
+                          <p className="font-medium text-slate-900 text-sm">{fullName(lead) || "Unknown Lead"}</p>
                           <p className="text-slate-500 text-xs">{lead.email}</p>
                         </div>
                       </div>

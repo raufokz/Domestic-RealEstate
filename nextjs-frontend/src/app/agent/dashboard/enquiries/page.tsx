@@ -15,7 +15,7 @@ interface Enquiry {
 }
 
 export default function AgentEnquiriesPage() {
-  const { data, loading } = useFetch<{ data: Enquiry[] }>("/admin/enquiries");
+  const { data, loading } = useFetch<{ data: Enquiry[] }>("/agent/enquiries");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
 

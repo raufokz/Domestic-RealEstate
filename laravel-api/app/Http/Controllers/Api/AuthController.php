@@ -37,7 +37,34 @@ class AuthController extends Controller
             'phone' => 'nullable|string',
             'services_needed' => 'nullable|array',
             'services_needed.*' => 'string|in:' . implode(',', \App\Models\AgentProfile::serviceCatalogFlat()),
+            'pricing_plan' => 'nullable|string|in:' . implode(',', array_keys(\App\Models\AgentProfile::PLAN_TIERS)),
+            'billing_cycle' => 'nullable|string|in:monthly,annual',
         ]);
+
+        // Enforce each plan's service cap/category rules server-side — the
+        // register form already restricts checkboxes to match, but a request
+        // built by hand could otherwise pick more/other services than the
+        // chosen (and eventually billed) plan actually includes.
+        if (in_array($validated['role'], ['agent', 'broker']) && !empty($validated['services_needed'])) {
+            $planName = $validated['pricing_plan'] ?? null;
+            $tier = \App\Models\AgentProfile::PLAN_TIERS[$planName] ?? null;
+            if ($tier) {
+                if ($tier['cap'] !== null && count($validated['services_needed']) > $tier['cap']) {
+                    throw ValidationException::withMessages([
+                        'services_needed' => "The {$planName} plan allows up to {$tier['cap']} services — you selected " . count($validated['services_needed']) . '.',
+                    ]);
+                }
+                $allowed = \App\Models\AgentProfile::planAllowedServices($planName);
+                if ($allowed !== null) {
+                    $invalid = array_diff($validated['services_needed'], $allowed);
+                    if (!empty($invalid)) {
+                        throw ValidationException::withMessages([
+                            'services_needed' => "The {$planName} plan doesn't include: " . implode(', ', $invalid) . '.',
+                        ]);
+                    }
+                }
+            }
+        }
 
         $user = User::create([
             'name' => $validated['name'],
@@ -46,7 +73,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'status' => 'pending',
             'phone' => $validated['phone'] ?? null,
-            'normalized_phone' => $validated['phone'] ? preg_replace('/[^\d]/', '', $validated['phone']) : null,
+            'normalized_phone' => !empty($validated['phone']) ? preg_replace('/[^\d]/', '', $validated['phone']) : null,
         ]);
 
         // If registering as an agent or broker, automatically create an approved AgentProfile
@@ -67,7 +94,8 @@ class AuthController extends Controller
                 'lead_type_preferences' => [
                     'budget' => $request->input('monthly_budget') ?? 'Not Specified',
                     'leads' => (array)($request->input('preferred_leads') ?? []),
-                    'pricing_plan' => $request->input('pricing_plan') ?? 'Free Partner',
+                    'pricing_plan' => $validated['pricing_plan'] ?? 'Solo',
+                    'billing_cycle' => $validated['billing_cycle'] ?? 'monthly',
                 ],
                 'status' => 'approved',
                 'is_published' => true,

@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroVariants from "@/components/home/HeroVariants";
 import CompanyLogos from "@/components/home/CompanyLogos";
+import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planPrice, type AgentPlanTier } from "@/lib/agentPlans";
 
 export default function RealEstateBeesHome() {
   const [activeHeroTab, setActiveHeroTab] = useState<"leads" | "properties" | "directory" | "academy">("leads");
@@ -862,7 +863,7 @@ export default function RealEstateBeesHome() {
             Choose Your Preferred Partnership Tier
           </h2>
           <p className="text-slate-500 text-sm max-w-2xl mx-auto mb-10 leading-relaxed font-body">
-            Unlock exclusive leads, automated CRM operations, local zip code claiming, and AI-powered proptech tools built to convert listings fast.
+            Get a dedicated Virtual Assistant team handling your listings, marketing, tech, and admin work — pick from 21 done-for-you services. Prices below are starting points; your exact rate is confirmed once we review what you select.
           </p>
 
           {/* Billing Switcher Toggle */}
@@ -891,114 +892,73 @@ export default function RealEstateBeesHome() {
 
           {/* Pricing Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {[
-              {
-                name: "Free Partner",
-                sub: "Essential profile exposure",
-                monthlyPrice: 0,
-                annualPrice: 0,
-                cta: "Start Free",
-                popular: false,
-                features: ["Public Profile listing", "Email lead alerts", "Post up to 3 listings", "Generic AI chatbot aid"],
-              },
-              {
-                name: "Zip Code Specialist",
-                sub: "Accelerate local client flow",
-                monthlyPrice: 99,
-                annualPrice: 79,
-                cta: "Select Plan",
-                popular: false,
-                features: ["Claim 1 Zip Code region", "Standard lead routing", "Prioritized local search", "SMS instant lead alerts", "Off-market deal matching"],
-              },
-              {
-                name: "Elite Exclusive Specialist",
-                sub: "Complete local domination",
-                monthlyPrice: 149,
-                annualPrice: 119,
-                cta: "Claim Exclusivity",
-                popular: true,
-                features: ["100% Exclusive Zip Code lock", "Preferred Partner Profile badge", "Direct lead phone calls", "Automated CRM lead push", "Dedicated WhatsApp support"],
-              },
-              {
-                name: "Brokerage Partner",
-                sub: "Power your whole office",
-                monthlyPrice: 299,
-                annualPrice: 239,
-                cta: "Select Plan",
-                popular: false,
-                features: ["Up to 10 agent licenses", "Claim multiple Zip Codes", "Round-robin lead routing", "White-labeled dashboard logs", "Advanced team KPI stats"],
-              },
-              {
-                name: "Enterprise Custom",
-                sub: "Bespoke high-volume solutions",
-                customPrice: "Contact",
-                cta: "Talk to Us",
-                popular: false,
-                features: ["Unlimited seats & zip codes", "Automated MLS feed sync API", "Custom CRM trigger webhooks", "Pre-negotiated bulk rates", "Dedicated 24/7 support SLA"],
-              },
-            ].map((plan) => {
-              const isCustom = "customPrice" in plan;
-              const hasPrice = !isCustom;
-              const price = hasPrice ? (billingPeriod === "monthly" ? (plan as any).monthlyPrice : (plan as any).annualPrice) : null;
-              
+            {([...AGENT_PLAN_TIERS, ENTERPRISE_PLAN] as (AgentPlanTier | typeof ENTERPRISE_PLAN)[]).map((plan) => {
+              const isCustom = !("monthlyPrice" in plan);
+              const price = !isCustom ? planPrice(plan as AgentPlanTier, billingPeriod === "annually" ? "annual" : "monthly") : null;
+              const isPopular = "popular" in plan && !!plan.popular;
+
               return (
                 <div
                   key={plan.name}
                   className={`rounded-3xl border p-6 text-left transition-all duration-300 relative flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] ${
-                    plan.popular
+                    isPopular
                       ? "border-[#C9A227] bg-[#0A2647] text-white shadow-lg shadow-[#0A2647]/20 ring-4 ring-[#C9A227]/25"
                       : "border-slate-200 bg-white text-slate-800"
                   }`}
                 >
-                  {plan.popular && (
+                  {isPopular && (
                     <span className="absolute -top-3.5 right-6 bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
                       Best Value
                     </span>
                   )}
-                  
+
                   <div>
-                    <h3 className={`text-base font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
-                      {plan.name}
-                    </h3>
-                    <p className={`text-xs font-semibold mt-1 mb-6 leading-relaxed ${plan.popular ? "text-[#C9A227]" : "text-slate-500"}`}>
-                      {plan.sub}
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg">{plan.icon}</span>
+                      <h3 className={`text-base font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
+                        {plan.name}
+                      </h3>
+                    </div>
+                    <p className={`text-xs font-semibold mt-1 mb-6 leading-relaxed ${isPopular ? "text-[#C9A227]" : "text-slate-500"}`}>
+                      {plan.tagline}
                     </p>
-                    
+
                     <div className="flex items-baseline gap-1 mb-8">
                       {isCustom ? (
-                        <span className={`text-3xl font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
+                        <span className={`text-3xl font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
                           Custom
                         </span>
                       ) : (
                         <>
-                          <span className={`text-3xl font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
+                          <span className={`text-[10px] font-bold uppercase font-mono ${isPopular ? "text-slate-300" : "text-slate-400"}`}>from</span>
+                          <span className={`text-3xl font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
                             ${price}
                           </span>
-                          <span className={`text-xs font-semibold ${plan.popular ? "text-slate-300" : "text-slate-500"}`}>
+                          <span className={`text-xs font-semibold ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
                             /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
                           </span>
                         </>
                       )}
                     </div>
-                    
+
                     <ul className="space-y-3.5 mb-8 text-[11px] font-semibold leading-relaxed">
                       {plan.features.map((f) => (
                         <li key={f} className="flex items-start gap-2.5">
-                          <span className={`text-sm leading-none shrink-0 ${plan.popular ? "text-[#C9A227]" : "text-[#0A2647]"}`}>
+                          <span className={`text-sm leading-none shrink-0 ${isPopular ? "text-[#C9A227]" : "text-[#0A2647]"}`}>
                             ✓
                           </span>
-                          <span className={plan.popular ? "text-slate-200" : "text-slate-700"}>
+                          <span className={isPopular ? "text-slate-200" : "text-slate-700"}>
                             {f}
                           </span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                  
+
                   <Link
-                    href={`/register?role=agent&plan=${encodeURIComponent(plan.name)}`}
+                    href={isCustom ? "/contact" : `/register?role=agent&plan=${encodeURIComponent(plan.name)}&billing=${billingPeriod === "annually" ? "annual" : "monthly"}`}
                     className={`block w-full text-center py-3 rounded-xl text-xs font-bold transition-all ${
-                      plan.popular
+                      isPopular
                         ? "bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] shadow-lg shadow-[#C9A227]/10"
                         : "bg-slate-100 hover:bg-[#0A2647] text-[#0A2647] hover:text-white border border-transparent hover:border-[#0A2647]"
                     }`}

@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -8,6 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Lead extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $appends = ['full_name'];
 
     protected $fillable = [
         'lead_number', 'source', 'source_url', 'utm_source', 'utm_medium',
@@ -27,6 +30,10 @@ class Lead extends Model
             'pre_approved' => 'boolean', 'consent_given' => 'boolean',
             'chat_metadata' => 'array',
         ];
+    }
+
+    protected function fullName(): Attribute {
+        return Attribute::make(get: fn () => trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? '')));
     }
 
     protected static function boot() {

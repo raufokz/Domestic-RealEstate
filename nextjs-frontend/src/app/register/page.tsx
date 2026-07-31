@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { useToast } from "@/components/Toast";
+import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planByName, planPrice } from "@/lib/agentPlans";
 
 const ROLES = [
   {
@@ -106,10 +107,20 @@ const AGENT_SERVICES_TEMPLATES = [
   },
 ];
 
+/** Services a given plan may pick from, or null if the plan allows any category
+ * (still may cap the count separately). Mirrors AgentProfile::planAllowedServices
+ * on the backend, which enforces this same rule server-side. */
+function allowedServicesForPlan(planName: string): string[] | null {
+  const plan = planByName(planName);
+  if (!plan || !plan.categories) return null;
+  return AGENT_SERVICES_TEMPLATES.filter((g) => plan.categories!.includes(g.category)).flatMap((g) => g.items);
+}
+
 function RegisterForm() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") || "";
   const initialPlan = searchParams.get("plan") || "";
+  const initialBilling = searchParams.get("billing") === "annual" ? "annual" : "monthly";
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -133,15 +144,16 @@ function RegisterForm() {
     monthly_budget: "",
     preferred_leads: [] as string[],
     service_areas_zipcodes: "",
-    pricing_plan: initialPlan || "Free Partner",
+    pricing_plan: initialPlan || "Solo",
+    billing_cycle: initialBilling as "monthly" | "annual",
   });
 
   useEffect(() => {
     if (initialRole) {
-      setForm((prev) => ({ 
-        ...prev, 
+      setForm((prev) => ({
+        ...prev,
         role: initialRole,
-        pricing_plan: initialPlan || prev.pricing_plan 
+        pricing_plan: initialPlan || prev.pricing_plan
       }));
       setStep(2);
     }
@@ -160,11 +172,12 @@ function RegisterForm() {
       brokerage: "Apex Real Estate Corp",
       budgetMin: "250000",
       budgetMax: "750000",
-      services_needed: ["Lead Generation", "AI Assistant"],
+      services_needed: role === "agent" || role === "broker" ? ["Lead Generation", "Social Media Management"] : [],
       monthly_budget: "$1,000 - $2,500",
       preferred_leads: ["Sellers", "Buyers"],
       service_areas_zipcodes: "33139, 33140",
-      pricing_plan: role === "agent" || role === "broker" ? "Elite Exclusive Specialist" : "Free Partner",
+      pricing_plan: role === "agent" || role === "broker" ? "Elite" : "Solo",
+      billing_cycle: "monthly",
     });
     setStep(2);
   };
@@ -173,9 +186,44 @@ function RegisterForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const selectPlan = (planName: string) => {
+    setForm((prev) => {
+      const plan = planByName(planName);
+      if (!plan) return { ...prev, pricing_plan: planName };
+      const allowed = allowedServicesForPlan(planName);
+      let services = prev.services_needed;
+      let trimmed = false;
+      if (allowed) {
+        const next = services.filter((s) => allowed.includes(s));
+        trimmed = next.length !== services.length;
+        services = next;
+      }
+      if (plan.cap !== null && services.length > plan.cap) {
+        trimmed = true;
+        services = services.slice(0, plan.cap);
+      }
+      if (trimmed) {
+        notifyError(null, `Some selected services aren't available on ${planName} and were removed.`);
+      }
+      return { ...prev, pricing_plan: planName, services_needed: services };
+    });
+  };
+
   const toggleCheckbox = (field: "services_needed" | "preferred_leads", value: string) => {
     setForm((prev) => {
       const arr = prev[field] || [];
+      if (field === "services_needed" && !arr.includes(value)) {
+        const plan = planByName(prev.pricing_plan);
+        const allowed = allowedServicesForPlan(prev.pricing_plan);
+        if (allowed && !allowed.includes(value)) {
+          notifyError(null, `${value} isn't included in the ${prev.pricing_plan} plan. Upgrade to add it.`);
+          return prev;
+        }
+        if (plan?.cap !== null && plan?.cap !== undefined && arr.length >= plan.cap) {
+          notifyError(null, `The ${prev.pricing_plan} plan allows up to ${plan.cap} services. Upgrade to add more.`);
+          return prev;
+        }
+      }
       const updated = arr.includes(value)
         ? arr.filter((x) => x !== value)
         : [...arr, value];
@@ -509,50 +557,43 @@ function RegisterForm() {
               {(form.role === "agent" || form.role === "broker") && (
                 <>
                   <div>
-                    <label className="block text-sm font-semibold text-[#0A2647] mb-3 font-heading uppercase tracking-wide">
-                      Select Your Preferred Agent Plan
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                      {[
-                        {
-                          name: "Free Partner",
-                          price: "$0",
-                          period: "forever",
-                          icon: "🌱",
-                          description: "Basic profile directory listing & claim up to 3 properties.",
-                          features: ["Standard Agent Directory Listing", "Claim up to 3 listings", "Receive general requests"]
-                        },
-                        {
-                          name: "Zip Code Specialist",
-                          price: "$99",
-                          period: "month",
-                          icon: "★",
-                          description: "Get spotlighted at the top of local property searches.",
-                          features: ["Map Search Spotlight Banner", "★ Preferred Partner Badge", "Zipcode Lead Forwarding", "SMS Lead Alerts"]
-                        },
-                        {
-                          name: "Elite Exclusive Specialist",
-                          price: "$149",
-                          period: "month",
-                          icon: "👑",
-                          popular: true,
-                          description: "100% exclusive Zip Code ownership. No competitors allowed.",
-                          features: ["Locks out 1 Zip Code exclusively", "Priority Search Spotlight ranking", "Google Search schema integration", "24/7 Priority Support"]
-                        },
-                        {
-                          name: "Brokerage Partner",
-                          price: "$299",
-                          period: "month",
-                          icon: "🏢",
-                          description: "Own multiple zip codes and rotating team spotlights.",
-                          features: ["Spotlight for 5 Zip Codes", "Rotates team profiles on properties", "Co-branded office landers", "Custom CRM webhook integration"]
-                        }
-                      ].map((plan) => {
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <label className="block text-sm font-semibold text-[#0A2647] font-heading uppercase tracking-wide">
+                        Select Your Preferred Agent Plan
+                      </label>
+                      <div className="flex items-center gap-2.5">
+                        <span className={`text-xs font-bold ${form.billing_cycle === "monthly" ? "text-[#0A2647]" : "text-slate-400"}`}>
+                          Monthly
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateForm("billing_cycle", form.billing_cycle === "monthly" ? "annual" : "monthly")}
+                          className="w-11 h-6 bg-[#0A2647] rounded-full p-1 transition-all relative focus:outline-none ring-2 ring-[#C9A227]/30"
+                          aria-label="Toggle billing cycle"
+                        >
+                          <div
+                            className={`w-4 h-4 bg-[#C9A227] rounded-full shadow-md transition-transform transform ${
+                              form.billing_cycle === "annual" ? "translate-x-5" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                        <span className={`text-xs font-bold flex items-center gap-1 ${form.billing_cycle === "annual" ? "text-[#0A2647]" : "text-slate-400"}`}>
+                          Annual
+                          <span className="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Save 20%</span>
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mb-3">
+                      Every plan is priced from a real starting point — your VA's exact monthly rate is confirmed with you once we review the services you request.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                      {AGENT_PLAN_TIERS.map((plan) => {
                         const isSelected = form.pricing_plan === plan.name;
+                        const price = planPrice(plan, form.billing_cycle);
                         return (
                           <div
                             key={plan.name}
-                            onClick={() => updateForm("pricing_plan", plan.name)}
+                            onClick={() => selectPlan(plan.name)}
                             className={`p-5 rounded-3xl border-2 text-left transition-all cursor-pointer relative flex flex-col justify-between hover:shadow-md ${
                               isSelected
                                 ? "border-[#C9A227] bg-[#C9A227]/5 shadow-lg scale-[1.01]"
@@ -569,11 +610,14 @@ function RegisterForm() {
                                 <span className="text-xl">{plan.icon}</span>
                                 <h4 className="font-heading font-extrabold text-sm text-[#0A2647]">{plan.name}</h4>
                               </div>
-                              <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.description}</p>
-                              
+                              <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.tagline}</p>
+
                               <div className="flex items-baseline gap-1 mb-4">
-                                <span className="text-2xl font-black text-[#0A2647]">{plan.price}</span>
-                                <span className="text-[10px] text-slate-500 font-bold uppercase font-mono">/ {plan.period}</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase font-mono">from</span>
+                                <span className="text-2xl font-black text-[#0A2647]">${price}</span>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase font-mono">
+                                  /{form.billing_cycle === "monthly" ? "mo" : "mo, billed annually"}
+                                </span>
                               </div>
 
                               <ul className="space-y-1.5 text-[10px] text-slate-600 font-bold border-t border-slate-100 pt-3">
@@ -584,7 +628,7 @@ function RegisterForm() {
                                 ))}
                               </ul>
                             </div>
-                            
+
                             <div
                               className={`w-full py-2 text-[11px] text-center rounded-xl font-heading font-bold transition-all ${
                                 isSelected
@@ -592,12 +636,18 @@ function RegisterForm() {
                                   : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                               }`}
                             >
-                              {isSelected ? "Plan Selected ✓" : "Select Plan"}
+                              {isSelected ? "Plan Selected ✓" : plan.cta}
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                    <p className="text-[11px] text-slate-500 mb-6">
+                      Need more than {AGENT_PLAN_TIERS[AGENT_PLAN_TIERS.length - 1].name}? {ENTERPRISE_PLAN.tagline}{" "}
+                      <Link href="/contact" className="text-[#C9A227] font-bold hover:underline">
+                        {ENTERPRISE_PLAN.cta} about {ENTERPRISE_PLAN.name}.
+                      </Link>
+                    </p>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
@@ -662,34 +712,70 @@ function RegisterForm() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-[#0A2647] mb-3 font-heading uppercase tracking-wide">
-                      Services Needed (Select all that apply)
-                    </label>
-                    <div className="space-y-4">
-                      {AGENT_SERVICES_TEMPLATES.map((group) => (
-                        <div key={group.category} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/85">
-                          <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wider mb-2.5">
-                            {group.category}
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {group.items.map((svc) => {
-                              const isChecked = form.services_needed?.includes(svc);
-                              return (
-                                <label key={svc} className={`flex items-center gap-2.5 px-3 py-2 border rounded-xl cursor-pointer select-none transition-all ${isChecked ? 'bg-[#0A2647] text-white border-[#0A2647] shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'}`}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => toggleCheckbox("services_needed", svc)}
-                                    className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-350 rounded"
-                                  />
-                                  <span className="text-[11px] font-semibold">{svc}</span>
-                                </label>
-                              );
-                            })}
+                    {(() => {
+                      const selectedPlan = planByName(form.pricing_plan);
+                      const allowedServices = allowedServicesForPlan(form.pricing_plan);
+                      const capReached = selectedPlan?.cap != null && form.services_needed.length >= selectedPlan.cap;
+                      return (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="block text-sm font-semibold text-[#0A2647] font-heading uppercase tracking-wide">
+                              Services Needed
+                            </label>
+                            <span className="text-[11px] font-bold text-slate-500">
+                              {selectedPlan?.cap != null
+                                ? `${form.services_needed.length} / ${selectedPlan.cap} selected`
+                                : `${form.services_needed.length} selected (unlimited)`}
+                            </span>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                          <div className="space-y-4">
+                            {AGENT_SERVICES_TEMPLATES.map((group) => (
+                              <div key={group.category} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/85">
+                                <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wider mb-2.5">
+                                  {group.category}
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {group.items.map((svc) => {
+                                    const isChecked = form.services_needed?.includes(svc);
+                                    const inAllowedCategory = !allowedServices || allowedServices.includes(svc);
+                                    const disabled = !isChecked && (!inAllowedCategory || capReached);
+                                    return (
+                                      <label
+                                        key={svc}
+                                        title={
+                                          !inAllowedCategory
+                                            ? `Not included in the ${form.pricing_plan} plan — upgrade to add it.`
+                                            : disabled
+                                            ? `${form.pricing_plan} plan limit reached — upgrade for more.`
+                                            : undefined
+                                        }
+                                        className={`flex items-center gap-2.5 px-3 py-2 border rounded-xl select-none transition-all ${
+                                          isChecked
+                                            ? "bg-[#0A2647] text-white border-[#0A2647] shadow-sm cursor-pointer"
+                                            : disabled
+                                            ? "border-slate-150 bg-slate-100 text-slate-350 cursor-not-allowed opacity-60"
+                                            : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer"
+                                        }`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          disabled={disabled}
+                                          onChange={() => toggleCheckbox("services_needed", svc)}
+                                          className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-350 rounded disabled:cursor-not-allowed"
+                                        />
+                                        <span className="text-[11px] font-semibold">{svc}</span>
+                                        {!inAllowedCategory && <span className="text-[9px] ml-auto">🔒</span>}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div>
