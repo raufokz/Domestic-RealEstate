@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PropertyMapWrapper from "./PropertyMapWrapper";
 import PropertyInquiryForm from "./PropertyInquiryForm";
+import PropertyGallery from "./PropertyGallery";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, SITE_URL } from "@/lib/seo";
@@ -123,38 +124,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Gallery */}
-              {heroImg ? (
-                <>
-                  <div className="rounded-2xl h-80 md:h-[480px] relative overflow-hidden bg-gray-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={heroImg}
-                      alt={`${prop.title} — ${locationLine(prop)}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      {prop.propertyType?.name && (
-                        <span className="bg-white/90 text-[#0A2647] text-xs font-heading font-semibold px-3 py-1 rounded-full">{prop.propertyType.name}</span>
-                      )}
-                      {prop.featured && (
-                        <span className="bg-[#C9A227] text-[#0A2647] text-xs font-heading font-semibold px-3 py-1 rounded-full">Featured</span>
-                      )}
-                    </div>
-                  </div>
-                  {photos.length > 1 && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {photos.slice(1, 5).map((src, i) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img key={i} src={src} alt={`${prop.title} photo ${i + 2}`} loading="lazy" className="h-20 w-full object-cover rounded-lg bg-gray-100" />
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div aria-hidden="true" className="rounded-2xl h-80 md:h-[480px] bg-gradient-to-br from-[#0A2647]/10 to-[#C9A227]/10 flex items-center justify-center">
-                  <span className="text-gray-400 font-body text-sm">Photos coming soon</span>
-                </div>
-              )}
+              <PropertyGallery
+                photos={photos}
+                title={prop.title}
+                location={locationLine(prop)}
+                propertyTypeName={prop.propertyType?.name}
+                featured={prop.featured}
+              />
 
               <div className="border-b border-gray-200 pb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

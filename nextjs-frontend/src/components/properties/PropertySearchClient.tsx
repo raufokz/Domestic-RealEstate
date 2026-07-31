@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { apiGet, ApiError } from "@/lib/api";
 import { propertyPhotoPaths } from "@/lib/properties";
+import { storageUrl } from "@/lib/media";
 import UniversalChatWidget from "@/components/ai/UniversalChatWidget";
 
 /** Shape returned by GET /properties (Laravel paginator of Property models). */
@@ -301,7 +302,7 @@ export default function PropertySearchClient() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProperties.map((p) => {
-                  const photo = propertyPhotoPaths(p)[0] ?? null;
+                  const photo = storageUrl(propertyPhotoPaths(p)[0]) ?? null;
                   const location = [p.city, p.state].filter(Boolean).join(", ");
                   return (
                     <article

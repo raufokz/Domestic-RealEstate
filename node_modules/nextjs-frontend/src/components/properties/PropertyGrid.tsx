@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getProperties, formatPrice, type PublicProperty } from "@/lib/properties";
+import { getProperties, formatPrice, propertyPhotoPaths, type PublicProperty } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 }
 
 function PropertyCard({ p }: { p: PublicProperty }) {
-  const img = storageUrl(p.photos?.[0]);
+  const img = storageUrl(propertyPhotoPaths(p)[0]);
   const location = [p.city, p.state].filter(Boolean).join(", ");
   return (
     <Link
