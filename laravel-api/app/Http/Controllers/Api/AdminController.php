@@ -627,6 +627,37 @@ class AdminController extends Controller
         return response()->json(['message' => 'Agent deleted']);
     }
 
+    public function sendAgentPaymentLink(Request $request, $id) {
+        $this->checkAdmin();
+        $profile = AgentProfile::with('user')->findOrFail($id);
+
+        $validated = $request->validate([
+            'payoneer_checkout_url' => 'required|url|max:2048',
+        ]);
+
+        if (!$profile->user?->email) {
+            return response()->json(['message' => 'This agent has no email on file.'], 422);
+        }
+
+        $profile->update([
+            'payoneer_checkout_url' => $validated['payoneer_checkout_url'],
+            'payment_link_sent_at' => now(),
+        ]);
+
+        \Illuminate\Support\Facades\Mail::to($profile->user->email)
+            ->queue(new \App\Mail\SendAgentPaymentLink($profile));
+
+        $this->logActivity('agent_payment_link_sent', $profile);
+
+        return response()->json([
+            'message' => 'Payment link emailed to agent.',
+            'data' => [
+                'payment_link_sent_at' => $profile->payment_link_sent_at,
+                'payoneer_checkout_url' => $profile->payoneer_checkout_url,
+            ],
+        ]);
+    }
+
     public function notifications(Request $request) {
         $this->checkAdmin();
         $query = \App\Models\Notification::query()->where('user_id', Auth::id());

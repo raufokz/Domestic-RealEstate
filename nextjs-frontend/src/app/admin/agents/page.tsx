@@ -24,6 +24,13 @@ interface Agent {
   is_featured: boolean;
   is_published: boolean;
   user?: AgentUser | null;
+  specialties?: string[] | null;
+  service_areas?: string[] | null;
+  lead_type_preferences?: { pricing_plan?: string; budget?: string; leads?: string[] } | null;
+  payment_status?: "unpaid" | "paid" | "renewed" | "refunded";
+  payoneer_checkout_url?: string | null;
+  payment_link_sent_at?: string | null;
+  created_at?: string;
 }
 
 interface Paginated {
@@ -55,6 +62,9 @@ export default function AgentsPage() {
   const [editing, setEditing] = useState<Agent | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [paymentAgent, setPaymentAgent] = useState<Agent | null>(null);
+  const [payoneerUrl, setPayoneerUrl] = useState("");
+  const [sendingLink, setSendingLink] = useState(false);
 
   const fetchAgents = useCallback(async () => {
     try {
@@ -163,6 +173,47 @@ export default function AgentsPage() {
     rejected: "bg-gray-100 text-gray-800",
   };
 
+  const openPaymentModal = (a: Agent) => {
+    setPaymentAgent(a);
+    setPayoneerUrl(a.payoneer_checkout_url || "");
+  };
+
+  const handleSendPaymentLink = async () => {
+    if (!paymentAgent) return;
+    if (!/^https?:\/\/.+/i.test(payoneerUrl.trim())) {
+      notifyError(new Error("Enter a valid Payoneer checkout URL (must start with http:// or https://)."));
+      return;
+    }
+    try {
+      setSendingLink(true);
+      const res = await apiPost<{ data: { payment_link_sent_at: string; payoneer_checkout_url: string } }>(
+        `/admin/agents/${paymentAgent.id}/send-payment-link`,
+        { payoneer_checkout_url: payoneerUrl.trim() }
+      );
+      success("Invoice email sent to agent.", "Payoneer Link");
+      setAgents((prev) =>
+        prev.map((a) =>
+          a.id === paymentAgent.id
+            ? { ...a, payoneer_checkout_url: res.data.payoneer_checkout_url, payment_link_sent_at: res.data.payment_link_sent_at }
+            : a
+        )
+      );
+      setPaymentAgent(null);
+    } catch (err) {
+      notifyError(err, "Could not send the payment link.");
+    } finally {
+      setSendingLink(false);
+    }
+  };
+
+  const paymentBadge = (a: Agent): { label: string; className: string } => {
+    if (a.payment_status === "paid") return { label: "Paid", className: "bg-green-100 text-green-800" };
+    if (a.payment_status === "renewed") return { label: "Renewed", className: "bg-blue-100 text-blue-800" };
+    if (a.payment_status === "refunded") return { label: "Refunded", className: "bg-gray-100 text-gray-600" };
+    if (a.payment_link_sent_at) return { label: "Link Sent", className: "bg-amber-100 text-amber-800" };
+    return { label: "Unpaid", className: "bg-red-100 text-red-700" };
+  };
+
   return (
     <AdminLayout title="Agent Management">
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -200,6 +251,8 @@ export default function AgentsPage() {
                 <th className="px-4 py-3 text-left text-sm">License</th>
                 <th className="px-4 py-3 text-left text-sm">Brokerage</th>
                 <th className="px-4 py-3 text-left text-sm">Status</th>
+                <th className="px-4 py-3 text-left text-sm">Plan</th>
+                <th className="px-4 py-3 text-left text-sm">Payment</th>
                 <th className="px-4 py-3 text-left text-sm">Sales</th>
                 <th className="px-4 py-3 text-left text-sm">Actions</th>
               </tr>
@@ -218,6 +271,15 @@ export default function AgentsPage() {
                       {a.status}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{a.lead_type_preferences?.pricing_plan || "—"}</td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const badge = paymentBadge(a);
+                      return (
+                        <span className={`px-2 py-1 text-xs rounded-full ${badge.className}`}>{badge.label}</span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-sm">{a.sales_count ?? 0}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
@@ -230,6 +292,14 @@ export default function AgentsPage() {
                             Reject
                           </button>
                         </>
+                      )}
+                      {(a.payment_status ?? "unpaid") === "unpaid" && (
+                        <button
+                          onClick={() => openPaymentModal(a)}
+                          className="px-2 py-1 bg-gold text-navy text-xs rounded font-semibold"
+                        >
+                          Send Payoneer Link
+                        </button>
                       )}
                       <button onClick={() => openEdit(a)} className="px-2 py-1 border text-xs rounded">
                         Edit
@@ -292,6 +362,77 @@ export default function AgentsPage() {
                 className="px-4 py-2 bg-gold text-navy rounded-lg text-sm font-semibold disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {paymentAgent && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div>
+              <h3 className="text-lg font-bold text-navy">Send Payoneer Payment Link</h3>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {paymentAgent.user?.name || "This agent"} · {paymentAgent.user?.email}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+              <p className="text-sm">
+                <span className="font-semibold text-navy">Plan:</span>{" "}
+                {paymentAgent.lead_type_preferences?.pricing_plan || "Not selected"}
+              </p>
+              {paymentAgent.service_areas && paymentAgent.service_areas.length > 0 && (
+                <p className="text-sm">
+                  <span className="font-semibold text-navy">Zip Codes:</span>{" "}
+                  {paymentAgent.service_areas.join(", ")}
+                </p>
+              )}
+              <div>
+                <p className="text-sm font-semibold text-navy mb-1">Services Requested:</p>
+                {paymentAgent.specialties && paymentAgent.specialties.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {paymentAgent.specialties.map((s) => (
+                      <span key={s} className="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-xs text-slate-700">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">No services selected.</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Payoneer Checkout Link</label>
+              <input
+                type="url"
+                value={payoneerUrl}
+                onChange={(e) => setPayoneerUrl(e.target.value)}
+                placeholder="https://payoneer.com/checkout/..."
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+              />
+              <p className="text-xs text-slate-400 mt-1">
+                This link is emailed directly to the agent with their plan and requested services.
+              </p>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                onClick={() => setPaymentAgent(null)}
+                disabled={sendingLink}
+                className="px-4 py-2 border rounded-lg text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendPaymentLink}
+                disabled={sendingLink}
+                className="px-4 py-2 bg-gold text-navy rounded-lg text-sm font-semibold disabled:opacity-50"
+              >
+                {sendingLink ? "Sending..." : "Send Invoice Email"}
               </button>
             </div>
           </div>

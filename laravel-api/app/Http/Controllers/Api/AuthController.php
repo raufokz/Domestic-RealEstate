@@ -35,6 +35,8 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:buyer,seller,agent,broker,investor,admin,super_admin',
             'phone' => 'nullable|string',
+            'services_needed' => 'nullable|array',
+            'services_needed.*' => 'string|in:' . implode(',', \App\Models\AgentProfile::serviceCatalogFlat()),
         ]);
 
         $user = User::create([
@@ -60,7 +62,7 @@ class AuthController extends Controller
                 'brokerage_name' => $request->input('brokerage') ?? 'Domestic Real Estate Brokerage',
                 'license_number' => $request->input('licenseNumber') ?? 'LIC-' . rand(100000, 999999),
                 'license_status' => 'active',
-                'specialties' => (array)($request->input('services_needed') ?? []),
+                'specialties' => $validated['services_needed'] ?? [],
                 'service_areas' => array_values($zipcodes),
                 'lead_type_preferences' => [
                     'budget' => $request->input('monthly_budget') ?? 'Not Specified',

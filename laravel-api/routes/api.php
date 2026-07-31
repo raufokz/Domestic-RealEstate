@@ -359,6 +359,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::post('/agents', [AdminController::class, 'storeAgent']);
     Route::put('/agents/{id}', [AdminController::class, 'updateAgent']);
     Route::delete('/agents/{id}', [AdminController::class, 'destroyAgent']);
+    Route::post('/agents/{id}/send-payment-link', [AdminController::class, 'sendAgentPaymentLink']);
     Route::get('/leads', [AdminController::class, 'leads']);
     Route::get('/enquiries', [AdminController::class, 'enquiries']);
     Route::get('/settings', [AdminController::class, 'settings']);
