@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { useToast } from "@/components/Toast";
 
@@ -58,7 +59,58 @@ const ROLES = [
   },
 ];
 
-export default function RegisterPage() {
+const AGENT_SERVICES_TEMPLATES = [
+  {
+    category: "Core Services",
+    items: [
+      "Executive Virtual Assistant",
+      "Email Management",
+      "Calendar Management",
+      "CRM Management",
+      "MLS & Property Listings",
+      "Data Entry & Research",
+      "Excel & Google Sheets",
+      "Cold Calling",
+      "Lead Generation",
+      "Social Media Management",
+    ],
+  },
+  {
+    category: "Web & Tech",
+    items: [
+      "Real Estate Website Development",
+      "Website Updates & Maintenance",
+      "Landing Pages",
+      "WordPress Development",
+      "Automation & Workflows",
+      "Technical Support",
+    ],
+  },
+  {
+    category: "Marketing",
+    items: [
+      "SEO",
+      "Graphic Design (Canva)",
+      "Content Creation",
+      "YouTube Management",
+      "Pinterest Marketing",
+    ],
+  },
+  {
+    category: "AI & Productivity",
+    items: [
+      "AI Tools Integration",
+      "Reports & Analytics",
+      "Database Management",
+    ],
+  },
+];
+
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const initialRole = searchParams.get("role") || "";
+  const initialPlan = searchParams.get("plan") || "";
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -66,7 +118,7 @@ export default function RegisterPage() {
   const { notifyError, success } = useToast();
 
   const [form, setForm] = useState({
-    role: "",
+    role: initialRole,
     firstName: "",
     lastName: "",
     email: "",
@@ -77,7 +129,23 @@ export default function RegisterPage() {
     brokerage: "",
     budgetMin: "",
     budgetMax: "",
+    services_needed: [] as string[],
+    monthly_budget: "",
+    preferred_leads: [] as string[],
+    service_areas_zipcodes: "",
+    pricing_plan: initialPlan || "Free Partner",
   });
+
+  useEffect(() => {
+    if (initialRole) {
+      setForm((prev) => ({ 
+        ...prev, 
+        role: initialRole,
+        pricing_plan: initialPlan || prev.pricing_plan 
+      }));
+      setStep(2);
+    }
+  }, [initialRole, initialPlan]);
 
   const handleQuickDemoRegister = (role = "buyer") => {
     setForm({
@@ -92,12 +160,27 @@ export default function RegisterPage() {
       brokerage: "Apex Real Estate Corp",
       budgetMin: "250000",
       budgetMax: "750000",
+      services_needed: ["Lead Generation", "AI Assistant"],
+      monthly_budget: "$1,000 - $2,500",
+      preferred_leads: ["Sellers", "Buyers"],
+      service_areas_zipcodes: "33139, 33140",
+      pricing_plan: role === "agent" || role === "broker" ? "Elite Exclusive Specialist" : "Free Partner",
     });
     setStep(2);
   };
 
-  const updateForm = (field: string, value: string) => {
+  const updateForm = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleCheckbox = (field: "services_needed" | "preferred_leads", value: string) => {
+    setForm((prev) => {
+      const arr = prev[field] || [];
+      const updated = arr.includes(value)
+        ? arr.filter((x) => x !== value)
+        : [...arr, value];
+      return { ...prev, [field]: updated };
+    });
   };
 
   const canProceed = () => {
@@ -177,30 +260,30 @@ export default function RegisterPage() {
           </Link>
 
           <div className="flex items-center justify-between mb-4">
-            {["Role", "Personal Info", "Details", "Verify"].map((label, i) => (
+            {["Choose Role", "Account Setup", "Preferences"].map((label, i) => (
               <div key={label} className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                     step > i + 1
-                      ? "bg-[#C9A227] text-[#0A2647]"
+                      ? "bg-[#C9A227] text-[#0A2647] scale-110 shadow-lg shadow-[#C9A227]/20"
                       : step === i + 1
-                      ? "bg-white text-[#0A2647]"
-                      : "bg-slate-600 text-slate-300"
+                      ? "bg-white text-[#0A2647] ring-4 ring-white/20 scale-110"
+                      : "bg-[#0c2e56] text-slate-400 border border-[#143d6c]"
                   }`}
                 >
                   {step > i + 1 ? "✓" : i + 1}
                 </div>
                 <span
-                  className={`ml-2 text-sm hidden sm:inline ${
+                  className={`ml-2.5 text-xs font-heading font-bold uppercase tracking-wider hidden sm:inline transition-colors duration-300 ${
                     step >= i + 1 ? "text-white" : "text-slate-400"
                   }`}
                 >
                   {label}
                 </span>
-                {i < 3 && (
+                {i < 2 && (
                   <div
-                    className={`w-12 sm:w-20 h-0.5 mx-3 ${
-                      step > i + 1 ? "bg-[#C9A227]" : "bg-slate-600"
+                    className={`w-10 sm:w-16 h-0.5 mx-3 transition-colors duration-500 rounded-full ${
+                      step > i + 1 ? "bg-[#C9A227]" : "bg-slate-700"
                     }`}
                   />
                 )}
@@ -239,50 +322,61 @@ export default function RegisterPage() {
                 Auto-fill Test User
               </button>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ROLES.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => updateForm("role", role.id)}
-                  className={`p-6 rounded-xl border-2 text-left transition hover:shadow-lg ${
-                    form.role === role.id
-                      ? "border-[#C9A227] bg-[#C9A227]/5 shadow-lg"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
-                >
-                  <div
-                    className={`mb-3 ${
-                      form.role === role.id
-                        ? "text-[#C9A227]"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {role.icon}
-                  </div>
-                  <h3 className="font-bold text-[#0A2647] text-lg">
-                    {role.title}
-                  </h3>
-                  <p className="text-slate-500 text-sm mt-1">
-                    {role.description}
-                  </p>
-                </button>
-              ))}
-            </div>
+             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+               {ROLES.map((role) => {
+                 const isSelected = form.role === role.id;
+                 return (
+                   <button
+                     key={role.id}
+                     type="button"
+                     onClick={() => updateForm("role", role.id)}
+                     className={`p-6 rounded-3xl border-2 text-left transition-all duration-300 relative group flex flex-col justify-between hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                       isSelected
+                         ? "border-[#C9A227] bg-white shadow-md shadow-[#C9A227]/5 ring-2 ring-[#C9A227]/20"
+                         : "border-slate-205 bg-white hover:border-slate-350"
+                     }`}
+                   >
+                     {isSelected && (
+                       <span className="absolute top-4 right-4 bg-[#C9A227] text-[#0A2647] w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm">
+                         ✓
+                       </span>
+                     )}
+                     <div>
+                       <div
+                         className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 ${
+                           isSelected
+                             ? "bg-[#C9A227]/15 text-[#C9A227]"
+                             : "bg-slate-50 text-slate-400 group-hover:bg-[#0A2647]/5 group-hover:text-[#0A2647]"
+                         }`}
+                       >
+                         {role.icon}
+                       </div>
+                       <h3 className="font-heading font-extrabold text-base text-[#0A2647]">
+                         {role.title}
+                       </h3>
+                       <p className="text-slate-400 font-semibold text-xs leading-relaxed mt-2.5">
+                         {role.description}
+                       </p>
+                     </div>
+                   </button>
+                 );
+               })}
+             </div>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <h2 className="text-2xl font-bold text-[#0A2647] mb-2">
-              Personal Information
+            <h2 className="text-2xl font-bold font-heading text-[#0A2647] mb-2">
+              Setup Your Account
             </h2>
-            <p className="text-slate-500 mb-8">
-              Tell us about yourself
+            <p className="text-slate-500 text-sm mb-6">
+              Create your secure login credentials to access the portal
             </p>
-            <div className="bg-white rounded-xl border border-slate-200 p-8 space-y-5">
+            <div className="bg-white rounded-3xl border border-slate-205/60 p-8 space-y-6 shadow-sm">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                     First Name
                   </label>
                   <input
@@ -293,11 +387,12 @@ export default function RegisterPage() {
                     value={form.firstName}
                     onChange={(e) => updateForm("firstName", e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                    placeholder="Enter first name"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                     Last Name
                   </label>
                   <input
@@ -308,12 +403,14 @@ export default function RegisterPage() {
                     value={form.lastName}
                     onChange={(e) => updateForm("lastName", e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                    placeholder="Enter last name"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                   />
                 </div>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                   Email Address
                 </label>
                 <input
@@ -325,11 +422,13 @@ export default function RegisterPage() {
                   value={form.email}
                   onChange={(e) => updateForm("email", e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                  placeholder="name@example.com"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                   Phone Number
                 </label>
                 <input
@@ -341,12 +440,14 @@ export default function RegisterPage() {
                   value={form.phone}
                   onChange={(e) => updateForm("phone", e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                  placeholder="+1 (555) 000-0000"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                 />
               </div>
+
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                     Password
                   </label>
                   <input
@@ -357,11 +458,12 @@ export default function RegisterPage() {
                     value={form.password}
                     onChange={(e) => updateForm("password", e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                    placeholder="Create secure password"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
                     Confirm Password
                   </label>
                   <input
@@ -374,15 +476,17 @@ export default function RegisterPage() {
                       updateForm("confirmPassword", e.target.value)
                     }
                     required
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                    placeholder="Verify password choice"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#C9A227]/15 focus:border-[#C9A227] outline-none transition-all text-sm font-semibold text-slate-800 placeholder-slate-400"
                   />
                 </div>
               </div>
+
               {form.password &&
                 form.confirmPassword &&
                 form.password !== form.confirmPassword && (
-                  <p className="text-red-500 text-sm">
-                    Passwords do not match
+                  <p className="text-rose-500 text-xs font-bold font-heading">
+                    ⚠️ Passwords do not match
                   </p>
                 )}
             </div>
@@ -405,31 +509,209 @@ export default function RegisterPage() {
               {(form.role === "agent" || form.role === "broker") && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      License Number
+                    <label className="block text-sm font-semibold text-[#0A2647] mb-3 font-heading uppercase tracking-wide">
+                      Select Your Preferred Agent Plan
                     </label>
-                    <input
-                      type="text"
-                      value={form.licenseNumber}
-                      onChange={(e) =>
-                        updateForm("licenseNumber", e.target.value)
-                      }
-                      placeholder="e.g. RE-123456"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                      {[
+                        {
+                          name: "Free Partner",
+                          price: "$0",
+                          period: "forever",
+                          icon: "🌱",
+                          description: "Basic profile directory listing & claim up to 3 properties.",
+                          features: ["Standard Agent Directory Listing", "Claim up to 3 listings", "Receive general requests"]
+                        },
+                        {
+                          name: "Zip Code Specialist",
+                          price: "$99",
+                          period: "month",
+                          icon: "★",
+                          description: "Get spotlighted at the top of local property searches.",
+                          features: ["Map Search Spotlight Banner", "★ Preferred Partner Badge", "Zipcode Lead Forwarding", "SMS Lead Alerts"]
+                        },
+                        {
+                          name: "Elite Exclusive Specialist",
+                          price: "$149",
+                          period: "month",
+                          icon: "👑",
+                          popular: true,
+                          description: "100% exclusive Zip Code ownership. No competitors allowed.",
+                          features: ["Locks out 1 Zip Code exclusively", "Priority Search Spotlight ranking", "Google Search schema integration", "24/7 Priority Support"]
+                        },
+                        {
+                          name: "Brokerage Partner",
+                          price: "$299",
+                          period: "month",
+                          icon: "🏢",
+                          description: "Own multiple zip codes and rotating team spotlights.",
+                          features: ["Spotlight for 5 Zip Codes", "Rotates team profiles on properties", "Co-branded office landers", "Custom CRM webhook integration"]
+                        }
+                      ].map((plan) => {
+                        const isSelected = form.pricing_plan === plan.name;
+                        return (
+                          <div
+                            key={plan.name}
+                            onClick={() => updateForm("pricing_plan", plan.name)}
+                            className={`p-5 rounded-3xl border-2 text-left transition-all cursor-pointer relative flex flex-col justify-between hover:shadow-md ${
+                              isSelected
+                                ? "border-[#C9A227] bg-[#C9A227]/5 shadow-lg scale-[1.01]"
+                                : "border-slate-200 bg-white hover:border-slate-350"
+                            }`}
+                          >
+                            {plan.popular && (
+                              <span className="absolute -top-2.5 right-6 bg-[#C9A227] text-[#0A2647] text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                Most Popular
+                              </span>
+                            )}
+                            <div className="mb-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xl">{plan.icon}</span>
+                                <h4 className="font-heading font-extrabold text-sm text-[#0A2647]">{plan.name}</h4>
+                              </div>
+                              <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.description}</p>
+                              
+                              <div className="flex items-baseline gap-1 mb-4">
+                                <span className="text-2xl font-black text-[#0A2647]">{plan.price}</span>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase font-mono">/ {plan.period}</span>
+                              </div>
+
+                              <ul className="space-y-1.5 text-[10px] text-slate-600 font-bold border-t border-slate-100 pt-3">
+                                {plan.features.map((feat) => (
+                                  <li key={feat} className="flex items-center gap-1.5">
+                                    <span className="text-[#C9A227]">✓</span> {feat}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            <div
+                              className={`w-full py-2 text-[11px] text-center rounded-xl font-heading font-bold transition-all ${
+                                isSelected
+                                  ? "bg-[#0A2647] text-white shadow-sm"
+                                  : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                              }`}
+                            >
+                              {isSelected ? "Plan Selected ✓" : "Select Plan"}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        License Number
+                      </label>
+                      <input
+                        type="text"
+                        value={form.licenseNumber}
+                        onChange={(e) =>
+                          updateForm("licenseNumber", e.target.value)
+                        }
+                        placeholder="e.g. RE-123456"
+                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Brokerage Name
+                      </label>
+                      <input
+                        type="text"
+                        autoComplete="organization"
+                        value={form.brokerage}
+                        onChange={(e) => updateForm("brokerage", e.target.value)}
+                        placeholder="e.g. Premium Properties Inc."
+                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Brokerage Name
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold text-[#0A2647]">
+                      Covering Zip Codes
                     </label>
                     <input
                       type="text"
-                      autoComplete="organization"
-                      value={form.brokerage}
-                      onChange={(e) => updateForm("brokerage", e.target.value)}
-                      placeholder="e.g. Premium Properties Inc."
+                      value={form.service_areas_zipcodes}
+                      onChange={(e) => updateForm("service_areas_zipcodes", e.target.value)}
+                      placeholder="e.g. 33139, 33140, 33101 (comma-separated)"
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800"
                     />
+                    <p className="text-[10px] text-slate-400 mt-1">We will routing local leads matching these zipcodes to your account.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold text-[#0A2647]">
+                      Monthly Marketing Budget
+                    </label>
+                    <select
+                      value={form.monthly_budget}
+                      onChange={(e) => updateForm("monthly_budget", e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800 bg-white"
+                    >
+                      <option value="">Select budget range...</option>
+                      <option value="Under $500/mo">Under $500/mo</option>
+                      <option value="$500 - $1,000/mo">$500 - $1,000/mo</option>
+                      <option value="$1,000 - $2,500/mo">$1,000 - $2,500/mo</option>
+                      <option value="$2,500 - $5,000/mo">$2,500 - $5,000/mo</option>
+                      <option value="$5,000+/mo">$5,000+/mo</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[#0A2647] mb-3 font-heading uppercase tracking-wide">
+                      Services Needed (Select all that apply)
+                    </label>
+                    <div className="space-y-4">
+                      {AGENT_SERVICES_TEMPLATES.map((group) => (
+                        <div key={group.category} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/85">
+                          <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wider mb-2.5">
+                            {group.category}
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {group.items.map((svc) => {
+                              const isChecked = form.services_needed?.includes(svc);
+                              return (
+                                <label key={svc} className={`flex items-center gap-2.5 px-3 py-2 border rounded-xl cursor-pointer select-none transition-all ${isChecked ? 'bg-[#0A2647] text-white border-[#0A2647] shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'}`}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleCheckbox("services_needed", svc)}
+                                    className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-350 rounded"
+                                  />
+                                  <span className="text-[11px] font-semibold">{svc}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 font-bold text-[#0A2647]">
+                      Preferred Lead Types
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Motivated Sellers", "First-Time Buyers", "Off-Market Investment Comps", "Hard Money/Refinance client"].map((lead) => {
+                        const isChecked = form.preferred_leads?.includes(lead);
+                        return (
+                          <label key={lead} className={`flex items-center gap-2.5 px-4 py-3 border rounded-xl cursor-pointer select-none transition-all ${isChecked ? 'bg-[#0A2647]/5 border-[#0A2647]' : 'border-slate-200 hover:bg-slate-50'}`}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleCheckbox("preferred_leads", lead)}
+                              className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-300 rounded"
+                            />
+                            <span className="text-xs font-semibold text-slate-700">{lead}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
                 </>
               )}
@@ -489,7 +771,7 @@ export default function RegisterPage() {
           >
             Back
           </button>
-          {step < 4 ? (
+          {step < 3 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
               disabled={!canProceed()}
@@ -501,7 +783,7 @@ export default function RegisterPage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-[#C9A227] text-[#0A2647] px-8 py-3 rounded-lg font-semibold hover:bg-[#b8911f] transition disabled:opacity-50"
+              className="bg-[#C9A227] text-[#0A2647] px-8 py-3 rounded-lg font-bold hover:bg-[#b8911f] transition disabled:opacity-50"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
@@ -519,5 +801,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center font-heading text-[#0A2647] font-bold text-lg">Loading Registration Portal...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -79,6 +79,16 @@ const navCategories: NavCategory[] = [
     ],
   },
   {
+    id: "agents",
+    label: "Agents",
+    items: [
+      { title: "Find Property Agents", href: "/agents" },
+      { title: "Join Preferred Network", href: "/register?role=agent", badge: "Join" },
+      { title: "Agent Lounge & Tools", href: "/agent/dashboard", badge: "Pro" },
+      { title: "Apply as Partner Broker", href: "/register?role=broker" },
+    ],
+  },
+  {
     id: "resources",
     label: "Resources",
     items: [

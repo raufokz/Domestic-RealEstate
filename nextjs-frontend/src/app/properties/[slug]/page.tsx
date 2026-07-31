@@ -128,6 +128,23 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <h1 className="font-heading text-2xl sm:text-3.5xl font-extrabold text-[#0A2647] tracking-tight leading-tight">
                 {prop.title}
               </h1>
+              {prop.realtor && (
+                <div className="mt-2.5 mb-1.5 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#C9A227]/10 text-[#0A2647] border border-[#C9A227]/30">
+                    <span className="text-[#C9A227] animate-pulse">★</span> Preferred Partner Specialist
+                  </span>
+                  {prop.realtor.agentProfile?.slug ? (
+                    <Link href={`/agents/${prop.realtor.agentProfile.slug}`} className="text-xs font-bold text-[#0A2647] hover:text-[#C9A227] hover:underline flex items-center gap-1 transition-colors">
+                      <span>Represented by {prop.realtor.name}</span>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-slate-500 font-semibold">Represented by {prop.realtor.name}</span>
+                  )}
+                </div>
+              )}
               <p className="font-body text-[#0A2647]/75 text-sm sm:text-base mt-2 flex items-center gap-2 font-medium">
                 <svg className="w-4 h-4 text-[#C9A227] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />

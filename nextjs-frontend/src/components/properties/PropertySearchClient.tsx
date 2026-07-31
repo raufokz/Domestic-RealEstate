@@ -54,6 +54,7 @@ export default function PropertySearchClient() {
   const [properties, setProperties] = useState<ApiProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [agents, setAgents] = useState<any[]>([]);
 
   // Seed filters from the URL so the homepage hero search actually lands here
   // with its criteria applied, and so a filtered search is shareable.
@@ -61,6 +62,35 @@ export default function PropertySearchClient() {
   const [selectedType, setSelectedType] = useState(searchParams.get("type") ?? "All");
   const [selectedPrice, setSelectedPrice] = useState(searchParams.get("price") ?? "All");
   const [selectedBeds, setSelectedBeds] = useState(searchParams.get("beds") ?? "All");
+
+  useEffect(() => {
+    async function loadAgents() {
+      try {
+        const res = await apiGet<any>("/agents?per_page=100");
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        setAgents(list);
+      } catch (e) {
+        console.error("Could not load agents", e);
+      }
+    }
+    loadAgents();
+  }, []);
+
+  const preferredAgent = useMemo(() => {
+    if (agents.length === 0) return null;
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      // Find agent covering this zipcode or city
+      const match = agents.find((a) => {
+        const zipMatch = a.service_areas?.some((zip: string) => zip.toLowerCase().includes(term));
+        const cityMatch = a.office_city?.toLowerCase().includes(term);
+        return zipMatch || cityMatch;
+      });
+      if (match) return match;
+    }
+    // Fallback to first featured agent or any agent
+    return agents.find((a) => a.is_featured) || agents[0];
+  }, [agents, searchTerm]);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -161,6 +191,58 @@ export default function PropertySearchClient() {
           </div>
         </div>
       </header>
+
+      {/* Local Preferred Agent Spotlight Banner */}
+      {preferredAgent && (
+        <div className="bg-gradient-to-r from-[#0A2647] to-[#113a6b] text-white py-4 px-6 border-b border-[#C9A227]/30">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded-full border-2 border-[#C9A227] flex items-center justify-center overflow-hidden shrink-0">
+                {preferredAgent.user?.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={storageUrl(preferredAgent.user.avatar) ?? undefined} alt={preferredAgent.user?.name || "Agent"} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-bold text-sm text-[#C9A227]">
+                    {preferredAgent.user?.name
+                      ? preferredAgent.user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+                      : "AG"}
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-[#C9A227] text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                  ★ Local Preferred Agent
+                  {searchTerm && <span className="text-white/60 font-normal lowercase tracking-normal"> (Covering &quot;{searchTerm}&quot;)</span>}
+                </p>
+                <h4 className="font-heading font-extrabold text-sm sm:text-base text-white hover:underline">
+                  <Link href={`/agents/${preferredAgent.slug}`}>
+                    {preferredAgent.user?.name || "Domestic Real Estate Agent"}
+                  </Link>
+                </h4>
+                {preferredAgent.headline && <p className="text-white/70 text-xs font-medium">{preferredAgent.headline}</p>}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {preferredAgent.lead_type_preferences?.leads && preferredAgent.lead_type_preferences.leads.length > 0 && (
+                <div className="hidden lg:flex items-center gap-1.5 text-xs text-white/60">
+                  <span>Specialties:</span>
+                  <div className="flex gap-1">
+                    {preferredAgent.lead_type_preferences.leads.slice(0, 2).map((l: string, i: number) => (
+                      <span key={i} className="bg-white/10 text-white text-[10px] font-bold px-2 py-0.5 rounded">{l}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <a href={`tel:${preferredAgent.office_phone || preferredAgent.user?.phone || '555-0199'}`} className="bg-[#C9A227] text-[#0A2647] hover:bg-[#b8911f] transition text-xs font-extrabold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+                📞 Call Agent
+              </a>
+              <Link href={`/agents/${preferredAgent.slug}`} className="bg-white/10 hover:bg-white/20 transition text-white border border-white/20 text-xs font-semibold px-4 py-2 rounded-xl">
+                View Profile
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Portal View Area */}
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">

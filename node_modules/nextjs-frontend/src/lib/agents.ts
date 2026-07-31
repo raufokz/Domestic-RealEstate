@@ -28,6 +28,11 @@ export interface PublicAgent {
     phone?: string | null;
     avatar?: string | null;
   } | null;
+  lead_type_preferences?: {
+    budget?: string | null;
+    leads?: string[] | null;
+    pricing_plan?: string | null;
+  } | null;
   listings?: PublicProperty[];
 }
 

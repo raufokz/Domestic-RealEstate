@@ -129,12 +129,12 @@ export default async function AgentsPage() {
             Apply to join our exclusive realtor partner network and receive 100% verified off-market seller leads in your target zip codes.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <a
-              href="/contact?topic=realtor"
+            <Link
+              href="/register?role=agent"
               className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-heading font-extrabold text-sm px-8 py-4 rounded-xl shadow-gold hover:scale-105 transition-all"
             >
-              Apply as Partner Agent →
-            </a>
+              Join Preferred Network Now →
+            </Link>
           </div>
         </div>
       </section>

@@ -47,6 +47,32 @@ class AuthController extends Controller
             'normalized_phone' => $validated['phone'] ? preg_replace('/[^\d]/', '', $validated['phone']) : null,
         ]);
 
+        // If registering as an agent or broker, automatically create an approved AgentProfile
+        if (in_array($validated['role'], ['agent', 'broker'])) {
+            $zipRaw = $request->input('zipcodes') ?? $request->input('service_areas_zipcodes') ?? '';
+            $zipcodes = array_filter(array_map('trim', explode(',', (string)$zipRaw)));
+
+            \App\Models\AgentProfile::create([
+                'user_id' => $user->id,
+                'slug' => \Illuminate\Support\Str::slug($user->name) . '-' . \Illuminate\Support\Str::random(4),
+                'headline' => 'Local Real Estate Specialist',
+                'bio' => 'Dedicated local real estate partner specializing in buyer, seller, and investor client requirements.',
+                'brokerage_name' => $request->input('brokerage') ?? 'Domestic Real Estate Brokerage',
+                'license_number' => $request->input('licenseNumber') ?? 'LIC-' . rand(100000, 999999),
+                'license_status' => 'active',
+                'specialties' => (array)($request->input('services_needed') ?? []),
+                'service_areas' => array_values($zipcodes),
+                'lead_type_preferences' => [
+                    'budget' => $request->input('monthly_budget') ?? 'Not Specified',
+                    'leads' => (array)($request->input('preferred_leads') ?? []),
+                    'pricing_plan' => $request->input('pricing_plan') ?? 'Free Partner',
+                ],
+                'status' => 'approved',
+                'is_published' => true,
+                'approved_at' => now(),
+            ]);
+        }
+
         AuthLog::create([
             'user_id' => $user->id,
             'email' => $user->email,

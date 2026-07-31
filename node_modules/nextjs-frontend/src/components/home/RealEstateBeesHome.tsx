@@ -13,6 +13,7 @@ export default function RealEstateBeesHome() {
   const [activeDirectoryTab, setActiveDirectoryTab] = useState<"pros" | "buyers" | "category" | "directory">("pros");
   const [directorySearch, setDirectorySearch] = useState("");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annually">("monthly");
 
   /* Calculator State */
   const [monthlyLeads, setMonthlyLeads] = useState(50);
@@ -847,6 +848,166 @@ export default function RealEstateBeesHome() {
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* ── PREFERRED AGENT PREMIUM TIERED PRICING SECTION ── */}
+      <section className="py-24 bg-white border-t border-slate-250/60 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <span className="text-[#C9A227] text-xs font-mono font-bold uppercase tracking-widest bg-[#C9A227]/10 px-4 py-1.5 rounded-full">
+            Pricing Plans
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-[#0A2647] mt-4 mb-3 leading-tight font-heading">
+            Choose Your Preferred Partnership Tier
+          </h2>
+          <p className="text-slate-500 text-sm max-w-2xl mx-auto mb-10 leading-relaxed font-body">
+            Unlock exclusive leads, automated CRM operations, local zip code claiming, and AI-powered proptech tools built to convert listings fast.
+          </p>
+
+          {/* Billing Switcher Toggle */}
+          <div className="flex items-center justify-center gap-3.5 mb-14">
+            <span className={`text-sm font-semibold transition-colors duration-200 ${billingPeriod === "monthly" ? "text-[#0A2647] font-bold" : "text-slate-400"}`}>
+              Monthly Billing
+            </span>
+            <button
+              onClick={() => setBillingPeriod(b => b === "monthly" ? "annually" : "monthly")}
+              className="w-14 h-8 bg-[#0A2647] rounded-full p-1 transition-all duration-300 relative focus:outline-none ring-2 ring-[#C9A227]/30"
+              aria-label="Toggle billing duration"
+            >
+              <div
+                className={`w-6 h-6 bg-[#C9A227] rounded-full shadow-md transition-transform duration-300 transform ${
+                  billingPeriod === "annually" ? "translate-x-6" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold transition-colors duration-200 flex items-center gap-1.5 ${billingPeriod === "annually" ? "text-[#0A2647] font-bold" : "text-slate-400"}`}>
+              Annual Billing
+              <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                Save 20%
+              </span>
+            </span>
+          </div>
+
+          {/* Pricing Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {[
+              {
+                name: "Free Partner",
+                sub: "Essential profile exposure",
+                monthlyPrice: 0,
+                annualPrice: 0,
+                cta: "Start Free",
+                popular: false,
+                features: ["Public Profile listing", "Email lead alerts", "Post up to 3 listings", "Generic AI chatbot aid"],
+              },
+              {
+                name: "Zip Code Specialist",
+                sub: "Accelerate local client flow",
+                monthlyPrice: 99,
+                annualPrice: 79,
+                cta: "Select Plan",
+                popular: false,
+                features: ["Claim 1 Zip Code region", "Standard lead routing", "Prioritized local search", "SMS instant lead alerts", "Off-market deal matching"],
+              },
+              {
+                name: "Elite Exclusive Specialist",
+                sub: "Complete local domination",
+                monthlyPrice: 149,
+                annualPrice: 119,
+                cta: "Claim Exclusivity",
+                popular: true,
+                features: ["100% Exclusive Zip Code lock", "Preferred Partner Profile badge", "Direct lead phone calls", "Automated CRM lead push", "Dedicated WhatsApp support"],
+              },
+              {
+                name: "Brokerage Partner",
+                sub: "Power your whole office",
+                monthlyPrice: 299,
+                annualPrice: 239,
+                cta: "Select Plan",
+                popular: false,
+                features: ["Up to 10 agent licenses", "Claim multiple Zip Codes", "Round-robin lead routing", "White-labeled dashboard logs", "Advanced team KPI stats"],
+              },
+              {
+                name: "Enterprise Custom",
+                sub: "Bespoke high-volume solutions",
+                customPrice: "Contact",
+                cta: "Talk to Us",
+                popular: false,
+                features: ["Unlimited seats & zip codes", "Automated MLS feed sync API", "Custom CRM trigger webhooks", "Pre-negotiated bulk rates", "Dedicated 24/7 support SLA"],
+              },
+            ].map((plan) => {
+              const isCustom = "customPrice" in plan;
+              const hasPrice = !isCustom;
+              const price = hasPrice ? (billingPeriod === "monthly" ? (plan as any).monthlyPrice : (plan as any).annualPrice) : null;
+              
+              return (
+                <div
+                  key={plan.name}
+                  className={`rounded-3xl border p-6 text-left transition-all duration-300 relative flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] ${
+                    plan.popular
+                      ? "border-[#C9A227] bg-[#0A2647] text-white shadow-lg shadow-[#0A2647]/20 ring-4 ring-[#C9A227]/25"
+                      : "border-slate-200 bg-white text-slate-800"
+                  }`}
+                >
+                  {plan.popular && (
+                    <span className="absolute -top-3.5 right-6 bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+                      Best Value
+                    </span>
+                  )}
+                  
+                  <div>
+                    <h3 className={`text-base font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
+                      {plan.name}
+                    </h3>
+                    <p className={`text-xs font-semibold mt-1 mb-6 leading-relaxed ${plan.popular ? "text-[#C9A227]" : "text-slate-500"}`}>
+                      {plan.sub}
+                    </p>
+                    
+                    <div className="flex items-baseline gap-1 mb-8">
+                      {isCustom ? (
+                        <span className={`text-3xl font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
+                          Custom
+                        </span>
+                      ) : (
+                        <>
+                          <span className={`text-3xl font-extrabold font-heading ${plan.popular ? "text-white" : "text-[#0A2647]"}`}>
+                            ${price}
+                          </span>
+                          <span className={`text-xs font-semibold ${plan.popular ? "text-slate-300" : "text-slate-500"}`}>
+                            /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    
+                    <ul className="space-y-3.5 mb-8 text-[11px] font-semibold leading-relaxed">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2.5">
+                          <span className={`text-sm leading-none shrink-0 ${plan.popular ? "text-[#C9A227]" : "text-[#0A2647]"}`}>
+                            ✓
+                          </span>
+                          <span className={plan.popular ? "text-slate-200" : "text-slate-700"}>
+                            {f}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <Link
+                    href={`/register?role=agent&plan=${encodeURIComponent(plan.name)}`}
+                    className={`block w-full text-center py-3 rounded-xl text-xs font-bold transition-all ${
+                      plan.popular
+                        ? "bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] shadow-lg shadow-[#C9A227]/10"
+                        : "bg-slate-100 hover:bg-[#0A2647] text-[#0A2647] hover:text-white border border-transparent hover:border-[#0A2647]"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -107,11 +107,39 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
 
             {agent.specialties && agent.specialties.length > 0 && (
               <div>
-                <h2 className="font-heading text-2xl font-bold text-[#0A2647] mb-4">Specialties</h2>
+                <h2 className="font-heading text-2xl font-bold text-[#0A2647] mb-4">Services Needed</h2>
                 <div className="flex flex-wrap gap-2">
-                  {agent.specialties.map((s, i) => (
+                  {agent.specialties.map((s: string, i: number) => (
                     <span key={i} className="bg-[#C9A227]/10 text-[#0A2647] font-heading font-medium text-sm px-4 py-2 rounded-full">{s}</span>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {agent.lead_type_preferences && (agent.lead_type_preferences.pricing_plan || agent.lead_type_preferences.budget || (agent.lead_type_preferences.leads && agent.lead_type_preferences.leads.length > 0)) && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-[#0A2647] mb-4">Ad Placement & Leads</h2>
+                <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                  {agent.lead_type_preferences.pricing_plan && (
+                    <p className="text-sm font-body text-slate-700">
+                      <strong>Membership Plan Tier:</strong> <span className="bg-[#C9A227]/20 border border-[#C9A227]/40 px-2.5 py-0.5 rounded text-xs font-black text-[#0A2647]">{agent.lead_type_preferences.pricing_plan}</span>
+                    </p>
+                  )}
+                  {agent.lead_type_preferences.budget && (
+                    <p className="text-sm font-body text-slate-700">
+                      <strong>Monthly Marketing Budget:</strong> {agent.lead_type_preferences.budget}
+                    </p>
+                  )}
+                  {agent.lead_type_preferences.leads && agent.lead_type_preferences.leads.length > 0 && (
+                    <div>
+                      <strong className="text-sm font-body text-slate-700 block mb-1">Target Lead Specialties:</strong>
+                      <div className="flex flex-wrap gap-1.5">
+                        {agent.lead_type_preferences.leads.map((l: string, i: number) => (
+                          <span key={i} className="bg-[#0A2647]/5 text-[#0A2647] text-xs font-semibold px-2.5 py-1 rounded-md">{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
