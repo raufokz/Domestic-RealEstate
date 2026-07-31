@@ -355,13 +355,13 @@ export default function PropertySearchClient() {
                       <div className="p-6 pt-0 space-y-2">
                         <Link
                           href={`/properties/${p.slug}`}
-                          className="block w-full bg-[#0A2647] hover:bg-[#C9A227] hover:text-[#0A2647] text-white font-heading font-bold text-xs py-3 rounded-xl transition-all text-center"
+                          className="block w-full bg-[#0A2647] hover:!bg-[#C9A227] hover:!text-[#0A2647] !text-white font-heading font-bold text-xs py-3 rounded-xl transition-all text-center"
                         >
                           View Details →
                         </Link>
                         <Link
                           href={`/properties/${p.slug}#schedule-viewing`}
-                          className="block w-full border border-[#0A2647]/20 text-[#0A2647] hover:border-[#C9A227] font-heading font-bold text-xs py-3 rounded-xl transition-all text-center"
+                          className="block w-full border border-[#0A2647]/20 !text-[#0A2647] hover:!bg-[#0A2647] hover:!text-white font-heading font-bold text-xs py-3 rounded-xl transition-all text-center"
                         >
                           Schedule Private Tour
                         </Link>

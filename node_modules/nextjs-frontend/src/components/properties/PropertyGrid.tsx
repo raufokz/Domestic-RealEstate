@@ -62,7 +62,7 @@ export default async function PropertyGrid({ query = {}, limit = 9, emptyMessage
         </p>
         <Link
           href="/properties"
-          className="inline-block bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-6 py-3 rounded-lg hover:bg-[#b8911f] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A2647]"
+          className="inline-block !bg-[#C9A227] !text-[#0A2647] font-heading font-semibold px-6 py-3 rounded-lg hover:!bg-[#b8911f] hover:!text-[#0A2647] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A2647]"
         >
           Browse All Properties
         </Link>

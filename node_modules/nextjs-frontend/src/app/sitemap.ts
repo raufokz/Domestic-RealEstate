@@ -1,11 +1,16 @@
 import type { MetadataRoute } from "next";
+import { getProperties } from "@/lib/properties";
+import { getAgents } from "@/lib/agents";
+import { getBlogPosts } from "@/lib/blog";
+import { CITY_DB } from "@/app/cities/[city]/page";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://domesticrealestate.us";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const staticPages: MetadataRoute.Sitemap = [
+  // 1. Static Pages definitions
+  const sitemapEntries: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: now, changeFrequency: "daily", priority: 1.0 },
     { url: `${BASE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
@@ -91,5 +96,86 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/accessibility`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  return staticPages;
+  // 2. Add City URLs dynamically from CITY_DB configuration
+  try {
+    const citySlugs = Object.keys(CITY_DB);
+    for (const citySlug of citySlugs) {
+      sitemapEntries.push({
+        url: `${BASE_URL}/cities/${citySlug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.8,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to add cities to sitemap:", err);
+  }
+
+  // 3. Fetch and add dynamic Properties
+  try {
+    const properties = await getProperties({}, 100);
+    for (const prop of properties) {
+      if (prop.slug) {
+        sitemapEntries.push({
+          url: `${BASE_URL}/properties/${prop.slug}`,
+          lastModified: now, // Ideally prop.updated_at if available
+          changeFrequency: "daily",
+          priority: 0.7,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Failed to add properties to sitemap:", err);
+  }
+
+  // 4. Fetch and add dynamic Agent Profiles
+  try {
+    const agents = await getAgents({}, 100);
+    for (const agent of agents) {
+      if (agent.slug) {
+        sitemapEntries.push({
+          url: `${BASE_URL}/agents/${agent.slug}`,
+          lastModified: now,
+          changeFrequency: "weekly",
+          priority: 0.7,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Failed to add agents to sitemap:", err);
+  }
+
+  // 5. Fetch and add dynamic Blog Posts and Categories
+  try {
+    const { posts } = await getBlogPosts(100);
+    const categorySlugs = new Set<string>();
+
+    for (const post of posts) {
+      if (post.slug) {
+        sitemapEntries.push({
+          url: `${BASE_URL}/blog/${post.slug}`,
+          lastModified: post.published_at ? new Date(post.published_at) : now,
+          changeFrequency: "weekly",
+          priority: 0.7,
+        });
+      }
+      if (post.category?.slug) {
+        categorySlugs.add(post.category.slug);
+      }
+    }
+
+    // Add unique category pages
+    for (const catSlug of categorySlugs) {
+      sitemapEntries.push({
+        url: `${BASE_URL}/blog/category/${catSlug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to add blogs to sitemap:", err);
+  }
+
+  return sitemapEntries;
 }

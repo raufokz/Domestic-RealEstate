@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
+import { buildMetadata } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const name = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  return { title: `${name} | Blog | Domestic Real Estate`, description: `Read the latest ${name} articles on the Domestic Real Estate blog.` };
+  return buildMetadata({
+    title: `${name} | Blog`,
+    description: `Read the latest ${name} articles on the Domestic Real Estate blog.`,
+    path: `/blog/category/${slug}`,
+  });
 }
 
 const posts = [

@@ -17,7 +17,7 @@ interface CityData {
   faqs: { q: string; a: string }[];
 }
 
-const CITY_DB: Record<string, CityData> = {
+export const CITY_DB: Record<string, CityData> = {
   "new-york-city": {
     name: "New York City",
     state: "New York",

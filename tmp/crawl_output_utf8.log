@@ -1,0 +1,674 @@
+﻿--- STARTING PLATFORM ROUTE AUDIT ---
+Connecting to backend: http://127.0.0.1:8001/api
+Connecting to frontend: http://127.0.0.1:3001
+
+--- FETCHING DATA FROM BACKEND API ---
+Successfully fetched 6 properties.
+Successfully fetched 4 agent profiles.
+Successfully fetched 3 blog posts.
+
+Ready to audit 93 unique routes...
+Auditing /... Γ£à HTTP 200 - "Domestic Real Estate | #1 AI Property &amp; Off-Market Marketplace (DomesticRealEstate)"
+Auditing /about... Γ£à HTTP 200 - "About Us | Domestic Real Estate Lead Intelligence &amp; Deal Platform | Domestic Real Estate"
+Auditing /contact... Γ£à HTTP 200 - "Contact Us | Domestic Real Estate"
+Auditing /properties... Γ£à HTTP 200 - "Properties for Sale &amp; Rent | Domestic Real Estate"
+Auditing /agents... Γ£à HTTP 200 - "Real Estate Agent Directory | Domestic Real Estate"
+Auditing /blog... Γ£à HTTP 200 - "Domestic Real Estate Insights, Market Trends &amp; Investor Guides | Domestic Real Estate"
+Auditing /login... Γ£à HTTP 200 - "Domestic Real Estate | Your Key to Home"
+Auditing /register... Γ£à HTTP 200 - "Domestic Real Estate | Your Key to Home"
+Auditing /accessibility... Γ£à HTTP 200 - "Accessibility Statement | Domestic Real Estate"
+Auditing /privacy... Γ£à HTTP 200 - "Privacy Policy | Domestic Real Estate"
+Auditing /terms... Γ£à HTTP 200 - "Terms of Service | Domestic Real Estate"
+Auditing /cookie-policy... Γ£à HTTP 200 - "Cookie Policy | Domestic Real Estate"
+Auditing /faq... Γ£à HTTP 200 - "Frequently Asked Questions | Domestic Real Estate"
+Auditing /sitemap... Γ£à HTTP 200 - "Sitemap | Domestic Real Estate"
+Auditing /buyers... Γ£à HTTP 200 - "Home Buyer Solutions &amp; Financing | Domestic Real Estate"
+Auditing /sellers... Γ£à HTTP 200 - "Sell Your Home for Top Dollar | Domestic Real Estate"
+Auditing /investors... Γ£à HTTP 200 - "Domestic Real Estate Investment | Assets &amp; Holdings Solutions | Domestic Real Estate"
+Auditing /cities/new-york-city... Γ£à HTTP 200 - "New York City Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/los-angeles... Γ£à HTTP 200 - "Los Angeles Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/chicago... Γ£à HTTP 200 - "Chicago Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/houston... Γ£à HTTP 200 - "Houston Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/phoenix... Γ£à HTTP 200 - "Phoenix Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/philadelphia... Γ£à HTTP 200 - "Philadelphia Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/san-antonio... Γ£à HTTP 200 - "San Antonio Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/san-diego... Γ£à HTTP 200 - "San Diego Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/dallas... Γ£à HTTP 200 - "Dallas Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/san-jose... Γ£à HTTP 200 - "San Jose Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/austin... Γ£à HTTP 200 - "Austin Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/jacksonville... Γ£à HTTP 200 - "Jacksonville Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/fort-worth... Γ£à HTTP 200 - "Fort Worth Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/columbus... Γ£à HTTP 200 - "Columbus Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/charlotte... Γ£à HTTP 200 - "Charlotte Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/indianapolis... Γ£à HTTP 200 - "Indianapolis Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/san-francisco... Γ£à HTTP 200 - "San Francisco Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/seattle... Γ£à HTTP 200 - "Seattle Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/denver... Γ£à HTTP 200 - "Denver Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/washington... Γ£à HTTP 200 - "Washington Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/nashville... Γ£à HTTP 200 - "Nashville Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/oklahoma-city... Γ£à HTTP 200 - "Oklahoma City Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/el-paso... Γ£à HTTP 200 - "El Paso Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/boston... Γ£à HTTP 200 - "Boston Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/portland... Γ£à HTTP 200 - "Portland Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/las-vegas... Γ£à HTTP 200 - "Las Vegas Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/memphis... Γ£à HTTP 200 - "Memphis Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/louisville... Γ£à HTTP 200 - "Louisville Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/baltimore... Γ£à HTTP 200 - "Baltimore Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/milwaukee... Γ£à HTTP 200 - "Milwaukee Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/albuquerque... Γ£à HTTP 200 - "Albuquerque Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/tucson... Γ£à HTTP 200 - "Tucson Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/fresno... Γ£à HTTP 200 - "Fresno Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/sacramento... Γ£à HTTP 200 - "Sacramento Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/mesa... Γ£à HTTP 200 - "Mesa Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/kansas-city... Γ£à HTTP 200 - "Kansas City Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/atlanta... Γ£à HTTP 200 - "Atlanta Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/omaha... Γ£à HTTP 200 - "Omaha Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/colorado-springs... Γ£à HTTP 200 - "Colorado Springs Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/raleigh... Γ£à HTTP 200 - "Raleigh Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/long-beach... Γ£à HTTP 200 - "Long Beach Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/virginia-beach... Γ£à HTTP 200 - "Virginia Beach Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/miami... Γ£à HTTP 200 - "Miami Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/oakland... Γ£à HTTP 200 - "Oakland Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/minneapolis... Γ£à HTTP 200 - "Minneapolis Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/tulsa... Γ£à HTTP 200 - "Tulsa Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/tampa... Γ£à HTTP 200 - "Tampa Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/arlington... Γ£à HTTP 200 - "Arlington Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/new-orleans... Γ£à HTTP 200 - "New Orleans Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/wichita... Γ£à HTTP 200 - "Wichita Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/toronto... Γ£à HTTP 200 - "Toronto Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/vancouver... Γ£à HTTP 200 - "Vancouver Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/montreal... Γ£à HTTP 200 - "Montreal Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/calgary... Γ£à HTTP 200 - "Calgary Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/edmonton... Γ£à HTTP 200 - "Edmonton Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/ottawa... Γ£à HTTP 200 - "Ottawa Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/winnipeg... Γ£à HTTP 200 - "Winnipeg Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/quebec-city... Γ£à HTTP 200 - "Quebec City Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/hamilton... Γ£à HTTP 200 - "Hamilton Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /cities/kitchener... Γ£à HTTP 200 - "Kitchener Real Estate &amp; Homes for Sale | Domestic Real Estate"
+Auditing /properties/modern-penthouse-suite... Γ£à HTTP 200 - "Modern Penthouse Suite"
+Auditing /properties/waterfront-villa-estate... Γ£à HTTP 200 - "Waterfront Villa Estate"
+Auditing /properties/urban-loft-residence... Γ£à HTTP 200 - "Urban Loft Residence"
+Auditing /properties/luxury-family-home... Γ£à HTTP 200 - "Luxury Family Home"
+Auditing /properties/skyline-tower-apartment... Γ£à HTTP 200 - "Skyline Tower Apartment"
+Auditing /properties/suburban-paradise... Γ£à HTTP 200 - "Suburban Paradise"
+Auditing /agents/sarah-johnson... Γ£à HTTP 200 - "Sarah Johnson | Domestic Real Estate"
+Auditing /agents/emily-chen... Γ£à HTTP 200 - "Emily Chen | Domestic Real Estate"
+Auditing /agents/marcus-williams... Γ£à HTTP 200 - "Marcus Williams | Domestic Real Estate"
+Auditing /agents/david-martinez... Γ£à HTTP 200 - "David Martinez | Domestic Real Estate"
+Auditing /blog/2026-market-forecast... Γ£à HTTP 200 - "2026 Real Estate Market Forecast | Domestic Real Estate"
+Auditing /blog/first-time-buyer-checklist... Γ£à HTTP 200 - "First-Time Homebuyer Checklist | Domestic Real Estate"
+Auditing /blog/ai-revolutionizing-real-estate... Γ£à HTTP 200 - "AI in Real Estate | Domestic Real Estate"
+Auditing /blog/category/market-trends... Γ£à HTTP 200 - "Market Trends | Blog | Domestic Real Estate | Domestic Real Estate"
+Auditing /blog/category/buyer-guide... Γ£à HTTP 200 - "Buyer Guide | Blog | Domestic Real Estate | Domestic Real Estate"
+Auditing /blog/category/technology... Γ£à HTTP 200 - "Technology | Blog | Domestic Real Estate | Domestic Real Estate"
+
+--- AUDIT SUMMARY ---
+Γ£à Working routes: 93
+ΓÜá∩╕Å Potential issues: 0
+Γ¥î Broken routes (404/Failures): 0
+
+Detailed Report:
+{
+  "working": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Domestic Real Estate | #1 AI Property &amp; Off-Market Marketplace (DomesticRealEstate)",
+      "canonical": "https://domesticrealestate.us"
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "title": "About Us | Domestic Real Estate Lead Intelligence &amp; Deal Platform | Domestic Real Estate",
+      "canonical": "(No canonical link found)"
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "title": "Contact Us | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/contact"
+    },
+    {
+      "path": "/properties",
+      "status": 200,
+      "title": "Properties for Sale &amp; Rent | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/properties"
+    },
+    {
+      "path": "/agents",
+      "status": 200,
+      "title": "Real Estate Agent Directory | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/agents"
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "title": "Domestic Real Estate Insights, Market Trends &amp; Investor Guides | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/blog"
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "title": "Domestic Real Estate | Your Key to Home",
+      "canonical": "(No canonical link found)"
+    },
+    {
+      "path": "/register",
+      "status": 200,
+      "title": "Domestic Real Estate | Your Key to Home",
+      "canonical": "(No canonical link found)"
+    },
+    {
+      "path": "/accessibility",
+      "status": 200,
+      "title": "Accessibility Statement | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/accessibility"
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "title": "Privacy Policy | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/privacy"
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "title": "Terms of Service | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/terms"
+    },
+    {
+      "path": "/cookie-policy",
+      "status": 200,
+      "title": "Cookie Policy | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cookie-policy"
+    },
+    {
+      "path": "/faq",
+      "status": 200,
+      "title": "Frequently Asked Questions | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/faq"
+    },
+    {
+      "path": "/sitemap",
+      "status": 200,
+      "title": "Sitemap | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/sitemap"
+    },
+    {
+      "path": "/buyers",
+      "status": 200,
+      "title": "Home Buyer Solutions &amp; Financing | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/buyers"
+    },
+    {
+      "path": "/sellers",
+      "status": 200,
+      "title": "Sell Your Home for Top Dollar | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/sellers"
+    },
+    {
+      "path": "/investors",
+      "status": 200,
+      "title": "Domestic Real Estate Investment | Assets &amp; Holdings Solutions | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/investors"
+    },
+    {
+      "path": "/cities/new-york-city",
+      "status": 200,
+      "title": "New York City Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/new-york-city"
+    },
+    {
+      "path": "/cities/los-angeles",
+      "status": 200,
+      "title": "Los Angeles Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/los-angeles"
+    },
+    {
+      "path": "/cities/chicago",
+      "status": 200,
+      "title": "Chicago Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/chicago"
+    },
+    {
+      "path": "/cities/houston",
+      "status": 200,
+      "title": "Houston Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/houston"
+    },
+    {
+      "path": "/cities/phoenix",
+      "status": 200,
+      "title": "Phoenix Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/phoenix"
+    },
+    {
+      "path": "/cities/philadelphia",
+      "status": 200,
+      "title": "Philadelphia Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/philadelphia"
+    },
+    {
+      "path": "/cities/san-antonio",
+      "status": 200,
+      "title": "San Antonio Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/san-antonio"
+    },
+    {
+      "path": "/cities/san-diego",
+      "status": 200,
+      "title": "San Diego Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/san-diego"
+    },
+    {
+      "path": "/cities/dallas",
+      "status": 200,
+      "title": "Dallas Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/dallas"
+    },
+    {
+      "path": "/cities/san-jose",
+      "status": 200,
+      "title": "San Jose Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/san-jose"
+    },
+    {
+      "path": "/cities/austin",
+      "status": 200,
+      "title": "Austin Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/austin"
+    },
+    {
+      "path": "/cities/jacksonville",
+      "status": 200,
+      "title": "Jacksonville Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/jacksonville"
+    },
+    {
+      "path": "/cities/fort-worth",
+      "status": 200,
+      "title": "Fort Worth Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/fort-worth"
+    },
+    {
+      "path": "/cities/columbus",
+      "status": 200,
+      "title": "Columbus Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/columbus"
+    },
+    {
+      "path": "/cities/charlotte",
+      "status": 200,
+      "title": "Charlotte Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/charlotte"
+    },
+    {
+      "path": "/cities/indianapolis",
+      "status": 200,
+      "title": "Indianapolis Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/indianapolis"
+    },
+    {
+      "path": "/cities/san-francisco",
+      "status": 200,
+      "title": "San Francisco Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/san-francisco"
+    },
+    {
+      "path": "/cities/seattle",
+      "status": 200,
+      "title": "Seattle Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/seattle"
+    },
+    {
+      "path": "/cities/denver",
+      "status": 200,
+      "title": "Denver Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/denver"
+    },
+    {
+      "path": "/cities/washington",
+      "status": 200,
+      "title": "Washington Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/washington"
+    },
+    {
+      "path": "/cities/nashville",
+      "status": 200,
+      "title": "Nashville Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/nashville"
+    },
+    {
+      "path": "/cities/oklahoma-city",
+      "status": 200,
+      "title": "Oklahoma City Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/oklahoma-city"
+    },
+    {
+      "path": "/cities/el-paso",
+      "status": 200,
+      "title": "El Paso Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/el-paso"
+    },
+    {
+      "path": "/cities/boston",
+      "status": 200,
+      "title": "Boston Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/boston"
+    },
+    {
+      "path": "/cities/portland",
+      "status": 200,
+      "title": "Portland Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/portland"
+    },
+    {
+      "path": "/cities/las-vegas",
+      "status": 200,
+      "title": "Las Vegas Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/las-vegas"
+    },
+    {
+      "path": "/cities/memphis",
+      "status": 200,
+      "title": "Memphis Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/memphis"
+    },
+    {
+      "path": "/cities/louisville",
+      "status": 200,
+      "title": "Louisville Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/louisville"
+    },
+    {
+      "path": "/cities/baltimore",
+      "status": 200,
+      "title": "Baltimore Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/baltimore"
+    },
+    {
+      "path": "/cities/milwaukee",
+      "status": 200,
+      "title": "Milwaukee Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/milwaukee"
+    },
+    {
+      "path": "/cities/albuquerque",
+      "status": 200,
+      "title": "Albuquerque Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/albuquerque"
+    },
+    {
+      "path": "/cities/tucson",
+      "status": 200,
+      "title": "Tucson Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/tucson"
+    },
+    {
+      "path": "/cities/fresno",
+      "status": 200,
+      "title": "Fresno Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/fresno"
+    },
+    {
+      "path": "/cities/sacramento",
+      "status": 200,
+      "title": "Sacramento Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/sacramento"
+    },
+    {
+      "path": "/cities/mesa",
+      "status": 200,
+      "title": "Mesa Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/mesa"
+    },
+    {
+      "path": "/cities/kansas-city",
+      "status": 200,
+      "title": "Kansas City Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/kansas-city"
+    },
+    {
+      "path": "/cities/atlanta",
+      "status": 200,
+      "title": "Atlanta Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/atlanta"
+    },
+    {
+      "path": "/cities/omaha",
+      "status": 200,
+      "title": "Omaha Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/omaha"
+    },
+    {
+      "path": "/cities/colorado-springs",
+      "status": 200,
+      "title": "Colorado Springs Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/colorado-springs"
+    },
+    {
+      "path": "/cities/raleigh",
+      "status": 200,
+      "title": "Raleigh Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/raleigh"
+    },
+    {
+      "path": "/cities/long-beach",
+      "status": 200,
+      "title": "Long Beach Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/long-beach"
+    },
+    {
+      "path": "/cities/virginia-beach",
+      "status": 200,
+      "title": "Virginia Beach Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/virginia-beach"
+    },
+    {
+      "path": "/cities/miami",
+      "status": 200,
+      "title": "Miami Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/miami"
+    },
+    {
+      "path": "/cities/oakland",
+      "status": 200,
+      "title": "Oakland Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/oakland"
+    },
+    {
+      "path": "/cities/minneapolis",
+      "status": 200,
+      "title": "Minneapolis Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/minneapolis"
+    },
+    {
+      "path": "/cities/tulsa",
+      "status": 200,
+      "title": "Tulsa Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/tulsa"
+    },
+    {
+      "path": "/cities/tampa",
+      "status": 200,
+      "title": "Tampa Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/tampa"
+    },
+    {
+      "path": "/cities/arlington",
+      "status": 200,
+      "title": "Arlington Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/arlington"
+    },
+    {
+      "path": "/cities/new-orleans",
+      "status": 200,
+      "title": "New Orleans Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/new-orleans"
+    },
+    {
+      "path": "/cities/wichita",
+      "status": 200,
+      "title": "Wichita Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/wichita"
+    },
+    {
+      "path": "/cities/toronto",
+      "status": 200,
+      "title": "Toronto Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/toronto"
+    },
+    {
+      "path": "/cities/vancouver",
+      "status": 200,
+      "title": "Vancouver Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/vancouver"
+    },
+    {
+      "path": "/cities/montreal",
+      "status": 200,
+      "title": "Montreal Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/montreal"
+    },
+    {
+      "path": "/cities/calgary",
+      "status": 200,
+      "title": "Calgary Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/calgary"
+    },
+    {
+      "path": "/cities/edmonton",
+      "status": 200,
+      "title": "Edmonton Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/edmonton"
+    },
+    {
+      "path": "/cities/ottawa",
+      "status": 200,
+      "title": "Ottawa Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/ottawa"
+    },
+    {
+      "path": "/cities/winnipeg",
+      "status": 200,
+      "title": "Winnipeg Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/winnipeg"
+    },
+    {
+      "path": "/cities/quebec-city",
+      "status": 200,
+      "title": "Quebec City Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/quebec-city"
+    },
+    {
+      "path": "/cities/hamilton",
+      "status": 200,
+      "title": "Hamilton Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/hamilton"
+    },
+    {
+      "path": "/cities/kitchener",
+      "status": 200,
+      "title": "Kitchener Real Estate &amp; Homes for Sale | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/cities/kitchener"
+    },
+    {
+      "path": "/properties/modern-penthouse-suite",
+      "status": 200,
+      "title": "Modern Penthouse Suite",
+      "canonical": "https://domesticrealestate.us/properties/modern-penthouse-suite"
+    },
+    {
+      "path": "/properties/waterfront-villa-estate",
+      "status": 200,
+      "title": "Waterfront Villa Estate",
+      "canonical": "https://domesticrealestate.us/properties/waterfront-villa-estate"
+    },
+    {
+      "path": "/properties/urban-loft-residence",
+      "status": 200,
+      "title": "Urban Loft Residence",
+      "canonical": "https://domesticrealestate.us/properties/urban-loft-residence"
+    },
+    {
+      "path": "/properties/luxury-family-home",
+      "status": 200,
+      "title": "Luxury Family Home",
+      "canonical": "https://domesticrealestate.us/properties/luxury-family-home"
+    },
+    {
+      "path": "/properties/skyline-tower-apartment",
+      "status": 200,
+      "title": "Skyline Tower Apartment",
+      "canonical": "https://domesticrealestate.us/properties/skyline-tower-apartment"
+    },
+    {
+      "path": "/properties/suburban-paradise",
+      "status": 200,
+      "title": "Suburban Paradise",
+      "canonical": "https://domesticrealestate.us/properties/suburban-paradise"
+    },
+    {
+      "path": "/agents/sarah-johnson",
+      "status": 200,
+      "title": "Sarah Johnson | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/agents/sarah-johnson"
+    },
+    {
+      "path": "/agents/emily-chen",
+      "status": 200,
+      "title": "Emily Chen | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/agents/emily-chen"
+    },
+    {
+      "path": "/agents/marcus-williams",
+      "status": 200,
+      "title": "Marcus Williams | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/agents/marcus-williams"
+    },
+    {
+      "path": "/agents/david-martinez",
+      "status": 200,
+      "title": "David Martinez | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/agents/david-martinez"
+    },
+    {
+      "path": "/blog/2026-market-forecast",
+      "status": 200,
+      "title": "2026 Real Estate Market Forecast | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/blog/2026-market-forecast"
+    },
+    {
+      "path": "/blog/first-time-buyer-checklist",
+      "status": 200,
+      "title": "First-Time Homebuyer Checklist | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/blog/first-time-buyer-checklist"
+    },
+    {
+      "path": "/blog/ai-revolutionizing-real-estate",
+      "status": 200,
+      "title": "AI in Real Estate | Domestic Real Estate",
+      "canonical": "https://domesticrealestate.us/blog/ai-revolutionizing-real-estate"
+    },
+    {
+      "path": "/blog/category/market-trends",
+      "status": 200,
+      "title": "Market Trends | Blog | Domestic Real Estate | Domestic Real Estate",
+      "canonical": "(No canonical link found)"
+    },
+    {
+      "path": "/blog/category/buyer-guide",
+      "status": 200,
+      "title": "Buyer Guide | Blog | Domestic Real Estate | Domestic Real Estate",
+      "canonical": "(No canonical link found)"
+    },
+    {
+      "path": "/blog/category/technology",
+      "status": 200,
+      "title": "Technology | Blog | Domestic Real Estate | Domestic Real Estate",
+      "canonical": "(No canonical link found)"
+    }
+  ],
+  "potentialIssues": [],
+  "broken": []
+}
