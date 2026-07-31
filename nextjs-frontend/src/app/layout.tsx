@@ -7,6 +7,7 @@ import ExtensionCleanup from "@/components/ExtensionCleanup";
 import { ToastProvider } from "@/components/Toast";
 import SkipToContent from "@/components/SkipToContent";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 const inter = Inter({
   variable: "--font-inter",
