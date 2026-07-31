@@ -57,9 +57,12 @@ export default function PropertyGallery({
 
   if (!photos || photos.length === 0) {
     return (
-      <div className="rounded-3xl h-[320] md:h-[480px] bg-gradient-to-br from-[#0A2647]/5 to-[#C9A227]/10 flex flex-col items-center justify-center border border-gray-200">
-        <span className="text-4xl mb-2">📸</span>
-        <span className="text-gray-400 font-body text-sm font-semibold">Photos coming soon</span>
+      <div className="rounded-3xl h-[320px] md:h-[480px] bg-gradient-to-br from-[#0A2647]/5 to-[#C9A227]/10 flex flex-col items-center justify-center border border-slate-200/50">
+        <svg className="w-12 h-12 text-[#C9A227] mb-3 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25V9.574c0-1.067-.75-1.994-1.802-2.169m-1.134-.175a2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+        </svg>
+        <span className="text-slate-400 font-body text-sm font-semibold">Photos coming soon</span>
       </div>
     );
   }
@@ -155,9 +158,12 @@ export default function PropertyGallery({
         {/* View All Photos Button (Zillow/Airbnb Style) */}
         <button
           onClick={() => openLightbox(0)}
-          className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-[#0A2647] hover:bg-white hover:text-[#C9A227] font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 border border-slate-200 cursor-pointer"
+          className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-[#0A2647] hover:bg-white hover:text-[#C9A227] font-extrabold text-xs px-4.5 py-3 rounded-xl transition-all shadow-md flex items-center gap-2 border border-slate-200 cursor-pointer active:scale-95"
         >
-          <span>📷</span>
+          <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25V9.574c0-1.067-.75-1.994-1.802-2.169m-1.134-.175a2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+          </svg>
           <span>View All {photos.length} Photos</span>
         </button>
       </div>
@@ -187,12 +193,14 @@ export default function PropertyGallery({
             {/* Left Nav Arrow */}
             <button
               onClick={prevPhoto}
-              className="absolute left-2 sm:left-4 z-10 w-12 h-12 rounded-full bg-slate-950/60 border border-white/10 hover:border-[#C9A227]/40 text-white hover:text-[#C9A227] flex items-center justify-center text-lg transition-colors cursor-pointer select-none"
+              className="absolute left-2 sm:left-4 z-10 w-12 h-12 rounded-full bg-slate-950/60 border border-white/10 hover:border-[#C9A227]/40 text-white hover:text-[#C9A227] flex items-center justify-center transition-colors cursor-pointer select-none active:scale-95"
               aria-label="Previous Photo"
             >
-              ←
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
             </button>
-
+ 
             {/* Slider Active Image container */}
             <div
               onClick={(e) => e.stopPropagation()}
@@ -205,14 +213,16 @@ export default function PropertyGallery({
                 className="max-w-full max-h-full object-contain rounded-lg select-none"
               />
             </div>
-
+ 
             {/* Right Nav Arrow */}
             <button
               onClick={nextPhoto}
-              className="absolute right-2 sm:right-4 z-10 w-12 h-12 rounded-full bg-slate-950/60 border border-white/10 hover:border-[#C9A227]/40 text-white hover:text-[#C9A227] flex items-center justify-center text-lg transition-colors cursor-pointer select-none"
+              className="absolute right-2 sm:right-4 z-10 w-12 h-12 rounded-full bg-slate-950/60 border border-white/10 hover:border-[#C9A227]/40 text-white hover:text-[#C9A227] flex items-center justify-center transition-colors cursor-pointer select-none active:scale-95"
               aria-label="Next Photo"
             >
-              →
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
             </button>
           </div>
 
