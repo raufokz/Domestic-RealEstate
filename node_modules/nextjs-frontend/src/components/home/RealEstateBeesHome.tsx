@@ -8,6 +8,72 @@ import HeroVariants from "@/components/home/HeroVariants";
 import CompanyLogos from "@/components/home/CompanyLogos";
 import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planPrice, type AgentPlanTier } from "@/lib/agentPlans";
 
+function TiltCard({
+  children,
+  bgClass,
+  borderColor,
+}: {
+  children: React.ReactNode;
+  bgClass: string;
+  borderColor: string;
+}) {
+  const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    setRotate({ x: -y / 8, y: x / 8 });
+  };
+
+  const handleMouseLeave = () => {
+    setRotate({ x: 0, y: 0 });
+    setIsHovered(false);
+  };
+
+  return (
+    <div className="relative group w-full mb-6" style={{ perspective: "1000px" }}>
+      <motion.div
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        animate={{ rotateX: rotate.x, rotateY: rotate.y, scale: isHovered ? 1.04 : 1 }}
+        transition={{ type: "spring", stiffness: 350, damping: 20 }}
+        style={{ transformStyle: "preserve-3d" }}
+        className={`relative w-full h-44 rounded-2xl p-5 shadow-premium hover:shadow-premium-xl transition-shadow overflow-hidden flex flex-col justify-between select-none cursor-pointer border ${borderColor} ${bgClass}`}
+      >
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 transform -translate-x-[110%] group-hover:translate-x-[110%] transition-transform duration-1000 ease-out" />
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
+const planBackgrounds: Record<string, { bg: string; border: string; accentText: string; }> = {
+  Solo: {
+    bg: "bg-gradient-to-br from-[#4a3224] via-[#7d4f30] to-[#2b1b11] text-[#ffdca3]",
+    border: "border-[#7d4f30]/40",
+    accentText: "text-[#c99a6b]",
+  },
+  Starter: {
+    bg: "bg-gradient-to-br from-[#3f4a5c] via-[#5c6f89] to-[#252f40] text-[#eef2f7]",
+    border: "border-[#7a8fa9]/40",
+    accentText: "text-[#9cb5d4]",
+  },
+  Professional: {
+    bg: "bg-gradient-to-br from-[#937213] via-[#c9a227] to-[#4b3907] text-white",
+    border: "border-[#c9a227]/40",
+    accentText: "text-[#ffdca3]",
+  },
+  Elite: {
+    bg: "bg-gradient-to-br from-[#1b2535] via-[#0b111e] to-[#040810] text-[#fff6d1]",
+    border: "border-[#ffd700]/30 shadow-[0_0_20px_rgba(201,162,39,0.15)]",
+    accentText: "text-[#ffd700] drop-shadow-[0_1px_4px_rgba(201,162,39,0.3)]",
+  },
+};
+
 export default function RealEstateBeesHome() {
   const [activeHeroTab, setActiveHeroTab] = useState<"leads" | "properties" | "directory" | "academy">("leads");
   const [activeProIndex, setActiveProIndex] = useState(0);
@@ -891,63 +957,90 @@ export default function RealEstateBeesHome() {
           </div>
 
           {/* Pricing Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {([...AGENT_PLAN_TIERS, ENTERPRISE_PLAN] as (AgentPlanTier | typeof ENTERPRISE_PLAN)[]).map((plan) => {
-              const isCustom = !("monthlyPrice" in plan);
-              const price = !isCustom ? planPrice(plan as AgentPlanTier, billingPeriod === "annually" ? "annual" : "monthly") : null;
-              const isPopular = "popular" in plan && !!plan.popular;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {AGENT_PLAN_TIERS.map((plan) => {
+              const price = planPrice(plan, billingPeriod === "annually" ? "annual" : "monthly");
+              const isPopular = !!plan.popular;
+              const style = planBackgrounds[plan.name] || planBackgrounds.Solo;
 
               return (
                 <div
                   key={plan.name}
-                  className={`rounded-3xl border p-6 text-left transition-all duration-300 relative flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] ${
+                  className={`rounded-3xl border p-6 text-left transition-all duration-300 relative flex flex-col justify-between bg-white ${
                     isPopular
-                      ? "border-[#C9A227] bg-[#0A2647] text-white shadow-lg shadow-[#0A2647]/20 ring-4 ring-[#C9A227]/25"
-                      : "border-slate-200 bg-white text-slate-800"
+                      ? "border-[#C9A227] shadow-premium-lg ring-4 ring-[#c9a227]/20 scale-103 z-10"
+                      : "border-slate-200 hover:shadow-premium hover:border-[#0a2647]/30"
                   }`}
                 >
                   {isPopular && (
-                    <span className="absolute -top-3.5 right-6 bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
-                      Best Value
+                    <span className="absolute -top-3.5 right-6 bg-[#c9a227] text-[#0a2647] text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-gold-lg">
+                      ★ Best Value
                     </span>
                   )}
 
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{plan.icon}</span>
-                      <h3 className={`text-base font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
-                        {plan.name}
-                      </h3>
-                    </div>
-                    <p className={`text-xs font-semibold mt-1 mb-6 leading-relaxed ${isPopular ? "text-[#C9A227]" : "text-slate-500"}`}>
+                    {/* Tilt Card Visual */}
+                    <TiltCard bgClass={style.bg} borderColor={style.border}>
+                      <div className="flex justify-between items-start w-full">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-mono font-bold tracking-widest opacity-80 uppercase">
+                            Domestic Real Estate
+                          </span>
+                          <span className="text-[7px] font-mono tracking-wider opacity-60">
+                            PLATFORM MEMBER ID
+                          </span>
+                        </div>
+                        <svg className="w-5 h-5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+
+                      <div className="w-8 h-6 bg-gradient-to-r from-amber-200/90 to-amber-400 rounded-md relative shadow-sm border border-amber-300/40">
+                        <div className="absolute inset-x-1.5 inset-y-1 border border-amber-800/20 rounded-sm" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-[0.5px] bg-amber-800/10" />
+                        <div className="absolute top-1/2 left-0 right-0 h-[0.5px] bg-amber-800/10" />
+                      </div>
+
+                      <div className="flex justify-between items-end w-full">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black tracking-normal uppercase font-heading">
+                            {plan.name} Partner
+                          </span>
+                          <span className="text-[8px] font-mono tracking-wider opacity-70">
+                            {plan.icon} EXCLUSIVE KEY
+                          </span>
+                        </div>
+                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                          <span className="text-xs font-black text-white">RE</span>
+                        </div>
+                      </div>
+                    </TiltCard>
+
+                    <p className="text-xs font-semibold mt-2 mb-6 leading-relaxed text-slate-500 min-h-[32px]">
                       {plan.tagline}
                     </p>
 
                     <div className="flex items-baseline gap-1 mb-8">
-                      {isCustom ? (
-                        <span className={`text-3xl font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
-                          Custom
-                        </span>
-                      ) : (
-                        <>
-                          <span className={`text-[10px] font-bold uppercase font-mono ${isPopular ? "text-slate-300" : "text-slate-400"}`}>from</span>
-                          <span className={`text-3xl font-extrabold font-heading ${isPopular ? "text-white" : "text-[#0A2647]"}`}>
-                            ${price}
-                          </span>
-                          <span className={`text-xs font-semibold ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
-                            /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
-                          </span>
-                        </>
-                      )}
+                      <span className="text-[10px] font-bold uppercase font-mono text-slate-400">from</span>
+                      <span className="text-4xl font-extrabold font-heading text-[#0A2647]">
+                        ${price}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
+                      </span>
                     </div>
 
-                    <ul className="space-y-3.5 mb-8 text-[11px] font-semibold leading-relaxed">
+                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-extrabold text-[#0a2647] mb-6">
+                      ⚡ Capacity: Up to {plan.cap} Services
+                    </div>
+
+                    <ul className="space-y-3.5 mb-8 text-[11px] font-semibold leading-relaxed text-slate-700">
                       {plan.features.map((f) => (
                         <li key={f} className="flex items-start gap-2.5">
-                          <span className={`text-sm leading-none shrink-0 ${isPopular ? "text-[#C9A227]" : "text-[#0A2647]"}`}>
+                          <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] shrink-0 font-bold mt-0.5">
                             ✓
                           </span>
-                          <span className={isPopular ? "text-slate-200" : "text-slate-700"}>
+                          <span className="text-slate-700">
                             {f}
                           </span>
                         </li>
@@ -956,11 +1049,11 @@ export default function RealEstateBeesHome() {
                   </div>
 
                   <Link
-                    href={isCustom ? "/contact" : `/register?role=agent&plan=${encodeURIComponent(plan.name)}&billing=${billingPeriod === "annually" ? "annual" : "monthly"}`}
-                    className={`block w-full text-center py-3 rounded-xl text-xs font-bold transition-all ${
+                    href={`/register?role=agent&plan=${encodeURIComponent(plan.name)}&billing=${billingPeriod === "annually" ? "annual" : "monthly"}`}
+                    className={`block w-full text-center py-4 rounded-xl text-xs font-bold transition-all ${
                       isPopular
-                        ? "bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] shadow-lg shadow-[#C9A227]/10"
-                        : "bg-slate-100 hover:bg-[#0A2647] text-[#0A2647] hover:text-white border border-transparent hover:border-[#0A2647]"
+                        ? "bg-[#0A2647] hover:bg-[#0c2e56] text-white shadow-premium"
+                        : "bg-[#C9A227]/10 hover:bg-[#C9A227] hover:text-[#0a2647] text-[#0a2647] border border-[#C9a227]/30"
                     }`}
                   >
                     {plan.cta}
@@ -968,6 +1061,43 @@ export default function RealEstateBeesHome() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Full-width Enterprise Custom Plan Banner */}
+          <div className="bg-gradient-to-r from-[#0a2647] to-[#07162c] border border-slate-700 shadow-premium-lg rounded-3xl p-8 text-white text-left">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">🏛️</span>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-bold font-heading">{ENTERPRISE_PLAN.name}</h3>
+                    <p className="text-sm font-semibold text-[#c9a227]">{ENTERPRISE_PLAN.tagline}</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-slate-300 leading-relaxed mb-6 max-w-3xl">
+                  Bespoke CRM mapping, custom integrations, MLS webhooks, and unlimited Virtual Assistants (VA) team support. Built specifically for high-growth real estate institutions, teams, and nationwide brokerages.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {ENTERPRISE_PLAN.features.map((feat) => (
+                    <div key={feat} className="flex items-center gap-2.5 text-xs font-semibold text-slate-200">
+                      <span className="text-[#c9a227] text-sm">✓</span>
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 flex justify-end">
+                <Link
+                  href="/contact"
+                  className="w-full lg:w-auto bg-[#c9a227] hover:bg-amber-400 text-[#0a2647] font-black px-10 py-4.5 rounded-xl text-center text-sm shadow-gold transition-all"
+                >
+                  {ENTERPRISE_PLAN.cta} →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
