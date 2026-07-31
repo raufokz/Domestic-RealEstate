@@ -65,18 +65,19 @@ export async function getProperties(
   }
 }
 
-/** Fetch a single public property by slug on the server. Returns null if missing. */
+/** Fetch a single public property by slug on the server. Returns null only when the
+ * API confirms the property doesn't exist (404). Any other failure (timeout, 5xx,
+ * network blip) throws instead of returning null — treating those as "not found"
+ * previously caused a real listing to be cached as a permanent 404 on Vercel after a
+ * single transient error. Letting it throw skips that render from the ISR cache. */
 export async function getPropertyBySlug(slug: string): Promise<PublicProperty | null> {
-  try {
-    const res = await fetch(`${API_BASE}/properties/${encodeURIComponent(slug)}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as PublicProperty;
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${API_BASE}/properties/${encodeURIComponent(slug)}`, {
+    headers: { Accept: "application/json" },
+    next: { revalidate: 300 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to load property "${slug}" (HTTP ${res.status})`);
+  return (await res.json()) as PublicProperty;
 }
 
 /** Ordered list of photo paths for a property: real `images` (cover first, then by
