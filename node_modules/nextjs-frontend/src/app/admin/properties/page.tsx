@@ -5,6 +5,7 @@ import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import PropertyImageManager, { PropertyImage } from "@/components/property/PropertyImageManager";
 
 interface Property {
   id: number;
@@ -22,6 +23,7 @@ interface Property {
   featured?: boolean;
   property_type?: { name: string } | null;
   realtor?: { name?: string; first_name?: string; last_name?: string } | null;
+  images?: PropertyImage[];
 }
 
 interface Paginated {
@@ -138,11 +140,12 @@ export default function PropertiesPage() {
       if (editing) {
         await apiPut(`/admin/properties/${editing.id}`, payload);
         success("Property updated.", "Properties");
+        setShowModal(false);
       } else {
-        await apiPost("/admin/properties", payload);
-        success("Property created.", "Properties");
+        const created = await apiPost<{ data: Property }>("/admin/properties", payload);
+        success("Property created. Now add some photos.", "Properties");
+        setEditing(created.data);
       }
-      setShowModal(false);
       await fetchProperties();
     } catch (err) {
       notifyError(err, "Property could not be saved.");
@@ -315,7 +318,7 @@ export default function PropertiesPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className={`bg-white rounded-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto ${editing ? "max-w-2xl" : "max-w-lg"}`}>
             <h3 className="text-lg font-bold text-navy">{editing ? "Edit Property" : "Add Property"}</h3>
             {(["title", "address", "city", "state", "zip", "price", "bedrooms", "bathrooms", "sqft"] as const).map(
               (field) => (
@@ -331,7 +334,7 @@ export default function PropertiesPage() {
             )}
             <div className="flex gap-2 justify-end">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-sm">
-                Cancel
+                {editing ? "Close" : "Cancel"}
               </button>
               <button
                 onClick={handleSave}
@@ -341,6 +344,13 @@ export default function PropertiesPage() {
                 {saving ? "Saving..." : "Save"}
               </button>
             </div>
+
+            {editing && (
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-semibold text-navy mb-3">Photos</h4>
+                <PropertyImageManager propertyId={editing.id} initialImages={editing.images ?? []} />
+              </div>
+            )}
           </div>
         </div>
       )}

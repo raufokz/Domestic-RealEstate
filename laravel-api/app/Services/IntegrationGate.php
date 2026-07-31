@@ -112,7 +112,7 @@ class IntegrationGate
         }
 
         try {
-            return Integration::where('key', $key)->first();
+            return Integration::where('integration_key', $key)->first();
         } catch (\Throwable) {
             return null;
         }

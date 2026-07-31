@@ -15,7 +15,7 @@ class AiPromptController extends Controller
         $prompts = AiPrompt::orderBy('name')->get()->map(fn (AiPrompt $p) => [
             'id' => $p->id,
             'name' => $p->name,
-            'key' => $p->key,
+            'prompt_key' => $p->prompt_key,
             'category' => $p->category,
             'model' => $p->model,
             'content' => $p->content,
@@ -27,14 +27,14 @@ class AiPromptController extends Controller
 
         if ($prompts->isEmpty()) {
             $defaults = [
-                ['name' => 'Chat Assistant', 'key' => 'chat_assistant', 'category' => 'chat', 'content' => 'You are Domestic AI for Domestic Real Estate (domesticrealestate.us), Your Key to Home. Help with buying, selling, investing. Ask for name and email once. Never use phone numbers — email info@domesticrealestate.us only.'],
-                ['name' => 'Property Description', 'key' => 'property_description', 'category' => 'content', 'content' => 'Generate a compelling SEO property description. Never include phone numbers. CTA: email info@domesticrealestate.us.'],
-                ['name' => 'Lead Qualification', 'key' => 'lead_qualification', 'category' => 'leads', 'content' => 'Qualify this lead and explain Hot/Warm/Cold with recommended next steps for Domestic Real Estate agents.'],
-                ['name' => 'Email Writer', 'key' => 'email_writer', 'category' => 'marketing', 'content' => 'Write a professional Domestic Real Estate email. Contact only via info@domesticrealestate.us — never phone numbers.'],
-                ['name' => 'Seller Valuation', 'key' => 'seller_agent', 'category' => 'sellers', 'content' => 'Provide home valuation guidance (not a licensed appraisal). Direct follow-up to info@domesticrealestate.us.'],
-                ['name' => 'Investor Analysis', 'key' => 'investor_agent', 'category' => 'investors', 'content' => 'Analyze ROI, cap rate, cash flow, and risk for Domestic Real Estate investors. No phone numbers.'],
-                ['name' => 'SEO Agent', 'key' => 'seo_agent', 'category' => 'marketing', 'content' => 'Analyze real estate page SEO with score, keywords, and meta recommendations for domesticrealestate.us.'],
-                ['name' => 'Social Media', 'key' => 'social_media', 'category' => 'marketing', 'content' => 'Create engaging social posts for Domestic Real Estate. Hashtags welcome. Contact: info@domesticrealestate.us only.'],
+                ['name' => 'Chat Assistant', 'prompt_key' => 'chat_assistant', 'category' => 'chat', 'content' => 'You are Domestic AI for Domestic Real Estate (domesticrealestate.us), Your Key to Home. Help with buying, selling, investing. Ask for name and email once. Never use phone numbers — email info@domesticrealestate.us only.'],
+                ['name' => 'Property Description', 'prompt_key' => 'property_description', 'category' => 'content', 'content' => 'Generate a compelling SEO property description. Never include phone numbers. CTA: email info@domesticrealestate.us.'],
+                ['name' => 'Lead Qualification', 'prompt_key' => 'lead_qualification', 'category' => 'leads', 'content' => 'Qualify this lead and explain Hot/Warm/Cold with recommended next steps for Domestic Real Estate agents.'],
+                ['name' => 'Email Writer', 'prompt_key' => 'email_writer', 'category' => 'marketing', 'content' => 'Write a professional Domestic Real Estate email. Contact only via info@domesticrealestate.us — never phone numbers.'],
+                ['name' => 'Seller Valuation', 'prompt_key' => 'seller_agent', 'category' => 'sellers', 'content' => 'Provide home valuation guidance (not a licensed appraisal). Direct follow-up to info@domesticrealestate.us.'],
+                ['name' => 'Investor Analysis', 'prompt_key' => 'investor_agent', 'category' => 'investors', 'content' => 'Analyze ROI, cap rate, cash flow, and risk for Domestic Real Estate investors. No phone numbers.'],
+                ['name' => 'SEO Agent', 'prompt_key' => 'seo_agent', 'category' => 'marketing', 'content' => 'Analyze real estate page SEO with score, keywords, and meta recommendations for domesticrealestate.us.'],
+                ['name' => 'Social Media', 'prompt_key' => 'social_media', 'category' => 'marketing', 'content' => 'Create engaging social posts for Domestic Real Estate. Hashtags welcome. Contact: info@domesticrealestate.us only.'],
             ];
             foreach ($defaults as $row) {
                 AiPrompt::create(array_merge($row, [
@@ -52,7 +52,7 @@ class AiPromptController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'key' => 'nullable|string|max:255',
+            'prompt_key' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:100',
             'model' => 'nullable|string|max:100',
             'content' => 'required|string',
@@ -64,7 +64,7 @@ class AiPromptController extends Controller
         $content = $validated['content'] ?? $validated['prompt'] ?? '';
         $prompt = AiPrompt::create([
             'name' => $validated['name'],
-            'key' => $validated['key'] ?? Str::slug($validated['name']).'-'.Str::random(4),
+            'prompt_key' => $validated['prompt_key'] ?? Str::slug($validated['name']).'-'.Str::random(4),
             'category' => $validated['category'] ?? 'content',
             'model' => $validated['model'] ?? 'gemini-1.5-flash',
             'content' => $content,
@@ -79,7 +79,7 @@ class AiPromptController extends Controller
         $prompt = AiPrompt::findOrFail($id);
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'key' => 'sometimes|string|max:255',
+            'prompt_key' => 'sometimes|string|max:255',
             'category' => 'sometimes|string|max:100',
             'model' => 'sometimes|string|max:100',
             'content' => 'sometimes|string',

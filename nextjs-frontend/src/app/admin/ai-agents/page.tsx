@@ -7,7 +7,7 @@ import { useToast } from "@/components/Toast";
 
 interface AgentConfig {
   id: number;
-  key: string;
+  config_key: string;
   name: string;
   description: string | null;
   model: string;
@@ -94,22 +94,22 @@ export default function AIAgentsPage() {
   }, [fetchAgents, fetchStats]);
 
   function getLocal(agent: AgentConfig) {
-    return localAgents[agent.key] || {};
+    return localAgents[agent.config_key] || {};
   }
 
   function setLocal(agent: AgentConfig, patch: Partial<AgentConfig>) {
     setLocalAgents((prev) => ({
       ...prev,
-      [agent.key]: { ...(prev[agent.key] || {}), ...patch },
+      [agent.config_key]: { ...(prev[agent.config_key] || {}), ...patch },
     }));
   }
 
   async function handleToggle(agent: AgentConfig) {
     const newActive = !agent.is_active;
     try {
-      await apiPut(`/admin/ai-agents/${agent.key}`, { is_active: newActive });
-      setAgents((prev) => prev.map((a) => a.key === agent.key ? { ...a, is_active: newActive } : a));
-      success(`${agent.name || agent.key} ${newActive ? "enabled" : "disabled"}.`);
+      await apiPut(`/admin/ai-agents/${agent.config_key}`, { is_active: newActive });
+      setAgents((prev) => prev.map((a) => a.config_key === agent.config_key ? { ...a, is_active: newActive } : a));
+      success(`${agent.name || agent.config_key} ${newActive ? "enabled" : "disabled"}.`);
       fetchStats();
     } catch (e) {
       // Do not flip the toggle locally when the server rejected the change.
@@ -121,11 +121,11 @@ export default function AIAgentsPage() {
     const patch = getLocal(agent);
     if (!patch.model && !patch.temperature && patch.custom_prompt === undefined) return;
     try {
-      await apiPut(`/admin/ai-agents/${agent.key}`, patch);
-      setAgents((prev) => prev.map((a) => a.key === agent.key ? { ...a, ...patch } : a));
+      await apiPut(`/admin/ai-agents/${agent.config_key}`, patch);
+      setAgents((prev) => prev.map((a) => a.config_key === agent.config_key ? { ...a, ...patch } : a));
       setLocalAgents((prev) => {
         const rest = { ...prev };
-        delete rest[agent.key];
+        delete rest[agent.config_key];
         return rest;
       });
       success("Agent settings saved.");
@@ -136,13 +136,13 @@ export default function AIAgentsPage() {
   }
 
   async function handleTest(agent: AgentConfig) {
-    setTestingKey(agent.key);
+    setTestingKey(agent.config_key);
     setTestResult(null);
     try {
-      const result = await apiPost<Record<string, unknown>>(`/admin/ai-agents/${agent.key}/test`, {
+      const result = await apiPost<Record<string, unknown>>(`/admin/ai-agents/${agent.config_key}/test`, {
         message: testInput || "What can you help me with?",
       });
-      setTestResult({ key: agent.key, result });
+      setTestResult({ key: agent.config_key, result });
       fetchAgents();
       fetchStats();
     } catch (e) {
@@ -153,12 +153,12 @@ export default function AIAgentsPage() {
   }
 
   async function openLogs(agent: AgentConfig) {
-    setLogsKey(agent.key);
+    setLogsKey(agent.config_key);
     setLogsLoading(true);
     setLogs([]);
     setLogsError("");
     try {
-      const data = await apiGet<{ data: TestLog[] }>(`/admin/ai-agents/${agent.key}/logs`);
+      const data = await apiGet<{ data: TestLog[] }>(`/admin/ai-agents/${agent.config_key}/logs`);
       setLogs(data.data || []);
     } catch (e) {
       setLogsError(e instanceof Error ? e.message : "Could not load logs for this agent.");
@@ -212,7 +212,7 @@ export default function AIAgentsPage() {
             {agents.map((agent) => {
               const local = getLocal(agent);
               return (
-                <div key={agent.key} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div key={agent.config_key} className="bg-white rounded-xl shadow-sm overflow-hidden">
                   {/* Header */}
                   <div className="p-5 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -225,7 +225,7 @@ export default function AIAgentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs text-gray-400">{agent.key}</span>
+                      <span className="text-xs text-gray-400">{agent.config_key}</span>
                       <button
                         onClick={() => handleToggle(agent)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${agent.is_active ? "bg-green-500" : "bg-gray-300"}`}
@@ -320,21 +320,21 @@ export default function AIAgentsPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {testResult?.key === agent.key && (
+                        {testResult?.key === agent.config_key && (
                           <span className="text-xs text-green-600">Test completed</span>
                         )}
                         <button
                           onClick={() => handleTest(agent)}
-                          disabled={testingKey === agent.key}
+                          disabled={testingKey === agent.config_key}
                           className="px-4 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3555] transition disabled:opacity-50"
                         >
-                          {testingKey === agent.key ? "Testing..." : "Test"}
+                          {testingKey === agent.config_key ? "Testing..." : "Test"}
                         </button>
                       </div>
                     </div>
 
                     {/* Test Input and Result */}
-                    {testResult?.key === agent.key && (
+                    {testResult?.key === agent.config_key && (
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-500 mb-1">Test Message</label>
@@ -357,7 +357,7 @@ export default function AIAgentsPage() {
                     )}
 
                     {/* Last Test */}
-                    {agent.last_test_result && testResult?.key !== agent.key && (
+                    {agent.last_test_result && testResult?.key !== agent.config_key && (
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-xs text-gray-500 mb-1">
                           Last tested: {agent.last_tested_at ? new Date(agent.last_tested_at).toLocaleString() : "Never"}
@@ -393,7 +393,7 @@ export default function AIAgentsPage() {
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                     <p className="text-red-700 text-sm">{logsError}</p>
                     <button
-                      onClick={() => logsKey && openLogs({ key: logsKey } as AgentConfig)}
+                      onClick={() => logsKey && openLogs({ config_key: logsKey } as AgentConfig)}
                       className="mt-3 px-4 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f]"
                     >
                       Retry

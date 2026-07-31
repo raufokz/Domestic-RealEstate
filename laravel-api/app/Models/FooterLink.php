@@ -10,7 +10,7 @@ class FooterLink extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'label', 'url', 'group', 'target', 'sort_order', 'is_active',
+        'label', 'url', 'group_name', 'target', 'sort_order', 'is_active',
     ];
 
     protected $casts = [

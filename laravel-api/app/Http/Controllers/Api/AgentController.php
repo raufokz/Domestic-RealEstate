@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AgentDocument;
 use App\Models\AgentProfile;
 use App\Models\Enquiry;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,9 +29,19 @@ class AgentController extends Controller
     }
 
     public function show($slug) {
-        return response()->json(
-            AgentProfile::where('slug', $slug)->with(['user', 'documents'])->firstOrFail()
-        );
+        $profile = AgentProfile::where('slug', $slug)->with(['user', 'documents'])->firstOrFail();
+
+        $listings = Property::where('realtor_id', $profile->user_id)
+            ->where('approval_status', 'approved')
+            ->where('status', 'active')
+            ->with(['propertyType', 'images'])
+            ->latest()
+            ->get();
+
+        $data = $profile->toArray();
+        $data['listings'] = $listings;
+
+        return response()->json($data);
     }
 
     public function store(Request $request) {

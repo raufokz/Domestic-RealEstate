@@ -11,5 +11,9 @@ const ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 export function storageUrl(path?: string | null): string | null {
   if (!path) return null;
   if (/^https?:\/\//.test(path)) return path;
-  return `${ORIGIN}/storage/${path.replace(/^\/+/, "")}`;
+  // A leading slash means this is a site-relative asset (e.g. seed data pointing
+  // at a file in the Next.js public/ dir), not a Laravel storage path — real
+  // uploads via Storage::store() always return a path with no leading slash.
+  if (path.startsWith("/")) return path;
+  return `${ORIGIN}/storage/${path}`;
 }

@@ -95,11 +95,11 @@ class AiService
     /**
      * Load agent config + optional AiPrompt library row; enforce is_active.
      *
-     * @return object{key: string, name: string, is_active: bool, custom_prompt: ?string, model: ?string, temperature: float, max_tokens: int}|null
+     * @return object{config_key: string, name: string, is_active: bool, custom_prompt: ?string, model: ?string, temperature: float, max_tokens: int}|null
      */
     public static function agentConfig(string $key): ?object
     {
-        $row = DB::table('ai_agent_configs')->where('key', $key)->first();
+        $row = DB::table('ai_agent_configs')->where('config_key', $key)->first();
         if (! $row) {
             return null;
         }
@@ -108,7 +108,7 @@ class AiService
         $library = DB::table('ai_prompts')
             ->where('is_active', true)
             ->where(function ($q) use ($key) {
-                $q->where('key', $key)->orWhere('key', str_replace('_', '-', $key));
+                $q->where('prompt_key', $key)->orWhere('prompt_key', str_replace('_', '-', $key));
             })
             ->first();
 
@@ -187,7 +187,7 @@ class AiService
     {
         try {
             $tokens = str_word_count($result['text'] ?? '');
-            DB::table('ai_agent_configs')->where('key', $key)->update([
+            DB::table('ai_agent_configs')->where('config_key', $key)->update([
                 'total_calls' => DB::raw('total_calls + 1'),
                 'total_tokens' => DB::raw('total_tokens + '.$tokens),
                 'updated_at' => now(),

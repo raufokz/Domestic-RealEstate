@@ -6,7 +6,7 @@ import { apiGet, apiPut, apiPost } from "@/lib/api";
 
 interface Integration {
   id: number;
-  key: string;
+  integration_key: string;
   name: string;
   category: string;
   status: string;
@@ -55,7 +55,7 @@ export default function AiSettingsPage() {
     try {
       const all = await apiGet<Integration[]>("/admin/integrations");
       const aiProviders = all.filter(
-        (i) => i.category === "ai" || defaultAiKeys.includes(i.key)
+        (i) => i.category === "ai" || defaultAiKeys.includes(i.integration_key)
       );
       setProviders(aiProviders);
     } catch (err: unknown) {
@@ -79,20 +79,20 @@ export default function AiSettingsPage() {
   };
 
   const handleSaveKey = async (integration: Integration) => {
-    const apiKey = apiKeyInputs[integration.key];
+    const apiKey = apiKeyInputs[integration.integration_key];
     if (!apiKey) return;
     try {
-      await apiPost(`/admin/integrations/${integration.key}/connect`, {
+      await apiPost(`/admin/integrations/${integration.integration_key}/connect`, {
         credentials: { api_key: apiKey },
       });
       setProviders((prev) =>
         prev.map((p) =>
-          p.key === integration.key
+          p.integration_key === integration.integration_key
             ? { ...p, status: "connected", credentials: { api_key: "***" } }
             : p
         )
       );
-      setApiKeyInputs((prev) => ({ ...prev, [integration.key]: "" }));
+      setApiKeyInputs((prev) => ({ ...prev, [integration.integration_key]: "" }));
       setToast({ message: `${integration.name} connected successfully`, type: "success" });
     } catch {
       setToast({ message: `Failed to save ${integration.name} key`, type: "error" });
@@ -100,15 +100,15 @@ export default function AiSettingsPage() {
   };
 
   const testConnection = async (integration: Integration) => {
-    setTesting((prev) => ({ ...prev, [integration.key]: true }));
+    setTesting((prev) => ({ ...prev, [integration.integration_key]: true }));
     try {
       const res = await apiPost<{ status: string; message: string }>(
-        `/admin/integrations/${integration.key}/test`
+        `/admin/integrations/${integration.integration_key}/test`
       );
       if (res.status === "success") {
         setProviders((prev) =>
           prev.map((p) =>
-            p.key === integration.key
+            p.integration_key === integration.integration_key
               ? { ...p, status: "connected", last_test_result: "success", last_tested_at: new Date().toISOString() }
               : p
           )
@@ -120,23 +120,23 @@ export default function AiSettingsPage() {
     } catch {
       setProviders((prev) =>
         prev.map((p) =>
-          p.key === integration.key
+          p.integration_key === integration.integration_key
             ? { ...p, status: "error", last_test_result: "failure" }
             : p
         )
       );
       setToast({ message: `${integration.name} connection test failed`, type: "error" });
     } finally {
-      setTesting((prev) => ({ ...prev, [integration.key]: false }));
+      setTesting((prev) => ({ ...prev, [integration.integration_key]: false }));
     }
   };
 
   const handleDisconnect = async (integration: Integration) => {
     try {
-      await apiPost(`/admin/integrations/${integration.key}/disconnect`);
+      await apiPost(`/admin/integrations/${integration.integration_key}/disconnect`);
       setProviders((prev) =>
         prev.map((p) =>
-          p.key === integration.key
+          p.integration_key === integration.integration_key
             ? { ...p, status: "disconnected", credentials: null, last_test_result: null, last_error_message: null }
             : p
         )
@@ -199,7 +199,7 @@ export default function AiSettingsPage() {
             {providers.map((provider) => {
               const st = statusLabels[provider.status] || statusLabels.not_configured;
               return (
-                <div key={provider.key} className="bg-white rounded-xl shadow-sm p-6">
+                <div key={provider.integration_key} className="bg-white rounded-xl shadow-sm p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[var(--color-primary,#0A2647)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
@@ -227,9 +227,9 @@ export default function AiSettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
                     <div className="flex gap-2">
                       <input
-                        type={showKeys[provider.key] ? "text" : "password"}
-                        value={apiKeyInputs[provider.key] || ""}
-                        onChange={(e) => handleApiKeyChange(provider.key, e.target.value)}
+                        type={showKeys[provider.integration_key] ? "text" : "password"}
+                        value={apiKeyInputs[provider.integration_key] || ""}
+                        onChange={(e) => handleApiKeyChange(provider.integration_key, e.target.value)}
                         placeholder={
                           provider.credentials
                             ? "Key saved (enter new to replace)"
@@ -238,10 +238,10 @@ export default function AiSettingsPage() {
                         className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,#C9A227)]/50 focus:border-[var(--color-accent,#C9A227)]"
                       />
                       <button
-                        onClick={() => toggleKeyVisibility(provider.key)}
+                        onClick={() => toggleKeyVisibility(provider.integration_key)}
                         className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
                       >
-                        {showKeys[provider.key] ? "Hide" : "Show"}
+                        {showKeys[provider.integration_key] ? "Hide" : "Show"}
                       </button>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export default function AiSettingsPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    {apiKeyInputs[provider.key] && (
+                    {apiKeyInputs[provider.integration_key] && (
                       <button
                         onClick={() => handleSaveKey(provider)}
                         className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-[var(--color-primary,#0A2647)] text-white hover:opacity-90 transition-colors"
@@ -263,16 +263,16 @@ export default function AiSettingsPage() {
                     )}
                     <button
                       onClick={() => testConnection(provider)}
-                      disabled={!provider.credentials || testing[provider.key]}
+                      disabled={!provider.credentials || testing[provider.integration_key]}
                       className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                        testing[provider.key]
+                        testing[provider.integration_key]
                           ? "bg-gray-200 text-gray-500 cursor-wait"
                           : provider.credentials
                           ? "bg-[var(--color-primary,#0A2647)] text-white hover:opacity-90"
                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
                       }`}
                     >
-                      {testing[provider.key] ? "Testing..." : "Test Connection"}
+                      {testing[provider.integration_key] ? "Testing..." : "Test Connection"}
                     </button>
                     {provider.credentials && (
                       <button

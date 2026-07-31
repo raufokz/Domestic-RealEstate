@@ -15,27 +15,27 @@ class NavigationFooterSeeder extends Seeder
     {
         // ─── Navigation Menus ───
         $headerItems = [
-            ['label' => 'Buy', 'url' => '/properties?type=buy', 'position' => 'header', 'group' => 'Properties', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'Sell', 'url' => '/sell', 'position' => 'header', 'group' => 'Properties', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Properties', 'url' => '/properties', 'position' => 'header', 'group' => 'Properties', 'sort_order' => 3, 'is_active' => true, 'children' => [
+            ['label' => 'Buy', 'url' => '/properties?type=buy', 'position' => 'header', 'group_name' => 'Properties', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'Sell', 'url' => '/sell', 'position' => 'header', 'group_name' => 'Properties', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Properties', 'url' => '/properties', 'position' => 'header', 'group_name' => 'Properties', 'sort_order' => 3, 'is_active' => true, 'children' => [
                 ['label' => 'All Properties', 'url' => '/properties'],
                 ['label' => 'For Sale', 'url' => '/properties?type=sale'],
                 ['label' => 'For Rent', 'url' => '/properties?type=rent'],
                 ['label' => 'New Construction', 'url' => '/properties?new=true'],
             ]],
-            ['label' => 'Agents', 'url' => '/agents', 'position' => 'header', 'group' => 'Company', 'sort_order' => 4, 'is_active' => true],
-            ['label' => 'Invest', 'url' => '/investors', 'position' => 'header', 'group' => 'Investment', 'sort_order' => 5, 'is_active' => true],
-            ['label' => 'Blog', 'url' => '/blog', 'position' => 'header', 'group' => 'Resources', 'sort_order' => 6, 'is_active' => true],
-            ['label' => 'Contact', 'url' => '/contact', 'position' => 'header', 'group' => 'Company', 'sort_order' => 7, 'is_active' => true],
+            ['label' => 'Agents', 'url' => '/agents', 'position' => 'header', 'group_name' => 'Company', 'sort_order' => 4, 'is_active' => true],
+            ['label' => 'Invest', 'url' => '/investors', 'position' => 'header', 'group_name' => 'Investment', 'sort_order' => 5, 'is_active' => true],
+            ['label' => 'Blog', 'url' => '/blog', 'position' => 'header', 'group_name' => 'Resources', 'sort_order' => 6, 'is_active' => true],
+            ['label' => 'Contact', 'url' => '/contact', 'position' => 'header', 'group_name' => 'Company', 'sort_order' => 7, 'is_active' => true],
         ];
 
         $footerItems = [
-            ['label' => 'About Us', 'url' => '/about', 'position' => 'footer', 'group' => 'Company', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'Contact', 'url' => '/contact', 'position' => 'footer', 'group' => 'Company', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Blog', 'url' => '/blog', 'position' => 'footer', 'group' => 'Company', 'sort_order' => 3, 'is_active' => true],
-            ['label' => 'Privacy Policy', 'url' => '/privacy', 'position' => 'footer', 'group' => 'Legal', 'sort_order' => 4, 'is_active' => true],
-            ['label' => 'Terms of Service', 'url' => '/terms', 'position' => 'footer', 'group' => 'Legal', 'sort_order' => 5, 'is_active' => true],
-            ['label' => 'FAQ', 'url' => '/faq', 'position' => 'footer', 'group' => 'Resources', 'sort_order' => 6, 'is_active' => true],
+            ['label' => 'About Us', 'url' => '/about', 'position' => 'footer', 'group_name' => 'Company', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'Contact', 'url' => '/contact', 'position' => 'footer', 'group_name' => 'Company', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Blog', 'url' => '/blog', 'position' => 'footer', 'group_name' => 'Company', 'sort_order' => 3, 'is_active' => true],
+            ['label' => 'Privacy Policy', 'url' => '/privacy', 'position' => 'footer', 'group_name' => 'Legal', 'sort_order' => 4, 'is_active' => true],
+            ['label' => 'Terms of Service', 'url' => '/terms', 'position' => 'footer', 'group_name' => 'Legal', 'sort_order' => 5, 'is_active' => true],
+            ['label' => 'FAQ', 'url' => '/faq', 'position' => 'footer', 'group_name' => 'Resources', 'sort_order' => 6, 'is_active' => true],
         ];
 
         foreach (array_merge($headerItems, $footerItems) as $item) {
@@ -44,22 +44,22 @@ class NavigationFooterSeeder extends Seeder
 
         // ─── Footer Links ───
         $footerLinks = [
-            ['label' => 'Buy a Home', 'url' => '/properties?type=buy', 'group' => 'Properties', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'Sell Your Home', 'url' => '/sell', 'group' => 'Properties', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Property Valuation', 'url' => '/sellers/home-valuation', 'group' => 'Properties', 'sort_order' => 3, 'is_active' => true],
-            ['label' => 'Find an Agent', 'url' => '/agents', 'group' => 'Properties', 'sort_order' => 4, 'is_active' => true],
-            ['label' => 'Investment Properties', 'url' => '/investors', 'group' => 'Properties', 'sort_order' => 5, 'is_active' => true],
-            ['label' => 'About Us', 'url' => '/about', 'group' => 'Company', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'Contact Us', 'url' => '/contact', 'group' => 'Company', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Blog', 'url' => '/blog', 'group' => 'Company', 'sort_order' => 3, 'is_active' => true],
-            ['label' => 'Careers', 'url' => '/about#careers', 'group' => 'Company', 'sort_order' => 4, 'is_active' => true],
-            ['label' => 'Privacy Policy', 'url' => '/privacy', 'group' => 'Legal', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'Terms of Service', 'url' => '/terms', 'group' => 'Legal', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Accessibility', 'url' => '/accessibility', 'group' => 'Legal', 'sort_order' => 3, 'is_active' => true],
-            ['label' => 'FAQ', 'url' => '/faq', 'group' => 'Resources', 'sort_order' => 1, 'is_active' => true],
-            ['label' => 'First Time Buyers', 'url' => '/buyers/first-time', 'group' => 'Resources', 'sort_order' => 2, 'is_active' => true],
-            ['label' => 'Home Valuation', 'url' => '/sellers/home-valuation', 'group' => 'Resources', 'sort_order' => 3, 'is_active' => true],
-            ['label' => 'SEO Services', 'url' => '/services/seo', 'group' => 'Resources', 'sort_order' => 4, 'is_active' => true],
+            ['label' => 'Buy a Home', 'url' => '/properties?type=buy', 'group_name' => 'Properties', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'Sell Your Home', 'url' => '/sell', 'group_name' => 'Properties', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Property Valuation', 'url' => '/sellers/home-valuation', 'group_name' => 'Properties', 'sort_order' => 3, 'is_active' => true],
+            ['label' => 'Find an Agent', 'url' => '/agents', 'group_name' => 'Properties', 'sort_order' => 4, 'is_active' => true],
+            ['label' => 'Investment Properties', 'url' => '/investors', 'group_name' => 'Properties', 'sort_order' => 5, 'is_active' => true],
+            ['label' => 'About Us', 'url' => '/about', 'group_name' => 'Company', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'Contact Us', 'url' => '/contact', 'group_name' => 'Company', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Blog', 'url' => '/blog', 'group_name' => 'Company', 'sort_order' => 3, 'is_active' => true],
+            ['label' => 'Careers', 'url' => '/about#careers', 'group_name' => 'Company', 'sort_order' => 4, 'is_active' => true],
+            ['label' => 'Privacy Policy', 'url' => '/privacy', 'group_name' => 'Legal', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'Terms of Service', 'url' => '/terms', 'group_name' => 'Legal', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Accessibility', 'url' => '/accessibility', 'group_name' => 'Legal', 'sort_order' => 3, 'is_active' => true],
+            ['label' => 'FAQ', 'url' => '/faq', 'group_name' => 'Resources', 'sort_order' => 1, 'is_active' => true],
+            ['label' => 'First Time Buyers', 'url' => '/buyers/first-time', 'group_name' => 'Resources', 'sort_order' => 2, 'is_active' => true],
+            ['label' => 'Home Valuation', 'url' => '/sellers/home-valuation', 'group_name' => 'Resources', 'sort_order' => 3, 'is_active' => true],
+            ['label' => 'SEO Services', 'url' => '/services/seo', 'group_name' => 'Resources', 'sort_order' => 4, 'is_active' => true],
         ];
 
         foreach ($footerLinks as $link) {
@@ -68,18 +68,18 @@ class NavigationFooterSeeder extends Seeder
 
         // ─── Email Settings ───
         $emailSettings = [
-            ['key' => 'from_name', 'value' => 'Domestic Real Estate', 'type' => 'string', 'group' => 'general', 'description' => 'Sender name'],
-            ['key' => 'from_email', 'value' => 'noreply@domesticrealestate.us', 'type' => 'string', 'group' => 'general', 'description' => 'Sender email'],
-            ['key' => 'reply_to', 'value' => 'support@domesticrealestate.us', 'type' => 'string', 'group' => 'general', 'description' => 'Reply-to email'],
-            ['key' => 'smtp_host', 'value' => '', 'type' => 'string', 'group' => 'smtp', 'description' => 'SMTP server host'],
-            ['key' => 'smtp_port', 'value' => '587', 'type' => 'integer', 'group' => 'smtp', 'description' => 'SMTP server port'],
-            ['key' => 'smtp_username', 'value' => '', 'type' => 'string', 'group' => 'smtp', 'description' => 'SMTP username'],
-            ['key' => 'smtp_password', 'value' => '', 'type' => 'string', 'group' => 'smtp', 'description' => 'SMTP password'],
-            ['key' => 'smtp_encryption', 'value' => 'tls', 'type' => 'string', 'group' => 'smtp', 'description' => 'SMTP encryption (tls/ssl)'],
-            ['key' => 'sendgrid_api_key', 'value' => '', 'type' => 'string', 'group' => 'sendgrid', 'description' => 'SendGrid API key'],
-            ['key' => 'mailgun_domain', 'value' => '', 'type' => 'string', 'group' => 'mailgun', 'description' => 'Mailgun domain'],
-            ['key' => 'mailgun_secret', 'value' => '', 'type' => 'string', 'group' => 'mailgun', 'description' => 'Mailgun secret'],
-            ['key' => 'campaign_daily_limit', 'value' => '500', 'type' => 'integer', 'group' => 'templates', 'description' => 'Max emails per day'],
+            ['setting_key' => 'from_name', 'value' => 'Domestic Real Estate', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Sender name'],
+            ['setting_key' => 'from_email', 'value' => 'noreply@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Sender email'],
+            ['setting_key' => 'reply_to', 'value' => 'support@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Reply-to email'],
+            ['setting_key' => 'smtp_host', 'value' => '', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP server host'],
+            ['setting_key' => 'smtp_port', 'value' => '587', 'type' => 'integer', 'setting_group' => 'smtp', 'description' => 'SMTP server port'],
+            ['setting_key' => 'smtp_username', 'value' => '', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP username'],
+            ['setting_key' => 'smtp_password', 'value' => '', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP password'],
+            ['setting_key' => 'smtp_encryption', 'value' => 'tls', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP encryption (tls/ssl)'],
+            ['setting_key' => 'sendgrid_api_key', 'value' => '', 'type' => 'string', 'setting_group' => 'sendgrid', 'description' => 'SendGrid API key'],
+            ['setting_key' => 'mailgun_domain', 'value' => '', 'type' => 'string', 'setting_group' => 'mailgun', 'description' => 'Mailgun domain'],
+            ['setting_key' => 'mailgun_secret', 'value' => '', 'type' => 'string', 'setting_group' => 'mailgun', 'description' => 'Mailgun secret'],
+            ['setting_key' => 'campaign_daily_limit', 'value' => '500', 'type' => 'integer', 'setting_group' => 'templates', 'description' => 'Max emails per day'],
         ];
 
         foreach ($emailSettings as $setting) {

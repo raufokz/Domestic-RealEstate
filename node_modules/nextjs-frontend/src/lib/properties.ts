@@ -25,6 +25,7 @@ export interface PublicProperty {
   longitude?: string | number | null;
   photos?: string[] | null;
   gallery?: string[] | null;
+  images?: { id: number; path: string; is_featured: boolean; sort_order: number }[] | null;
   amenities?: string[] | null;
   video_url?: string | null;
   virtual_tour_url?: string | null;
@@ -76,6 +77,17 @@ export async function getPropertyBySlug(slug: string): Promise<PublicProperty | 
   } catch {
     return null;
   }
+}
+
+/** Ordered list of photo paths for a property: real `images` (cover first, then by
+ * sort_order) preferred, falling back to the legacy `photos` JSON array. */
+export function propertyPhotoPaths(prop: PublicProperty): string[] {
+  if (prop.images && prop.images.length > 0) {
+    return [...prop.images]
+      .sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0) || a.sort_order - b.sort_order)
+      .map((img) => img.path);
+  }
+  return prop.photos ?? [];
 }
 
 /** Format a numeric price as USD, e.g. "$1,250,000". Falls back to "Contact for price". */

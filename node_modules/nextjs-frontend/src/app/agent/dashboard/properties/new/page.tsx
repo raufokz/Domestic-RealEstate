@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AgentLayout from "@/components/agent/AgentLayout";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
+import PropertyImageManager from "@/components/property/PropertyImageManager";
+
+interface PropertyType {
+  id: number;
+  name: string;
+}
 
 export default function NewPropertyPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [createdId, setCreatedId] = useState<number | null>(null);
+  const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -16,19 +24,25 @@ export default function NewPropertyPage() {
     address: "",
     city: "",
     state: "",
-    zip_code: "",
+    zip: "",
     country: "US",
-    property_type: "house",
+    property_type_id: "",
     price: "",
     bedrooms: "",
     bathrooms: "",
-    square_feet: "",
+    sqft: "",
     year_built: "",
     lot_size: "",
     parking_spaces: "",
     amenities: "",
     nearby_places: "",
   });
+
+  useEffect(() => {
+    apiGet<{ data: PropertyType[] }>("/admin/property-types")
+      .then((res) => setPropertyTypes(res.data || []))
+      .catch(() => setPropertyTypes([]));
+  }, []);
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -39,18 +53,19 @@ export default function NewPropertyPage() {
     try {
       const payload = {
         ...form,
+        property_type_id: form.property_type_id ? Number(form.property_type_id) : undefined,
         price: form.price ? Number(form.price) : undefined,
         bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-        square_feet: form.square_feet ? Number(form.square_feet) : undefined,
+        sqft: form.sqft ? Number(form.sqft) : undefined,
         year_built: form.year_built ? Number(form.year_built) : undefined,
         lot_size: form.lot_size ? Number(form.lot_size) : undefined,
         parking_spaces: form.parking_spaces ? Number(form.parking_spaces) : undefined,
         amenities: form.amenities ? form.amenities.split(",").map((a) => a.trim()) : [],
         nearby_places: form.nearby_places ? form.nearby_places.split(",").map((a) => a.trim()) : [],
       };
-      await apiPost("/properties", payload);
-      router.push("/agent/dashboard/properties");
+      const created = await apiPost<{ id: number }>("/properties", payload);
+      setCreatedId(created.id);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to create property";
       setError(msg);
@@ -60,6 +75,28 @@ export default function NewPropertyPage() {
 
   const inputClass = "w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none text-sm text-slate-800";
   const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
+
+  if (createdId) {
+    return (
+      <AgentLayout title="Add Photos" subtitle="Your listing was created">
+        <div className="max-w-3xl space-y-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 className="text-lg font-bold text-[#0A2647] mb-1">Property created</h2>
+            <p className="text-sm text-slate-500 mb-4">Add photos now, or skip and add them later from your listings.</p>
+            <PropertyImageManager propertyId={createdId} initialImages={[]} />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push("/agent/dashboard/properties")}
+              className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </AgentLayout>
+    );
+  }
 
   return (
     <AgentLayout title="Add New Property" subtitle="Create a new property listing">
@@ -82,15 +119,12 @@ export default function NewPropertyPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Property Type *</label>
-                  <select value={form.property_type} onChange={(e) => update("property_type", e.target.value)} className={inputClass}>
-                    <option value="house">House</option>
-                    <option value="apartment">Apartment</option>
-                    <option value="condo">Condo</option>
-                    <option value="townhouse">Townhouse</option>
-                    <option value="villa">Villa</option>
-                    <option value="land">Land</option>
-                    <option value="commercial">Commercial</option>
+                  <label className={labelClass}>Property Type</label>
+                  <select value={form.property_type_id} onChange={(e) => update("property_type_id", e.target.value)} className={inputClass}>
+                    <option value="">Select a type…</option>
+                    {propertyTypes.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -119,7 +153,7 @@ export default function NewPropertyPage() {
                 </div>
                 <div>
                   <label className={labelClass}>ZIP Code</label>
-                  <input type="text" value={form.zip_code} onChange={(e) => update("zip_code", e.target.value)} className={inputClass} placeholder="90210" />
+                  <input type="text" value={form.zip} onChange={(e) => update("zip", e.target.value)} className={inputClass} placeholder="90210" />
                 </div>
               </div>
             </div>
@@ -138,7 +172,7 @@ export default function NewPropertyPage() {
               </div>
               <div>
                 <label className={labelClass}>Square Feet</label>
-                <input type="number" value={form.square_feet} onChange={(e) => update("square_feet", e.target.value)} className={inputClass} placeholder="2500" />
+                <input type="number" value={form.sqft} onChange={(e) => update("sqft", e.target.value)} className={inputClass} placeholder="2500" />
               </div>
               <div>
                 <label className={labelClass}>Year Built</label>

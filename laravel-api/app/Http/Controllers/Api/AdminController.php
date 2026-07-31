@@ -138,7 +138,7 @@ class AdminController extends Controller
 
     public function properties(Request $request) {
         $this->checkAdmin();
-        $query = Property::with(['propertyType', 'realtor']);
+        $query = Property::with(['propertyType', 'realtor', 'images']);
         if ($request->filled('status')) $query->where('approval_status', $request->status);
         if ($request->filled('city')) $query->where('city', $request->city);
         return response()->json($query->orderBy('created_at', 'desc')->paginate(25));
@@ -534,7 +534,7 @@ class AdminController extends Controller
             'amenities', 'nearby_places', 'video_url', 'virtual_tour_url',
         ]));
         $this->logActivity('property_updated', $property);
-        return response()->json(['data' => $property->fresh(), 'message' => 'Property updated']);
+        return response()->json(['data' => $property->fresh('images'), 'message' => 'Property updated']);
     }
 
     public function destroyProperty($id) {

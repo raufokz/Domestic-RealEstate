@@ -7,7 +7,7 @@ import { apiGet, ApiError } from "@/lib/api";
 
 interface Integration {
   id: number;
-  key: string;
+  integration_key: string;
   name: string;
   description: string;
   category: string;
@@ -232,7 +232,7 @@ export default function IntegrationsPage() {
 
                       <div className="flex gap-2">
                         <Link
-                          href={`/admin/integrations/${integration.key}`}
+                          href={`/admin/integrations/${integration.integration_key}`}
                           className={`flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             integration.status === "connected"
                               ? "border border-gray-300 hover:bg-gray-50"

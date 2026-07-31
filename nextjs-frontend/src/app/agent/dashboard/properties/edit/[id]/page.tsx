@@ -5,6 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { apiGet, apiPut } from "@/lib/api";
 import Link from "next/link";
+import PropertyImageManager, { PropertyImage } from "@/components/property/PropertyImageManager";
+
+interface PropertyType {
+  id: number;
+  name: string;
+}
 
 interface Property {
   id: number;
@@ -13,18 +19,19 @@ interface Property {
   address: string;
   city: string;
   state: string;
-  zip_code: string;
+  zip: string;
   country: string;
-  property_type: string;
+  property_type_id: number | null;
   price: number;
   bedrooms: number;
   bathrooms: number;
-  square_feet: number;
+  sqft: number;
   year_built: number;
   lot_size: number;
   parking_spaces: number;
   amenities: string[];
   nearby_places: string[];
+  images: PropertyImage[];
 }
 
 export default function EditPropertyPage() {
@@ -34,12 +41,20 @@ export default function EditPropertyPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [images, setImages] = useState<PropertyImage[]>([]);
+  const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
 
   const [form, setForm] = useState({
-    title: "", description: "", address: "", city: "", state: "", zip_code: "", country: "US",
-    property_type: "house", price: "", bedrooms: "", bathrooms: "", square_feet: "",
+    title: "", description: "", address: "", city: "", state: "", zip: "", country: "US",
+    property_type_id: "", price: "", bedrooms: "", bathrooms: "", sqft: "",
     year_built: "", lot_size: "", parking_spaces: "", amenities: "", nearby_places: "",
   });
+
+  useEffect(() => {
+    apiGet<{ data: PropertyType[] }>("/admin/property-types")
+      .then((res) => setPropertyTypes(res.data || []))
+      .catch(() => setPropertyTypes([]));
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -51,19 +66,20 @@ export default function EditPropertyPage() {
           address: p.address || "",
           city: p.city || "",
           state: p.state || "",
-          zip_code: p.zip_code || "",
+          zip: p.zip || "",
           country: p.country || "US",
-          property_type: p.property_type || "house",
+          property_type_id: p.property_type_id ? String(p.property_type_id) : "",
           price: p.price?.toString() || "",
           bedrooms: p.bedrooms?.toString() || "",
           bathrooms: p.bathrooms?.toString() || "",
-          square_feet: p.square_feet?.toString() || "",
+          sqft: p.sqft?.toString() || "",
           year_built: p.year_built?.toString() || "",
           lot_size: p.lot_size?.toString() || "",
           parking_spaces: p.parking_spaces?.toString() || "",
           amenities: Array.isArray(p.amenities) ? p.amenities.join(", ") : "",
           nearby_places: Array.isArray(p.nearby_places) ? p.nearby_places.join(", ") : "",
         });
+        setImages(p.images || []);
       })
       .catch(() => setError("Failed to load property"))
       .finally(() => setLoading(false));
@@ -78,10 +94,11 @@ export default function EditPropertyPage() {
     try {
       const payload = {
         ...form,
+        property_type_id: form.property_type_id ? Number(form.property_type_id) : undefined,
         price: form.price ? Number(form.price) : undefined,
         bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-        square_feet: form.square_feet ? Number(form.square_feet) : undefined,
+        sqft: form.sqft ? Number(form.sqft) : undefined,
         year_built: form.year_built ? Number(form.year_built) : undefined,
         lot_size: form.lot_size ? Number(form.lot_size) : undefined,
         parking_spaces: form.parking_spaces ? Number(form.parking_spaces) : undefined,
@@ -126,14 +143,11 @@ export default function EditPropertyPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Property Type</label>
-                    <select value={form.property_type} onChange={(e) => update("property_type", e.target.value)} className={inputClass}>
-                      <option value="house">House</option>
-                      <option value="apartment">Apartment</option>
-                      <option value="condo">Condo</option>
-                      <option value="townhouse">Townhouse</option>
-                      <option value="villa">Villa</option>
-                      <option value="land">Land</option>
-                      <option value="commercial">Commercial</option>
+                    <select value={form.property_type_id} onChange={(e) => update("property_type_id", e.target.value)} className={inputClass}>
+                      <option value="">Select a type…</option>
+                      {propertyTypes.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -162,7 +176,7 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <label className={labelClass}>ZIP Code</label>
-                    <input type="text" value={form.zip_code} onChange={(e) => update("zip_code", e.target.value)} className={inputClass} />
+                    <input type="text" value={form.zip} onChange={(e) => update("zip", e.target.value)} className={inputClass} />
                   </div>
                 </div>
               </div>
@@ -181,7 +195,7 @@ export default function EditPropertyPage() {
                 </div>
                 <div>
                   <label className={labelClass}>Square Feet</label>
-                  <input type="number" value={form.square_feet} onChange={(e) => update("square_feet", e.target.value)} className={inputClass} />
+                  <input type="number" value={form.sqft} onChange={(e) => update("sqft", e.target.value)} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Year Built</label>
@@ -219,6 +233,13 @@ export default function EditPropertyPage() {
               </button>
             </div>
           </form>
+        )}
+
+        {!loading && id && (
+          <div className="bg-white rounded-xl border border-slate-200 p-6 mt-6">
+            <h2 className="text-lg font-bold text-[#0A2647] mb-5">Photos</h2>
+            <PropertyImageManager propertyId={Number(id)} initialImages={images} />
+          </div>
         )}
       </div>
     </AgentLayout>

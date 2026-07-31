@@ -4,16 +4,30 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyFavorite;
+use App\Models\PropertyImage;
 use App\Models\Enquiry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
+    /** Roles allowed to create/manage property listings. */
+    private const LISTING_ROLES = ['super_admin', 'admin', 'agent', 'broker'];
+
+    /** True if the user owns the property or is an admin. */
+    private function canManage($user, Property $property): bool
+    {
+        return $property->realtor_id === $user->id
+            || $property->broker_id === $user->id
+            || in_array($user->role, ['admin', 'super_admin']);
+    }
+
     public function index(Request $request) {
         $query = Property::where('approval_status', 'approved')
             ->where('status', 'active')
-            ->with(['propertyType', 'realtor']);
+            ->with(['propertyType', 'realtor', 'images']);
 
         if ($request->filled('city')) $query->where('city', $request->city);
         if ($request->filled('state')) $query->where('state', $request->state);
@@ -43,7 +57,7 @@ class PropertyController extends Controller
     public function featured() {
         return response()->json(
             Property::where('featured', true)->where('approval_status', 'approved')
-                ->where('status', 'active')->with(['propertyType', 'realtor'])
+                ->where('status', 'active')->with(['propertyType', 'realtor', 'images'])
                 ->limit(6)->get()
         );
     }
@@ -51,7 +65,7 @@ class PropertyController extends Controller
     public function premium() {
         return response()->json(
             Property::where('premium', true)->where('approval_status', 'approved')
-                ->where('status', 'active')->with(['propertyType', 'realtor'])
+                ->where('status', 'active')->with(['propertyType', 'realtor', 'images'])
                 ->limit(12)->get()
         );
     }
@@ -69,18 +83,22 @@ class PropertyController extends Controller
                   ->orWhere('neighborhood', 'like', "%{$search}%");
             });
         }
-        return response()->json($query->with(['propertyType', 'realtor'])->paginate(12));
+        return response()->json($query->with(['propertyType', 'realtor', 'images'])->paginate(12));
     }
 
     public function show($slug) {
         $property = Property::where('slug', $slug)
-            ->with(['propertyType', 'realtor.agentProfile', 'broker', 'comments.user'])
+            ->with(['propertyType', 'realtor.agentProfile', 'broker', 'comments.user', 'images'])
             ->firstOrFail();
         $property->increment('view_count');
         return response()->json($property);
     }
 
     public function store(Request $request) {
+        if (!in_array($request->user()->role, self::LISTING_ROLES)) {
+            return response()->json(['message' => 'Only agents, brokers, and admins can create listings.'], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -106,7 +124,7 @@ class PropertyController extends Controller
 
     public function update(Request $request, $id) {
         $property = Property::findOrFail($id);
-        if ($property->realtor_id !== $request->user()->id && !$request->user()->hasRole('super_admin')) {
+        if (!$this->canManage($request->user(), $property)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         $property->update($request->all());
@@ -115,7 +133,7 @@ class PropertyController extends Controller
 
     public function destroy(Request $request, $id) {
         $property = Property::findOrFail($id);
-        if ($property->realtor_id !== $request->user()->id && !$request->user()->hasRole('super_admin')) {
+        if (!$this->canManage($request->user(), $property)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         $property->delete();
@@ -123,14 +141,85 @@ class PropertyController extends Controller
     }
 
     public function uploadImages(Request $request, $id) {
-        $request->validate(['images' => 'required|array', 'images.*' => 'image|max:5120']);
         $property = Property::findOrFail($id);
-        $photos = $property->photos ?? [];
-        foreach ($request->file('images') as $image) {
-            $photos[] = $image->store('properties', 'public');
+        if (!$this->canManage($request->user(), $property)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $property->update(['photos' => $photos]);
-        return response()->json(['photos' => $photos]);
+        $request->validate(['images' => 'required|array', 'images.*' => 'image|max:5120']);
+
+        $hasExisting = $property->images()->exists();
+        $nextOrder = (int) ($property->images()->max('sort_order') ?? -1) + 1;
+
+        $created = [];
+        foreach ($request->file('images') as $i => $image) {
+            $path = $image->store('properties', 'public');
+            $created[] = PropertyImage::create([
+                'property_id' => $property->id,
+                'path' => $path,
+                'original_name' => $image->getClientOriginalName(),
+                'mime_type' => $image->getClientMimeType(),
+                'size' => $image->getSize(),
+                'is_featured' => !$hasExisting && $i === 0,
+                'sort_order' => $nextOrder + $i,
+            ]);
+        }
+
+        return response()->json(['data' => $created], 201);
+    }
+
+    public function destroyImage(Request $request, $propertyId, $imageId) {
+        $property = Property::findOrFail($propertyId);
+        if (!$this->canManage($request->user(), $property)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $image = PropertyImage::where('property_id', $propertyId)->findOrFail($imageId);
+        if (Storage::disk('public')->exists($image->path)) {
+            Storage::disk('public')->delete($image->path);
+        }
+        $wasFeatured = $image->is_featured;
+        $image->delete();
+
+        if ($wasFeatured) {
+            $next = $property->images()->first();
+            if ($next) {
+                $next->update(['is_featured' => true]);
+            }
+        }
+
+        return response()->json(['message' => 'Image deleted']);
+    }
+
+    public function setPrimaryImage(Request $request, $propertyId, $imageId) {
+        $property = Property::findOrFail($propertyId);
+        if (!$this->canManage($request->user(), $property)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $image = PropertyImage::where('property_id', $propertyId)->findOrFail($imageId);
+
+        DB::transaction(function () use ($property, $image) {
+            $property->images()->where('id', '!=', $image->id)->update(['is_featured' => false]);
+            $image->update(['is_featured' => true]);
+        });
+
+        return response()->json(['message' => 'Cover photo updated']);
+    }
+
+    public function reorderImages(Request $request, $propertyId) {
+        $property = Property::findOrFail($propertyId);
+        if (!$this->canManage($request->user(), $property)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $validated = $request->validate(['order' => 'required|array', 'order.*' => 'integer']);
+
+        DB::transaction(function () use ($property, $validated) {
+            foreach ($validated['order'] as $index => $imageId) {
+                PropertyImage::where('property_id', $property->id)
+                    ->where('id', $imageId)
+                    ->update(['sort_order' => $index]);
+            }
+        });
+
+        return response()->json(['message' => 'Order updated']);
     }
 
     public function toggleFavorite(Request $request, $id) {

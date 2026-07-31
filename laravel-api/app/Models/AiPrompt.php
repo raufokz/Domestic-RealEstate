@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AiPrompt extends Model
 {
     protected $fillable = [
-        'name', 'key', 'category', 'model', 'content',
+        'name', 'prompt_key', 'category', 'model', 'content',
         'is_active', 'tokens', 'last_used_at',
     ];
 

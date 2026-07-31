@@ -12,7 +12,7 @@ class EmailSettingController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $settings = EmailSetting::orderBy('group')->orderBy('key')->get()->groupBy('group');
+        $settings = EmailSetting::orderBy('setting_group')->orderBy('setting_key')->get()->groupBy('setting_group');
         return response()->json($settings);
     }
 
@@ -20,12 +20,12 @@ class EmailSettingController extends Controller
     {
         $validated = $request->validate([
             'settings' => 'required|array',
-            'settings.*.key' => 'required|string|exists:email_settings,key',
+            'settings.*.setting_key' => 'required|string|exists:email_settings,setting_key',
             'settings.*.value' => 'nullable|string',
         ]);
 
         foreach ($validated['settings'] as $setting) {
-            EmailSetting::where('key', $setting['key'])->update(['value' => $setting['value']]);
+            EmailSetting::where('setting_key', $setting['setting_key'])->update(['value' => $setting['value']]);
         }
 
         return response()->json(['message' => 'Settings updated']);
@@ -33,7 +33,7 @@ class EmailSettingController extends Controller
 
     public function getGroup(string $group): JsonResponse
     {
-        $settings = EmailSetting::byGroup($group)->orderBy('key')->get();
+        $settings = EmailSetting::byGroup($group)->orderBy('setting_key')->get();
         return response()->json($settings);
     }
 
@@ -43,7 +43,7 @@ class EmailSettingController extends Controller
             'to' => 'required|email',
         ]);
 
-        $smtpHost = EmailSetting::where('key', 'smtp_host')->value('value');
+        $smtpHost = EmailSetting::where('setting_key', 'smtp_host')->value('value');
 
         if (empty($smtpHost)) {
             return response()->json(['message' => 'SMTP not configured. Test email skipped.', 'sent' => false]);
@@ -51,8 +51,8 @@ class EmailSettingController extends Controller
 
         try {
             Mail::raw('This is a test email from Domestic Real Estate.', function ($message) use ($validated) {
-                $fromName = EmailSetting::where('key', 'from_name')->value('value') ?? 'Domestic Real Estate';
-                $fromEmail = EmailSetting::where('key', 'from_email')->value('value') ?? 'noreply@domesticrealestate.us';
+                $fromName = EmailSetting::where('setting_key', 'from_name')->value('value') ?? 'Domestic Real Estate';
+                $fromEmail = EmailSetting::where('setting_key', 'from_email')->value('value') ?? 'noreply@domesticrealestate.us';
                 $message->to($validated['to'])
                     ->from($fromEmail, $fromName)
                     ->subject('Test Email - Domestic Real Estate');

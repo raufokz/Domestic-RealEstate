@@ -11,13 +11,13 @@ class FooterLinkController extends Controller
 {
     public function getLinks(): JsonResponse
     {
-        $links = FooterLink::active()->ordered()->get()->groupBy('group');
+        $links = FooterLink::active()->ordered()->get()->groupBy('group_name');
         return response()->json($links);
     }
 
     public function getAll(): JsonResponse
     {
-        $links = FooterLink::orderBy('group')->orderBy('sort_order')->get();
+        $links = FooterLink::orderBy('group_name')->orderBy('sort_order')->get();
         return response()->json($links);
     }
 
@@ -26,7 +26,7 @@ class FooterLinkController extends Controller
         $validated = $request->validate([
             'label' => 'required|string|max:255',
             'url' => 'required|string|max:255',
-            'group' => 'nullable|string|max:255',
+            'group_name' => 'nullable|string|max:255',
             'target' => 'nullable|string|in:_self,_blank',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
@@ -43,7 +43,7 @@ class FooterLinkController extends Controller
         $validated = $request->validate([
             'label' => 'sometimes|string|max:255',
             'url' => 'sometimes|string|max:255',
-            'group' => 'nullable|string|max:255',
+            'group_name' => 'nullable|string|max:255',
             'target' => 'nullable|string|in:_self,_blank',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',

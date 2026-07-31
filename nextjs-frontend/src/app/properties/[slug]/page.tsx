@@ -6,7 +6,7 @@ import PropertyInquiryForm from "./PropertyInquiryForm";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, SITE_URL } from "@/lib/seo";
-import { getPropertyBySlug, formatPrice, priceNumber, type PublicProperty } from "@/lib/properties";
+import { getPropertyBySlug, formatPrice, priceNumber, propertyPhotoPaths, type PublicProperty } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
 
 function locationLine(p: PublicProperty): string {
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     prop.bathrooms ? `${prop.bathrooms} bath` : null,
     prop.sqft ? `${prop.sqft.toLocaleString()} sqft` : null,
   ].filter(Boolean).join(" · ");
-  const heroImg = storageUrl(prop.photos?.[0]) ?? undefined;
+  const heroImg = storageUrl(propertyPhotoPaths(prop)[0]) ?? undefined;
   return buildMetadata({
     title: prop.title,
     description: `${prop.title}${loc ? ` in ${loc}` : ""}. ${bits ? `${bits}. ` : ""}Listed at ${formatPrice(prop.price)}. View photos, details, and schedule a viewing with Domestic Real Estate.`,
@@ -40,7 +40,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   const prop = await getPropertyBySlug(slug);
   if (!prop) notFound();
 
-  const photos = (prop.photos ?? []).map(storageUrl).filter((u): u is string => !!u);
+  const photos = propertyPhotoPaths(prop).map(storageUrl).filter((u): u is string => !!u);
   const heroImg = photos[0];
   const price = formatPrice(prop.price);
   const priceVal = priceNumber(prop.price);

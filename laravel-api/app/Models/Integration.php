@@ -10,7 +10,7 @@ class Integration extends Model
     use HasFactory;
 
     protected $fillable = [
-        'key', 'name', 'category', 'logo_url', 'status', 'credentials',
+        'integration_key', 'name', 'category', 'logo_url', 'status', 'credentials',
         'last_tested_at', 'last_test_result', 'last_error_message',
         'is_free_tier', 'docs_url',
     ];

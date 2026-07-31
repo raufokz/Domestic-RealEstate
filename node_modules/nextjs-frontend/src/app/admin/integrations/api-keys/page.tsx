@@ -8,7 +8,7 @@ import { useToast } from "@/components/Toast";
 
 interface Integration {
   id: number;
-  key: string;
+  integration_key: string;
   name: string;
   category: string;
   status: string;
@@ -86,7 +86,7 @@ export default function ApiKeysPage() {
                   <td className="px-4 py-3 text-sm capitalize">{i.category}</td>
                   <td className="px-4 py-3 text-sm capitalize">{i.status.replace("_", " ")}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/admin/integrations/${i.key}`} className="text-sm text-gold font-medium">
+                    <Link href={`/admin/integrations/${i.integration_key}`} className="text-sm text-gold font-medium">
                       Configure / Test →
                     </Link>
                   </td>

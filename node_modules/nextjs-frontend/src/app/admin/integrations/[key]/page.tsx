@@ -9,7 +9,7 @@ import { useToast } from "@/components/Toast";
 
 interface IntegrationDetail {
   id: number;
-  key: string;
+  integration_key: string;
   name: string;
   category: string;
   status: string;

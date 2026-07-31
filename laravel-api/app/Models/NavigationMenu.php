@@ -10,7 +10,7 @@ class NavigationMenu extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'label', 'url', 'target', 'position', 'group', 'sort_order',
+        'label', 'url', 'target', 'position', 'group_name', 'sort_order',
         'is_active', 'children', 'icon', 'description',
     ];
 

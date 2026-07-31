@@ -21,13 +21,13 @@ class IntegrationController extends Controller
 
     public function show(string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         return response()->json($integration);
     }
 
     public function update(Request $request, string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         $validated = $request->validate([
             'credentials' => 'nullable|array',
             'status' => 'nullable|string|in:not_configured,connected,error,disconnected',
@@ -39,7 +39,7 @@ class IntegrationController extends Controller
 
     public function test(Request $request, string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         $started = microtime(true);
 
         try {
@@ -116,7 +116,7 @@ class IntegrationController extends Controller
     {
         $creds = $integration->credentials ?? [];
 
-        return match ($integration->key) {
+        return match ($integration->integration_key) {
             'smtp' => $this->testSmtp($creds),
             'sendgrid' => $this->testSendgrid($creds),
             'google_gemini' => $this->testGemini($creds),
@@ -310,7 +310,7 @@ class IntegrationController extends Controller
 
     public function connect(Request $request, string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         $validated = $request->validate(['credentials' => 'required|array']);
         $integration->update([
             'credentials' => $validated['credentials'],
@@ -326,7 +326,7 @@ class IntegrationController extends Controller
 
     public function disconnect(Request $request, string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         $integration->update([
             'status' => 'disconnected',
             'credentials' => null,
@@ -341,7 +341,7 @@ class IntegrationController extends Controller
 
     public function logs(Request $request, string $key): JsonResponse
     {
-        $integration = Integration::where('key', $key)->firstOrFail();
+        $integration = Integration::where('integration_key', $key)->firstOrFail();
         $logs = IntegrationTestLog::where('integration_id', $integration->id)
             ->with('tester:id,name,email')
             ->latest()
@@ -352,34 +352,34 @@ class IntegrationController extends Controller
     public function seed(): JsonResponse
     {
         $integrations = [
-            ['key' => 'facebook', 'name' => 'Facebook', 'category' => 'social', 'docs_url' => 'https://developers.facebook.com'],
-            ['key' => 'instagram', 'name' => 'Instagram Business', 'category' => 'social', 'docs_url' => 'https://developers.facebook.com'],
-            ['key' => 'linkedin', 'name' => 'LinkedIn', 'category' => 'social', 'docs_url' => 'https://developer.linkedin.com'],
-            ['key' => 'x', 'name' => 'X (Twitter)', 'category' => 'social', 'docs_url' => 'https://developer.twitter.com'],
-            ['key' => 'tiktok', 'name' => 'TikTok', 'category' => 'social', 'docs_url' => 'https://developers.tiktok.com'],
-            ['key' => 'youtube', 'name' => 'YouTube', 'category' => 'social', 'docs_url' => 'https://developers.google.com/youtube'],
-            ['key' => 'pinterest', 'name' => 'Pinterest', 'category' => 'social', 'docs_url' => 'https://developers.pinterest.com'],
-            ['key' => 'google_business', 'name' => 'Google Business Profile', 'category' => 'social', 'docs_url' => 'https://developers.google.com/my-business'],
-            ['key' => 'smtp', 'name' => 'SMTP (domesticrealestate.us)', 'category' => 'email'],
-            ['key' => 'sendgrid', 'name' => 'SendGrid', 'category' => 'email', 'docs_url' => 'https://docs.sendgrid.com'],
-            ['key' => 'google_gemini', 'name' => 'Google Gemini', 'category' => 'ai', 'is_free_tier' => true, 'docs_url' => 'https://ai.google.dev'],
-            ['key' => 'openai', 'name' => 'OpenAI', 'category' => 'ai', 'docs_url' => 'https://platform.openai.com'],
-            ['key' => 'google_maps', 'name' => 'Google Maps', 'category' => 'maps', 'docs_url' => 'https://developers.google.com/maps'],
-            ['key' => 'google_calendar', 'name' => 'Google Calendar', 'category' => 'calendar', 'docs_url' => 'https://developers.google.com/calendar'],
-            ['key' => 'calendly', 'name' => 'Calendly', 'category' => 'calendar', 'docs_url' => 'https://developer.calendly.com'],
-            ['key' => 'cloudinary', 'name' => 'Cloudinary', 'category' => 'storage', 'docs_url' => 'https://cloudinary.com/documentation'],
-            ['key' => 'aws_s3', 'name' => 'AWS S3', 'category' => 'storage', 'docs_url' => 'https://docs.aws.amazon.com/s3'],
-            ['key' => 'google_analytics', 'name' => 'Google Analytics 4', 'category' => 'analytics', 'docs_url' => 'https://developers.google.com/analytics'],
-            ['key' => 'google_search_console', 'name' => 'Google Search Console', 'category' => 'analytics', 'docs_url' => 'https://developers.google.com/search'],
-            ['key' => 'microsoft_clarity', 'name' => 'Microsoft Clarity', 'category' => 'analytics', 'docs_url' => 'https://clarity.microsoft.com'],
-            ['key' => 'meta_pixel', 'name' => 'Meta Pixel', 'category' => 'analytics', 'docs_url' => 'https://developers.facebook.com'],
-            ['key' => 'docusign', 'name' => 'DocuSign', 'category' => 'esign', 'docs_url' => 'https://developers.docusign.com'],
-            ['key' => 'zapier', 'name' => 'Zapier', 'category' => 'automation', 'docs_url' => 'https://zapier.com/developer'],
-            ['key' => 'payoneer', 'name' => 'Payoneer', 'category' => 'payments', 'is_free_tier' => true],
+            ['integration_key' => 'facebook', 'name' => 'Facebook', 'category' => 'social', 'docs_url' => 'https://developers.facebook.com'],
+            ['integration_key' => 'instagram', 'name' => 'Instagram Business', 'category' => 'social', 'docs_url' => 'https://developers.facebook.com'],
+            ['integration_key' => 'linkedin', 'name' => 'LinkedIn', 'category' => 'social', 'docs_url' => 'https://developer.linkedin.com'],
+            ['integration_key' => 'x', 'name' => 'X (Twitter)', 'category' => 'social', 'docs_url' => 'https://developer.twitter.com'],
+            ['integration_key' => 'tiktok', 'name' => 'TikTok', 'category' => 'social', 'docs_url' => 'https://developers.tiktok.com'],
+            ['integration_key' => 'youtube', 'name' => 'YouTube', 'category' => 'social', 'docs_url' => 'https://developers.google.com/youtube'],
+            ['integration_key' => 'pinterest', 'name' => 'Pinterest', 'category' => 'social', 'docs_url' => 'https://developers.pinterest.com'],
+            ['integration_key' => 'google_business', 'name' => 'Google Business Profile', 'category' => 'social', 'docs_url' => 'https://developers.google.com/my-business'],
+            ['integration_key' => 'smtp', 'name' => 'SMTP (domesticrealestate.us)', 'category' => 'email'],
+            ['integration_key' => 'sendgrid', 'name' => 'SendGrid', 'category' => 'email', 'docs_url' => 'https://docs.sendgrid.com'],
+            ['integration_key' => 'google_gemini', 'name' => 'Google Gemini', 'category' => 'ai', 'is_free_tier' => true, 'docs_url' => 'https://ai.google.dev'],
+            ['integration_key' => 'openai', 'name' => 'OpenAI', 'category' => 'ai', 'docs_url' => 'https://platform.openai.com'],
+            ['integration_key' => 'google_maps', 'name' => 'Google Maps', 'category' => 'maps', 'docs_url' => 'https://developers.google.com/maps'],
+            ['integration_key' => 'google_calendar', 'name' => 'Google Calendar', 'category' => 'calendar', 'docs_url' => 'https://developers.google.com/calendar'],
+            ['integration_key' => 'calendly', 'name' => 'Calendly', 'category' => 'calendar', 'docs_url' => 'https://developer.calendly.com'],
+            ['integration_key' => 'cloudinary', 'name' => 'Cloudinary', 'category' => 'storage', 'docs_url' => 'https://cloudinary.com/documentation'],
+            ['integration_key' => 'aws_s3', 'name' => 'AWS S3', 'category' => 'storage', 'docs_url' => 'https://docs.aws.amazon.com/s3'],
+            ['integration_key' => 'google_analytics', 'name' => 'Google Analytics 4', 'category' => 'analytics', 'docs_url' => 'https://developers.google.com/analytics'],
+            ['integration_key' => 'google_search_console', 'name' => 'Google Search Console', 'category' => 'analytics', 'docs_url' => 'https://developers.google.com/search'],
+            ['integration_key' => 'microsoft_clarity', 'name' => 'Microsoft Clarity', 'category' => 'analytics', 'docs_url' => 'https://clarity.microsoft.com'],
+            ['integration_key' => 'meta_pixel', 'name' => 'Meta Pixel', 'category' => 'analytics', 'docs_url' => 'https://developers.facebook.com'],
+            ['integration_key' => 'docusign', 'name' => 'DocuSign', 'category' => 'esign', 'docs_url' => 'https://developers.docusign.com'],
+            ['integration_key' => 'zapier', 'name' => 'Zapier', 'category' => 'automation', 'docs_url' => 'https://zapier.com/developer'],
+            ['integration_key' => 'payoneer', 'name' => 'Payoneer', 'category' => 'payments', 'is_free_tier' => true],
         ];
 
         foreach ($integrations as $data) {
-            Integration::updateOrCreate(['key' => $data['key']], $data);
+            Integration::updateOrCreate(['integration_key' => $data['integration_key']], $data);
         }
 
         return ApiResponse::ok(['count' => count($integrations)], 'Integrations seeded');

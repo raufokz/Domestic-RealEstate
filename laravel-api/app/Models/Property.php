@@ -53,6 +53,7 @@ class Property extends Model
     public function comments() { return $this->hasMany(PropertyComment::class); }
     public function analytics() { return $this->hasMany(PropertyAnalytics::class); }
     public function enquiries() { return $this->hasMany(Enquiry::class); }
+    public function images() { return $this->hasMany(PropertyImage::class)->orderBy('sort_order'); }
 
     public function getRouteKeyName() { return 'slug'; }
 }

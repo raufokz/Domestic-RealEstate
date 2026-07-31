@@ -162,6 +162,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [PropertyController::class, 'update']);
         Route::delete('/{id}', [PropertyController::class, 'destroy']);
         Route::post('/{id}/images', [PropertyController::class, 'uploadImages']);
+        Route::delete('/{propertyId}/images/{imageId}', [PropertyController::class, 'destroyImage']);
+        Route::post('/{propertyId}/images/{imageId}/primary', [PropertyController::class, 'setPrimaryImage']);
+        Route::post('/{propertyId}/images/reorder', [PropertyController::class, 'reorderImages']);
         Route::post('/{id}/favorite', [PropertyController::class, 'toggleFavorite']);
         Route::get('/{id}/analytics', [PropertyController::class, 'analytics']);
     });

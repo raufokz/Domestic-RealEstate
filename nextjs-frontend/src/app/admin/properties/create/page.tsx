@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiPost } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import PropertyImageManager from "@/components/property/PropertyImageManager";
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const { success, notifyError } = useToast();
   const [saving, setSaving] = useState(false);
+  const [createdId, setCreatedId] = useState<number | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -34,7 +36,7 @@ export default function CreatePropertyPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      await apiPost("/admin/properties", {
+      const created = await apiPost<{ data: { id: number } }>("/admin/properties", {
         ...form,
         description: form.description || form.title,
         price: Number(form.price),
@@ -44,8 +46,8 @@ export default function CreatePropertyPage() {
         year_built: form.year_built ? Number(form.year_built) : null,
         parking_spaces: form.parking_spaces ? Number(form.parking_spaces) : null,
       });
-      success("Property created.", "Properties");
-      router.push("/admin/properties");
+      success("Property created. Now add some photos.", "Properties");
+      setCreatedId(created.data.id);
     } catch (err) {
       notifyError(err, "Property could not be created.");
     } finally {
@@ -56,6 +58,28 @@ export default function CreatePropertyPage() {
   const inputClass =
     "w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] outline-none text-sm";
   const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
+
+  if (createdId) {
+    return (
+      <AdminLayout title="Add Photos">
+        <div className="max-w-3xl space-y-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-bold text-navy mb-1">Property created</h2>
+            <p className="text-sm text-slate-500 mb-4">Add photos now, or skip and add them later from the property list.</p>
+            <PropertyImageManager propertyId={createdId} initialImages={[]} />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push("/admin/properties")}
+              className="px-5 py-2.5 bg-gold text-navy rounded-lg text-sm font-semibold"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout title="Create Property">

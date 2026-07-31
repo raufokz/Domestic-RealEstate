@@ -10,19 +10,19 @@ use Illuminate\Support\Facades\DB;
 class AiAgentController extends Controller
 {
     protected $defaultAgents = [
-        ['key' => 'chat_assistant', 'name' => 'AI Chat Assistant', 'description' => 'Conversational real estate expert that captures leads 24/7', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/chat', 'is_active' => true],
-        ['key' => 'lead_qualification', 'name' => 'Lead Qualification AI', 'description' => 'Scores and prioritizes incoming leads automatically', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/lead-qualify', 'is_active' => true],
-        ['key' => 'property_recommendation', 'name' => 'Property Recommendation AI', 'description' => 'Suggests top 5 listings based on buyer intent', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/recommend-property', 'is_active' => true],
-        ['key' => 'seller_agent', 'name' => 'Seller AI Agent', 'description' => 'Generates property valuations and market insights', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/seller-agent', 'is_active' => true],
-        ['key' => 'investor_agent', 'name' => 'Investor AI Agent', 'description' => 'ROI, cap rate, cash flow, and risk analysis', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/investor-agent', 'is_active' => true],
-        ['key' => 'email_writer', 'name' => 'Email Writer AI', 'description' => 'Writes follow-ups, newsletters, and listing emails', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/email-writer', 'is_active' => true],
-        ['key' => 'crm_assistant', 'name' => 'CRM Assistant AI', 'description' => 'Daily summaries, missed lead alerts, priority actions', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/crm-assistant', 'is_active' => true],
-        ['key' => 'realtor_assistant', 'name' => 'Realtor Assistant AI', 'description' => 'Helps agents with daily tasks and client management', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/chat', 'is_active' => true],
-        ['key' => 'seo_agent', 'name' => 'SEO Agent', 'description' => 'Analyzes pages and suggests SEO improvements', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/seo-agent', 'is_active' => true],
-        ['key' => 'social_media', 'name' => 'Social Media AI', 'description' => 'Generates posts for Facebook, Instagram, LinkedIn, X, TikTok', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/social-agent', 'is_active' => true],
-        ['key' => 'analytics_agent', 'name' => 'Analytics AI', 'description' => 'Conversion analysis and growth recommendations', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/analytics-agent', 'is_active' => true],
-        ['key' => 'property_description', 'name' => 'Property Description AI', 'description' => 'Auto-writes listing descriptions from property data', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/property-description', 'is_active' => true],
-        ['key' => 'voice_ai', 'name' => 'Voice AI Agent', 'description' => 'Handles voice interactions and books meetings', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/voice', 'is_active' => false],
+        ['config_key' => 'chat_assistant', 'name' => 'AI Chat Assistant', 'description' => 'Conversational real estate expert that captures leads 24/7', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/chat', 'is_active' => true],
+        ['config_key' => 'lead_qualification', 'name' => 'Lead Qualification AI', 'description' => 'Scores and prioritizes incoming leads automatically', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/lead-qualify', 'is_active' => true],
+        ['config_key' => 'property_recommendation', 'name' => 'Property Recommendation AI', 'description' => 'Suggests top 5 listings based on buyer intent', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/recommend-property', 'is_active' => true],
+        ['config_key' => 'seller_agent', 'name' => 'Seller AI Agent', 'description' => 'Generates property valuations and market insights', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/seller-agent', 'is_active' => true],
+        ['config_key' => 'investor_agent', 'name' => 'Investor AI Agent', 'description' => 'ROI, cap rate, cash flow, and risk analysis', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/investor-agent', 'is_active' => true],
+        ['config_key' => 'email_writer', 'name' => 'Email Writer AI', 'description' => 'Writes follow-ups, newsletters, and listing emails', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/email-writer', 'is_active' => true],
+        ['config_key' => 'crm_assistant', 'name' => 'CRM Assistant AI', 'description' => 'Daily summaries, missed lead alerts, priority actions', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/crm-assistant', 'is_active' => true],
+        ['config_key' => 'realtor_assistant', 'name' => 'Realtor Assistant AI', 'description' => 'Helps agents with daily tasks and client management', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/chat', 'is_active' => true],
+        ['config_key' => 'seo_agent', 'name' => 'SEO Agent', 'description' => 'Analyzes pages and suggests SEO improvements', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/seo-agent', 'is_active' => true],
+        ['config_key' => 'social_media', 'name' => 'Social Media AI', 'description' => 'Generates posts for Facebook, Instagram, LinkedIn, X, TikTok', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/social-agent', 'is_active' => true],
+        ['config_key' => 'analytics_agent', 'name' => 'Analytics AI', 'description' => 'Conversion analysis and growth recommendations', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/analytics-agent', 'is_active' => true],
+        ['config_key' => 'property_description', 'name' => 'Property Description AI', 'description' => 'Auto-writes listing descriptions from property data', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/property-description', 'is_active' => true],
+        ['config_key' => 'voice_ai', 'name' => 'Voice AI Agent', 'description' => 'Handles voice interactions and books meetings', 'model' => 'gemini-1.5-flash', 'endpoint' => '/ai/voice', 'is_active' => false],
     ];
 
     public function index()
@@ -51,7 +51,7 @@ class AiAgentController extends Controller
 
     public function update(Request $request, $key)
     {
-        $agent = DB::table('ai_agent_configs')->where('key', $key)->first();
+        $agent = DB::table('ai_agent_configs')->where('config_key', $key)->first();
         if (! $agent) {
             return response()->json(['error' => 'Agent not found'], 404);
         }
@@ -60,16 +60,16 @@ class AiAgentController extends Controller
             'is_active', 'custom_prompt', 'model', 'temperature', 'max_tokens',
         ]);
 
-        DB::table('ai_agent_configs')->where('key', $key)->update(
+        DB::table('ai_agent_configs')->where('config_key', $key)->update(
             array_merge($data, ['updated_at' => now()])
         );
 
-        return response()->json(DB::table('ai_agent_configs')->where('key', $key)->first());
+        return response()->json(DB::table('ai_agent_configs')->where('config_key', $key)->first());
     }
 
     public function test(Request $request, $key)
     {
-        $agent = DB::table('ai_agent_configs')->where('key', $key)->first();
+        $agent = DB::table('ai_agent_configs')->where('config_key', $key)->first();
         if (! $agent) {
             return response()->json([
                 'success' => false,
@@ -108,7 +108,7 @@ class AiAgentController extends Controller
             $elapsed = round((microtime(true) - $start) * 1000);
             $tokenCount = str_word_count($response);
 
-            DB::table('ai_agent_configs')->where('key', $key)->update([
+            DB::table('ai_agent_configs')->where('config_key', $key)->update([
                 'avg_response_ms' => $elapsed,
                 'last_tested_at' => now(),
                 'last_test_result' => json_encode([
@@ -140,14 +140,14 @@ class AiAgentController extends Controller
                 'message' => "{$agent->name} test passed.",
             ]);
         } catch (\App\Exceptions\FeatureUnavailableException $e) {
-            DB::table('ai_agent_configs')->where('key', $key)->update([
+            DB::table('ai_agent_configs')->where('config_key', $key)->update([
                 'last_tested_at' => now(),
                 'last_test_result' => json_encode(['status' => 'error', 'message' => $e->getMessage()]),
                 'updated_at' => now(),
             ]);
             throw $e;
         } catch (\Exception $e) {
-            DB::table('ai_agent_configs')->where('key', $key)->update([
+            DB::table('ai_agent_configs')->where('config_key', $key)->update([
                 'last_tested_at' => now(),
                 'last_test_result' => json_encode(['status' => 'error', 'message' => $e->getMessage()]),
                 'updated_at' => now(),
@@ -187,7 +187,7 @@ class AiAgentController extends Controller
             'total_tokens' => $agents->sum('total_tokens'),
             'avg_response_ms' => round($agents->avg('avg_response_ms') ?? 0),
             'agents' => $agents->map(fn ($a) => [
-                'key' => $a->key, 'name' => $a->name, 'is_active' => $a->is_active,
+                'config_key' => $a->config_key, 'name' => $a->name, 'is_active' => $a->is_active,
                 'total_calls' => $a->total_calls, 'avg_response_ms' => $a->avg_response_ms,
             ]),
         ]);
