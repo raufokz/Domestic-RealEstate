@@ -107,7 +107,7 @@ export default function TestimonialsPage() {
             Ready to Write Your Success Story?
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg font-body max-w-2xl mx-auto">
-            Join thousands of satisfied clients using Domestic Real Estate today.
+            Join our satisfied clients using Domestic Real Estate today.
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <a

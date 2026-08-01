@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { renderIcon } from "@/components/ui/PageTemplate";
 
 interface HeroVariantsProps {
   heroId: number;
@@ -64,25 +65,6 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
               As a leading Domestic Real Estate Company, we connect home buyers, sellers, investors, and licensed Domestic Real Estate Brokers with exclusive off-market property deals, AI valuations, and market data.
             </p>
 
-            {/* KPI Stat Badges */}
-            <div className="mt-8 grid grid-cols-2 gap-4 max-w-md">
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="bg-slate-800/95 border border-slate-700 p-4 rounded-2xl shadow-xl backdrop-blur-md"
-              >
-                <div className="text-3xl font-extrabold text-[#C9A227] font-mono">15,400+</div>
-                <div className="text-xs text-slate-200 font-bold mt-1">Active Monthly Leads</div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="bg-slate-800/95 border border-slate-700 p-4 rounded-2xl shadow-xl backdrop-blur-md"
-              >
-                <div className="text-3xl font-extrabold text-emerald-400 font-mono">$2.8B+</div>
-                <div className="text-xs text-slate-200 font-bold mt-1">Total Deals Closed</div>
-              </motion.div>
-            </div>
-
             {/* 3D Chamfered Button UI with Framer Motion Feedback (Fitts's Law Target Size) */}
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <motion.a
@@ -117,10 +99,10 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
               {[
-                { title: "Off-Market Single Family", loc: "Dallas, TX", score: "99 Match", price: "$310,000", tag: "Hot Seller", icon: "🏡" },
-                { title: "Pre-Foreclosure Duplex", loc: "Tampa, FL", score: "96 Match", price: "$490,000", tag: "Exclusive", icon: "🏢" },
-                { title: "Absentee Owner Home", loc: "Phoenix, AZ", score: "94 Match", price: "$280,000", tag: "High Yield", icon: "🔑" },
-                { title: "High-Equity Penthouse", loc: "Atlanta, GA", score: "92 Match", price: "$360,000", tag: "Verified", icon: "🏙️" },
+                { title: "Off-Market Single Family", loc: "Dallas, TX", score: "99 Match", price: "$310,000", tag: "Hot Seller", icon: "construction" },
+                { title: "Pre-Foreclosure Duplex", loc: "Tampa, FL", score: "96 Match", price: "$490,000", tag: "Exclusive", icon: "distressed" },
+                { title: "Absentee Owner Home", loc: "Phoenix, AZ", score: "94 Match", price: "$280,000", tag: "High Yield", icon: "rental" },
+                { title: "High-Equity Penthouse", loc: "Atlanta, GA", score: "92 Match", price: "$360,000", tag: "Verified", icon: "globe" },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -130,10 +112,10 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                     y: { duration: 3 + idx, repeat: Infinity, ease: "easeInOut" },
                     scale: { duration: 0.2 },
                   }}
-                  className="bg-slate-800/95 border border-slate-700 hover:border-[#C9A227] rounded-2xl p-5 shadow-xl backdrop-blur-md group cursor-pointer transition-colors"
+                  className="bg-slate-800/95 border border-slate-750 hover:border-[#C9A227] rounded-2xl p-5 shadow-xl backdrop-blur-md group cursor-pointer transition-colors"
                 >
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-2xl">{item.icon}</span>
+                    <span className="text-[#C9A227] scale-110 inline-block">{renderIcon(item.icon)}</span>
                     <span className="text-[10px] font-mono bg-[#C9A227] text-[#0A2647] font-extrabold px-2.5 py-0.5 rounded-full shadow">
                       {item.tag}
                     </span>

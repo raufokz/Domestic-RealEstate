@@ -11,14 +11,14 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const templates = [
-  { icon: "✅", title: "Home Buying Checklist", description: "A comprehensive step-by-step checklist covering pre-approval through closing day for home buyers." },
-  { icon: "📋", title: "Home Selling Checklist", description: "Everything you need to prepare, list, market, and close the sale of your property." },
-  { icon: "🔍", title: "Property Inspection Checklist", description: "A detailed walkthrough checklist for evaluating property condition during showings and open houses." },
-  { icon: "💼", title: "Investment Deal Analyzer", description: "Spreadsheet template for analyzing cap rate, cash-on-cash return, and ROI for rental properties." },
-  { icon: "📊", title: "Comparative Market Analysis", description: "CMA template to compare recent sales and determine competitive listing prices." },
-  { icon: "📑", title: "Closing Day Document Checklist", description: "Ensure you have all required documents ready for a smooth closing experience." },
-  { icon: "🏠", title: "Moving Day Planner", description: "Organized moving schedule with packing lists, utility transfer reminders, and address change tracker." },
-  { icon: "💰", title: "Budget Planning Worksheet", description: "Track your home-buying budget including down payment, closing costs, and moving expenses." },
+  { icon: "shield", title: "Home Buying Checklist", description: "A comprehensive step-by-step checklist covering pre-approval through closing day for home buyers." },
+  { icon: "leads", title: "Home Selling Checklist", description: "Everything you need to prepare, list, market, and close the sale of your property." },
+  { icon: "search", title: "Property Inspection Checklist", description: "A detailed walkthrough checklist for evaluating property condition during showings and open houses." },
+  { icon: "brand", title: "Investment Deal Analyzer", description: "Spreadsheet template for analyzing cap rate, cash-on-cash return, and ROI for rental properties." },
+  { icon: "growth", title: "Comparative Market Analysis", description: "CMA template to compare recent sales and determine competitive listing prices." },
+  { icon: "email", title: "Closing Day Document Checklist", description: "Ensure you have all required documents ready for a smooth closing experience." },
+  { icon: "construction", title: "Moving Day Planner", description: "Organized moving schedule with packing lists, utility transfer reminders, and address change tracker." },
+  { icon: "brand", title: "Budget Planning Worksheet", description: "Track your home-buying budget including down payment, closing costs, and moving expenses." },
 ];
 
 export default function TemplatesPage() {

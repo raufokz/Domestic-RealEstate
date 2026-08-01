@@ -388,7 +388,11 @@ export default function PropertySearchClient() {
               {/* Empty State */}
               {!loading && !error && filteredProperties.length === 0 ? (
                 <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-premium-sm">
-                  <div className="text-4xl mb-3 select-none">🏠</div>
+                  <div className="flex justify-center mb-4">
+                    <svg className="w-12 h-12 text-[#C9A227]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+                    </svg>
+                  </div>
                   <h3 className="font-heading text-lg font-extrabold text-[#0A2647] mb-2">
                     {properties.length === 0 ? "No listings available" : "No results match filters"}
                   </h3>

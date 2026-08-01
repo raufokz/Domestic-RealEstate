@@ -35,13 +35,6 @@ const aboutSchema = {
 };
 
 export default function AboutPage() {
-  const stats = [
-    { value: "$2.5B+", label: "Total Deal Volume" },
-    { value: "15,400+", label: "Verified Seller Leads" },
-    { value: "2,500+", label: "Top Producing Agents" },
-    { value: "50 States", label: "Nationwide Coverage" },
-  ];
-
   const values = [
     {
       icon: "🎯",
@@ -72,7 +65,7 @@ export default function AboutPage() {
   const milestones = [
     { year: "2021", title: "Platform Founding", desc: "Launched nationwide skip-tracing and seller lead distribution pipeline." },
     { year: "2023", title: "AI Valuation Engine", desc: "Integrated automated MLS comps matching and predictive market pricing." },
-    { year: "2025", title: "$2.5 Billion Closed", desc: "Surpassed $2.5 billion in total real estate transactions facilitated." },
+    { year: "2025", title: "Market Growth", desc: "Expanded core property matching to premium subscription levels." },
     { year: "2026", title: "Next-Gen Ecosystem", desc: "Unveiled real-time CRM webhooks, lender pre-approval engines, and video tours." },
   ];
 
@@ -118,22 +111,6 @@ export default function AboutPage() {
               Contact Advisory Team
             </a>
           </div>
-        </div>
-      </section>
-
-      {/* Stats Banner */}
-      <section className="py-12 bg-[#0A2647] border-y border-[#C9A227]/40 shadow-inner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <div className="font-heading text-3xl sm:text-5xl font-extrabold text-[#C9A227] font-mono">
-                {stat.value}
-              </div>
-              <div className="text-xs sm:text-sm text-slate-300 font-bold mt-2 uppercase tracking-wider">
-                {stat.label}
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -205,7 +182,7 @@ export default function AboutPage() {
             Ready to Scale Your Real Estate Business?
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg font-body max-w-2xl mx-auto">
-            Join thousands of top-producing realtors, investors, and lenders closing deals on Domestic RE today.
+            Join the top-producing realtors, investors, and lenders closing deals on Domestic RE today.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <a

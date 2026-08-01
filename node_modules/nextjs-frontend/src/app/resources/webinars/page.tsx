@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { buildMetadata, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
-import { PageHero, FeaturesSection, CTASection } from "@/components/ui/PageTemplate";
+import { PageHero, FeaturesSection, CTASection, renderIcon } from "@/components/ui/PageTemplate";
 
 export const metadata: Metadata = buildMetadata({
   title: "Real Estate Webinars & Live Events",
@@ -11,19 +11,19 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const upcomingWebinars = [
-  { icon: "🎙️", title: "Market Update: Q3 2026 Outlook", description: "Live analysis of current housing market trends, interest rate projections, and investment opportunities across major US markets." },
-  { icon: "🏠", title: "First-Time Home Buyer Masterclass", description: "A comprehensive 90-minute session covering pre-approval, home search strategy, offer negotiation, and closing." },
-  { icon: "📈", title: "Building Wealth Through Rental Properties", description: "Learn how to analyze deals, calculate ROI, and build a profitable rental property portfolio from scratch." },
-  { icon: "💡", title: "AI-Powered Real Estate: What's Next", description: "Explore how artificial intelligence is transforming property search, valuations, and market analysis." },
-  { icon: "🔑", title: "Selling Your Home for Top Dollar", description: "Proven strategies for pricing, staging, marketing, and negotiating to maximize your sale price." },
-  { icon: "📊", title: "Wholesaling 101: Finding Off-Market Deals", description: "Introduction to wholesaling real estate including skip-tracing, direct mail, and contract assignment basics." },
+  { icon: "events", title: "Market Update: Q3 2026 Outlook", description: "Live analysis of current housing market trends, interest rate projections, and investment opportunities across major US markets." },
+  { icon: "construction", title: "First-Time Home Buyer Masterclass", description: "A comprehensive 90-minute session covering pre-approval, home search strategy, offer negotiation, and closing." },
+  { icon: "growth", title: "Building Wealth Through Rental Properties", description: "Learn how to analyze deals, calculate ROI, and build a profitable rental property portfolio from scratch." },
+  { icon: "tech", title: "AI-Powered Real Estate: What's Next", description: "Explore how artificial intelligence is transforming property search, valuations, and market analysis." },
+  { icon: "rental", title: "Selling Your Home for Top Dollar", description: "Proven strategies for pricing, staging, marketing, and negotiating to maximize your sale price." },
+  { icon: "growth", title: "Wholesaling 101: Finding Off-Market Deals", description: "Introduction to wholesaling real estate including skip-tracing, direct mail, and contract assignment basics." },
 ];
 
 const onDemandTopics = [
-  { icon: "🎓", title: "Real Estate Investing Fundamentals", description: "Core concepts every investor needs to know before buying their first rental property." },
-  { icon: "📋", title: "Understanding Mortgage Options", description: "Deep dive into conventional, FHA, VA, and jumbo loan programs with comparison breakdowns." },
-  { icon: "🏘️", title: "Due Diligence for Property Investors", description: "How to evaluate neighborhoods, analyze rent comps, and inspect properties before purchasing." },
-  { icon: "💼", title: "Agent Success Blueprint", description: "Training series for real estate agents on lead generation, CRM management, and closing techniques." },
+  { icon: "events", title: "Real Estate Investing Fundamentals", description: "Core concepts every investor needs to know before buying their first rental property." },
+  { icon: "leads", title: "Understanding Mortgage Options", description: "Deep dive into conventional, FHA, VA, and jumbo loan programs with comparison breakdowns." },
+  { icon: "construction", title: "Due Diligence for Property Investors", description: "How to evaluate neighborhoods, analyze rent comps, and inspect properties before purchasing." },
+  { icon: "brand", title: "Agent Success Blueprint", description: "Training series for real estate agents on lead generation, CRM management, and closing techniques." },
 ];
 
 export default function WebinarsPage() {
@@ -44,7 +44,7 @@ export default function WebinarsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {upcomingWebinars.map((w, i) => (
               <div key={i} className="bg-white border border-slate-200 rounded-3xl p-8 shadow-card hover:shadow-card-hover transition-all">
-                <div className="text-3xl mb-4">{w.icon}</div>
+                <div className="w-12 h-12 bg-[#0A2647]/10 rounded-xl flex items-center justify-center mb-5 hover:bg-[#C9A227]/20 transition-colors text-[#C9A227]">{renderIcon(w.icon)}</div>
                 <h3 className="font-heading font-bold text-lg text-[#0A2647] mb-2">{w.title}</h3>
                 <p className="font-body text-slate-600 text-sm leading-relaxed">{w.description}</p>
                 <button className="mt-4 text-[#C9A227] font-heading font-semibold text-sm hover:underline">

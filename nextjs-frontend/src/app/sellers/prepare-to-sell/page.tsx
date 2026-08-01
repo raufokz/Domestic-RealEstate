@@ -54,7 +54,7 @@ const interiorItems = [
   {
     icon: '🛋️',
     title: 'Stage Key Rooms',
-    description: 'Stage the living room, master bedroom, and kitchen to highlight space and flow. Staged homes sell 73% faster and for 6-25% more.',
+    description: 'Stage the living room, master bedroom, and kitchen to highlight space and flow. Staged homes attract competitive offers by helping buyers visualize their future home.',
   },
   {
     icon: '📸',
@@ -86,29 +86,6 @@ export default function PrepareToSellPage() {
           features={interiorItems}
           columns={3}
         />
-      </section>
-
-      <section className="py-20 md:py-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#0A2647] mb-4">ROI of Home Preparation</h2>
-            <p className="font-body text-gray-600 max-w-xl mx-auto">Studies show that sellers who prepare their homes recoup their investment many times over.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { stat: '$5K–$10K', label: 'Average prep investment', desc: 'Professional cleaning, minor repairs, and staging' },
-              { stat: '5-10%', label: 'Price increase', desc: 'Well-prepared homes sell for significantly more' },
-              { stat: '73%', label: 'Faster sales', desc: 'Staged homes spend less time on the market' },
-            ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100 text-center hover:shadow-lg transition-shadow">
-                <p className="font-heading text-3xl font-bold text-[#C9A227] mb-2">{item.stat}</p>
-                <p className="font-heading font-bold text-[#0A2647] mb-1">{item.label}</p>
-                <p className="font-body text-gray-500 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
 
       <CTASection

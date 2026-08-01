@@ -16,12 +16,12 @@ const features = [
   {
     icon: '📢',
     title: 'Maximum Market Exposure',
-    description: 'Your listing syndicated to Zillow, Realtor.com, Redfin, and 500+ local and national real estate platforms.',
+    description: 'Your listing syndicated to Zillow, Realtor.com, Redfin, and major local and national real estate platforms.',
   },
   {
     icon: '🎯',
     title: 'Targeted Digital Marketing',
-    description: 'Social media campaigns, Google Ads, and email blasts to reach thousands of pre-qualified buyers in your area.',
+    description: 'Social media campaigns, Google Ads, and email blasts to reach pre-qualified buyers in your area.',
   },
   {
     icon: '🤖',
@@ -56,29 +56,6 @@ export default function ListYourPropertyPage() {
         features={features}
         columns={3}
       />
-
-      <section className="py-16 bg-gray-50 border-y border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <p className="font-heading text-4xl font-bold text-[#0A2647]">500+</p>
-              <p className="font-body text-gray-500 text-sm mt-1">Platforms We Syndicate To</p>
-            </div>
-            <div>
-              <p className="font-heading text-4xl font-bold text-[#0A2647]">14 Days</p>
-              <p className="font-body text-gray-500 text-sm mt-1">Average Days on Market</p>
-            </div>
-            <div>
-              <p className="font-heading text-4xl font-bold text-[#0A2647]">98%</p>
-              <p className="font-body text-gray-500 text-sm mt-1">List-to-Sale Price Ratio</p>
-            </div>
-            <div>
-              <p className="font-heading text-4xl font-bold text-[#8B1E3F]">$52K</p>
-              <p className="font-body text-gray-500 text-sm mt-1">Above Asking on Average</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <CTASection
         title="Ready to List Your Property?"

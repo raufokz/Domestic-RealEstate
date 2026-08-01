@@ -8,42 +8,35 @@ export const metadata: Metadata = {
 
 const dealTypes = [
   {
-    icon: '🏚️',
+    icon: 'distressed',
     title: 'Distressed Properties',
     description: 'Below-market properties needing renovation — ideal for buy-and-hold or flip strategies with built-in equity.',
   },
   {
-    icon: '⚖️',
+    icon: 'foreclosure',
     title: 'Pre-Foreclosures',
     description: 'Negotiate directly with motivated sellers before the property hits the auction block. Higher margins, less competition.',
   },
   {
-    icon: '🔑',
+    icon: 'rental',
     title: 'Turnkey Rentals',
     description: 'Fully renovated, tenanted properties generating passive income from day one. Perfect for hands-off investors.',
   },
   {
-    icon: '🏗️',
+    icon: 'construction',
     title: 'Fix & Flip',
     description: 'Value-add opportunities with clear renovation scope, projected ARV, and fast exit timelines.',
   },
   {
-    icon: '🏘️',
+    icon: 'multifamily',
     title: 'Multi-Family',
     description: 'Duplexes, triplexes, and small apartment buildings with multiple income streams and scalable cash flow.',
   },
   {
-    icon: '📐',
+    icon: 'land',
     title: 'Land & Development',
     description: 'Vacant lots and development-ready parcels in high-growth areas for ground-up construction or subdivision.',
   },
-];
-
-const stats = [
-  { value: '500+', label: 'Deals Closed' },
-  { value: '18.4%', label: 'Avg. ROI' },
-  { value: '$120M+', label: 'Transaction Volume' },
-  { value: '92%', label: 'Investor Retention' },
 ];
 
 export default function DealsPage() {
@@ -61,8 +54,6 @@ export default function DealsPage() {
         features={dealTypes}
         columns={3}
       />
-
-      <StatsSection stats={stats} />
 
       <CTASection
         title="Get Matched to Deals"

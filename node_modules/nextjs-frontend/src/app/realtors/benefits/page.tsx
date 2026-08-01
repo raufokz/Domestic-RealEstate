@@ -18,21 +18,12 @@ export default function RealtorBenefitsPage() {
         title="Why Partner With Us"
         subtitle="We invest in your growth so you can focus on what matters most: your clients."
         features={[
-          { icon: '🤝', title: 'Exclusive Lead Access', description: 'Receive pre-qualified, AI-matched leads based on your specialty and service area before they hit the open market.' },
-          { icon: '📱', title: 'Technology Platform', description: 'Full access to our cutting-edge platform with property analytics, market insights, and client management tools.' },
-          { icon: '💼', title: 'Brand Association', description: 'Leverage the trusted Domestic Real Estate brand to enhance your credibility and attract more clients.' },
-          { icon: '📈', title: 'Growth Support', description: 'Dedicated business consultants help you set goals, optimize your pipeline, and scale your operations.' },
-          { icon: '🛡️', title: 'E&O Coverage', description: 'Access to group errors and omissions insurance at preferential rates through our partnership programs.' },
-          { icon: '🌐', title: 'Nationwide Network', description: 'Connect with agents across the country for referrals, co-listings, and knowledge sharing opportunities.' },
-        ]}
-      />
-
-      <StatsSection
-        stats={[
-          { value: '2,500+', label: 'Active Realtors' },
-          { value: '$3.2B', label: 'Annual Transactions' },
-          { value: '94%', label: 'Satisfaction Rate' },
-          { value: '45%', label: 'Average Income Increase' },
+          { icon: 'leads', title: 'Exclusive Lead Access', description: 'Receive pre-qualified, AI-matched leads based on your specialty and service area before they hit the open market.' },
+          { icon: 'tech', title: 'Technology Platform', description: 'Full access to our cutting-edge platform with property analytics, market insights, and client management tools.' },
+          { icon: 'brand', title: 'Brand Association', description: 'Leverage the trusted Domestic Real Estate brand to enhance your credibility and attract more clients.' },
+          { icon: 'growth', title: 'Growth Support', description: 'Dedicated business consultants help you set goals, optimize your pipeline, and scale your operations.' },
+          { icon: 'shield', title: 'E&O Coverage', description: 'Access to group errors and omissions insurance at preferential rates through our partnership programs.' },
+          { icon: 'globe', title: 'Nationwide Network', description: 'Connect with agents across the country for referrals, co-listings, and knowledge sharing opportunities.' },
         ]}
       />
 

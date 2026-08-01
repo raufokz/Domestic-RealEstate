@@ -139,7 +139,7 @@ export default function AIAssistantPage() {
       <section className="py-20 bg-[#0A2647]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">Ready to Experience AI Real Estate?</h2>
-          <p className="font-body text-white/70 text-lg mb-8 max-w-xl mx-auto">Join thousands of users who have found their dream homes with the help of our AI assistant.</p>
+          <p className="font-body text-white/70 text-lg mb-8 max-w-xl mx-auto">Join our network of users who have found their dream homes with the help of our AI assistant.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register" className="bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-xl hover:bg-[#C9A227]/90 transition-colors">
               Start Free Trial

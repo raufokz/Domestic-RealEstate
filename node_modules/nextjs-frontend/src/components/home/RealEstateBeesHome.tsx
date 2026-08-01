@@ -2,11 +2,13 @@
 
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroVariants from "@/components/home/HeroVariants";
 import CompanyLogos from "@/components/home/CompanyLogos";
 import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planPrice, type AgentPlanTier } from "@/lib/agentPlans";
+import { getAgents, agentName, agentInitials, type PublicAgent } from "@/lib/agents";
+import { renderIcon } from "@/components/ui/PageTemplate";
 
 function TiltCard({
   children,
@@ -82,6 +84,30 @@ export default function RealEstateBeesHome() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annually">("monthly");
 
+  const [featuredAgents, setFeaturedAgents] = useState<PublicAgent[]>([]);
+  const [loadingAgents, setLoadingAgents] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    getAgents({ is_featured: 1 }, 4).then((res) => {
+      if (!active) return;
+      if (res.length === 0) {
+        getAgents({}, 4).then((all) => {
+          if (active) {
+            setFeaturedAgents(all);
+            setLoadingAgents(false);
+          }
+        });
+      } else {
+        setFeaturedAgents(res);
+        setLoadingAgents(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   /* Calculator State */
   const [monthlyLeads, setMonthlyLeads] = useState(50);
   const [avgCommission, setAvgCommission] = useState(8500);
@@ -97,7 +123,7 @@ export default function RealEstateBeesHome() {
       tagline: "High-Yield Real Estate Lead Flow & Investment Software",
       desc: "Connect directly with motivated off-market sellers, distressed property leads, and institutional funding partners. Access real-time ROI tracking, automated comps, and instant skip-tracing tools.",
       cta: "Explore Investor Tools",
-      icon: "💼",
+      icon: "brand",
       href: "/investors",
     },
     {
@@ -106,7 +132,7 @@ export default function RealEstateBeesHome() {
       tagline: "Exclusive Buyer & Seller Leads in Your Local Zip Code",
       desc: "Supercharge your commission pipeline with pre-vetted buyer & seller inquiries. Utilize automated CRM integrations, drip campaigns, and targeted local advertising.",
       cta: "Explore Agent Solutions",
-      icon: "🏆",
+      icon: "leads",
       href: "/realtors",
     },
     {
@@ -115,7 +141,7 @@ export default function RealEstateBeesHome() {
       tagline: "Enterprise Brokerage Management & Lead Distribution",
       desc: "Scale your team with intelligent lead routing, agent performance analytics, automated compliance reporting, and white-label transaction management.",
       cta: "Explore Brokerage Tech",
-      icon: "🏢",
+      icon: "construction",
       href: "/brokerages",
     },
     {
@@ -124,7 +150,7 @@ export default function RealEstateBeesHome() {
       tagline: "Qualified Loan Applicants & Mortgage Lead Generation",
       desc: "Receive pre-qualified mortgage, refinance, and hard-money loan requests directly from active home buyers and property investors.",
       cta: "Explore Lending Leads",
-      icon: "💳",
+      icon: "mls",
       href: "/lenders",
     },
     {
@@ -133,7 +159,7 @@ export default function RealEstateBeesHome() {
       tagline: "Real Estate API, SaaS Integrations & Data Feeds",
       desc: "Integrate nationwide MLS feeds, property valuation APIs, AI skip tracing, and automated marketing Webhooks into your software platform.",
       cta: "Explore Developer APIs",
-      icon: "⚡",
+      icon: "tech",
       href: "/resources",
     },
     {
@@ -142,7 +168,7 @@ export default function RealEstateBeesHome() {
       tagline: "Connect with Buyers, Sellers & Top-Producing Agents",
       desc: "Showcase your title, inspection, appraisal, or legal services directly to active real estate transactions in your regional market.",
       cta: "List Your Service",
-      icon: "🛠️",
+      icon: "distressed",
       href: "/services",
     },
   ];
@@ -150,34 +176,34 @@ export default function RealEstateBeesHome() {
   /* Comprehensive Directory Cards Matrix with Specific Group Classifications */
   const directoryCards = [
     // FOR PROS (INVESTORS, AGENTS, BROKERS, WHOLESALERS)
-    { name: "Real Estate Leads", desc: "Motivated seller & exclusive zip code leads", icon: "🎯", tag: "Popular", group: "pros", route: "/realtors" },
-    { name: "Wholesalers & Comps", desc: "Off-market deal finder & comp analytics", icon: "📊", tag: "Investors", group: "pros", route: "/investors" },
-    { name: "CRM & Auto-Dialers", desc: "Automated pipeline management & cold dialers", icon: "📱", tag: "Software", group: "pros", route: "/realtors" },
-    { name: "Virtual Assistants", desc: "Cold calling & admin ISA services", icon: "🎧", tag: "Services", group: "pros", route: "/services" },
-    { name: "Foreclosure Data", desc: "REO, pre-foreclosure & probate leads", icon: "🏚️", tag: "Data", group: "pros", route: "/investors" },
-    { name: "Hard Money Lenders", desc: "Fix & flip private capital & bridge loans", icon: "💵", tag: "Finance", group: "pros", route: "/lenders" },
-    { name: "Lead Generators", desc: "PPC, SEO & targeted Facebook ad tools", icon: "🚀", tag: "Featured", group: "pros", route: "/realtors" },
-    { name: "Skip Tracing APIs", desc: "Instant owner phone & email skip tracing", icon: "⚡", tag: "Tech", group: "pros", route: "/resources" },
+    { name: "Real Estate Leads", desc: "Motivated seller & exclusive zip code leads", icon: "leads", tag: "Popular", group: "pros", route: "/realtors" },
+    { name: "Wholesalers & Comps", desc: "Off-market deal finder & comp analytics", icon: "growth", tag: "Investors", group: "pros", route: "/investors" },
+    { name: "CRM & Auto-Dialers", desc: "Automated pipeline management & cold dialers", icon: "tech", tag: "Software", group: "pros", route: "/realtors" },
+    { name: "Virtual Assistants", desc: "Cold calling & admin ISA services", icon: "leads", tag: "Services", group: "pros", route: "/services" },
+    { name: "Foreclosure Data", desc: "REO, pre-foreclosure & probate leads", icon: "foreclosure", tag: "Data", group: "pros", route: "/investors" },
+    { name: "Hard Money Lenders", desc: "Fix & flip private capital & bridge loans", icon: "brand", tag: "Finance", group: "pros", route: "/lenders" },
+    { name: "Lead Generators", desc: "PPC, SEO & targeted Facebook ad tools", icon: "globe", tag: "Featured", group: "pros", route: "/realtors" },
+    { name: "Skip Tracing APIs", desc: "Instant owner phone & email skip tracing", icon: "tech", tag: "Tech", group: "pros", route: "/resources" },
 
     // FOR BUYERS & SELLERS
-    { name: "Real Estate Teams", desc: "Top-producing local agent teams & groups", icon: "👥", tag: "Hot", group: "buyers", route: "/realtors/agent-directory" },
-    { name: "Mortgage Brokers", desc: "Conventional, FHA & VA lenders", icon: "🏦", tag: "Finance", group: "buyers", route: "/lenders" },
-    { name: "Home Inspectors", desc: "Certified pre-purchase property inspectors", icon: "🔍", tag: "Services", group: "buyers", route: "/services" },
-    { name: "Title & Escrow", desc: "National title & closing companies", icon: "📜", tag: "Closing", group: "buyers", route: "/services" },
-    { name: "Real Estate Attorneys", desc: "Title, escrow & contract closing legal pros", icon: "⚖️", tag: "Legal", group: "buyers", route: "/services" },
-    { name: "Home Builders", desc: "Custom home builders & general contractors", icon: "🏗️", tag: "Directory", group: "buyers", route: "/properties" },
-    { name: "Real Estate Education", desc: "Licensing & homebuyer masterclasses", icon: "🎓", tag: "Academy", group: "buyers", route: "/resources" },
-    { name: "Home Warranty", desc: "Comprehensive home protection plans", icon: "🏠", tag: "Protection", group: "buyers", route: "/properties" },
+    { name: "Real Estate Teams", desc: "Top-producing local agent teams & groups", icon: "social", tag: "Hot", group: "buyers", route: "/realtors/agent-directory" },
+    { name: "Mortgage Brokers", desc: "Conventional, FHA & VA lenders", icon: "mls", tag: "Finance", group: "buyers", route: "/lenders" },
+    { name: "Home Inspectors", desc: "Certified pre-purchase property inspectors", icon: "distressed", tag: "Services", group: "buyers", route: "/services" },
+    { name: "Title & Escrow", desc: "National title & closing companies", icon: "brand", tag: "Closing", group: "buyers", route: "/services" },
+    { name: "Real Estate Attorneys", desc: "Title, escrow & contract closing legal pros", icon: "shield", tag: "Legal", group: "buyers", route: "/services" },
+    { name: "Home Builders", desc: "Custom home builders & general contractors", icon: "construction", tag: "Directory", group: "buyers", route: "/properties" },
+    { name: "Real Estate Education", desc: "Licensing & homebuyer masterclasses", icon: "events", tag: "Academy", group: "buyers", route: "/resources" },
+    { name: "Home Warranty", desc: "Comprehensive home protection plans", icon: "shield", tag: "Protection", group: "buyers", route: "/properties" },
 
     // BY CATEGORY (TECH, MARKETING, SERVICES, LEGAL)
-    { name: "Real Estate Software", desc: "CRM, analytics & valuation tech", icon: "💻", tag: "Top Rated", group: "category", route: "/resources" },
-    { name: "Property Management", desc: "Landlord, rent collection & portal tech", icon: "🔑", tag: "Essential", group: "category", route: "/properties" },
-    { name: "Real Estate Marketing", desc: "Direct mail, virtual staging & flyers", icon: "📢", tag: "Growth", group: "category", route: "/services" },
-    { name: "Tax & CPA Services", desc: "1031 exchange & cost segregation tax pros", icon: "🧾", tag: "Tax", group: "category", route: "/services" },
-    { name: "Real Estate Photographers", desc: "HDR photos & 3D virtual tours", icon: "📸", tag: "Media", group: "category", route: "/services" },
-    { name: "Transaction Support", desc: "Contract-to-close virtual coordinators", icon: "📋", tag: "Services", group: "category", route: "/services" },
-    { name: "Debt Recovery & Legal", desc: "Tenant eviction & legal advisory", icon: "🛡️", tag: "Legal", group: "category", route: "/services" },
-    { name: "Real Estate Accountants", desc: "Real estate audit & CPA experts", icon: "📈", tag: "Finance", group: "category", route: "/services" },
+    { name: "Real Estate Software", desc: "CRM, analytics & valuation tech", icon: "tech", tag: "Top Rated", group: "category", route: "/resources" },
+    { name: "Property Management", desc: "Landlord, rent collection & portal tech", icon: "rental", tag: "Essential", group: "category", route: "/properties" },
+    { name: "Real Estate Marketing", desc: "Direct mail, virtual staging & flyers", icon: "social", tag: "Growth", group: "category", route: "/services" },
+    { name: "Tax & CPA Services", desc: "1031 exchange & cost segregation tax pros", icon: "mls", tag: "Tax", group: "category", route: "/services" },
+    { name: "Real Estate Photographers", desc: "HDR photos & 3D virtual tours", icon: "video", tag: "Media", group: "category", route: "/services" },
+    { name: "Transaction Support", desc: "Contract-to-close virtual coordinators", icon: "leads", tag: "Services", group: "category", route: "/services" },
+    { name: "Debt Recovery & Legal", desc: "Tenant eviction & legal advisory", icon: "shield", tag: "Legal", group: "category", route: "/services" },
+    { name: "Real Estate Accountants", desc: "Real estate audit & CPA experts", icon: "tech", tag: "Finance", group: "category", route: "/services" },
   ];
 
   /* Filter Directory Cards by Active Tab & Search Query */
@@ -193,21 +219,14 @@ export default function RealEstateBeesHome() {
   });
 
   const cityDirectory = [
-    { city: "Miami, FL", leads: "1,240 Active Deals", avgPrice: "$850/sqft", growth: "+6.4%" },
-    { city: "Austin, TX", leads: "980 Active Deals", avgPrice: "$620/sqft", growth: "+4.8%" },
-    { city: "Los Angeles, CA", leads: "1,850 Active Deals", avgPrice: "$980/sqft", growth: "+5.2%" },
-    { city: "Dallas, TX", leads: "1,410 Active Deals", avgPrice: "$450/sqft", growth: "+7.1%" },
-    { city: "New York, NY", leads: "2,100 Active Deals", avgPrice: "$1,850/sqft", growth: "+3.9%" },
-    { city: "Chicago, IL", leads: "1,150 Active Deals", avgPrice: "$390/sqft", growth: "+4.2%" },
-    { city: "Atlanta, GA", leads: "1,320 Active Deals", avgPrice: "$410/sqft", growth: "+6.8%" },
-    { city: "Phoenix, AZ", leads: "940 Active Deals", avgPrice: "$380/sqft", growth: "+5.9%" },
-  ];
-
-  const topAgents = [
-    { name: "Alexandra Vance", role: "Luxury Specialist", location: "Miami & Palm Beach", volume: "$145M Sold", rating: "4.9 ★", image: "/variant1-hero.jpg" },
-    { name: "Marcus Sterling", role: "Off-Market Wholesaler", location: "Dallas & Austin", volume: "120+ Deals/yr", rating: "4.9 ★", image: "/variant2-hero.jpg" },
-    { name: "Elena Rostova", role: "Commercial Broker", location: "New York & Tribeca", volume: "$210M Sold", rating: "5.0 ★", image: "/variant3-hero.jpg" },
-    { name: "David Chen", role: "Investment Advisor", location: "San Jose & Tech Corridor", volume: "$95M Sold", rating: "4.8 ★", image: "/variant4-hero.jpg" },
+    { city: "Miami, FL", state: "Florida" },
+    { city: "Austin, TX", state: "Texas" },
+    { city: "Los Angeles, CA", state: "California" },
+    { city: "Dallas, TX", state: "Texas" },
+    { city: "New York, NY", state: "New York" },
+    { city: "Chicago, IL", state: "Illinois" },
+    { city: "Atlanta, GA", state: "Georgia" },
+    { city: "Phoenix, AZ", state: "Arizona" },
   ];
 
   const popularReviews = [
@@ -393,7 +412,7 @@ export default function RealEstateBeesHome() {
                           : "bg-white border-slate-200 hover:border-[#0A2647] text-[#0A2647] font-extrabold hover:shadow"
                       }`}
                     >
-                      <span className="text-3xl mb-2">{pro.icon}</span>
+                      <span className="mb-2 scale-125 inline-block text-[#C9A227]">{renderIcon(pro.icon)}</span>
                       <span className={`text-xs font-extrabold ${isActive ? "text-[#C9A227]" : "text-[#0A2647]"}`}>{pro.title}</span>
                       <span className={`text-[10px] mt-1 font-mono font-bold ${isActive ? "text-[#C9A227]" : "text-slate-500"}`}>
                         {pro.id}
@@ -527,7 +546,7 @@ export default function RealEstateBeesHome() {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-3xl">{card.icon}</span>
+                      <span className="scale-110 inline-block text-[#C9A227]">{renderIcon(card.icon)}</span>
                       <span className="bg-slate-100 text-[#0A2647] group-hover:bg-[#0A2647] group-hover:text-[#C9A227] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full transition-colors">
                         {card.tag}
                       </span>
@@ -557,9 +576,6 @@ export default function RealEstateBeesHome() {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
               Real Estate Tech Comparison Matrix
             </h2>
-            <p className="text-xs text-slate-600 font-medium max-w-xl mx-auto mt-2">
-              Compare lead quality, automation features, and verified user ratings across top platforms.
-            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -571,15 +587,15 @@ export default function RealEstateBeesHome() {
                   <th className="p-4 font-extrabold text-sm">AI Skip Tracing</th>
                   <th className="p-4 font-extrabold text-sm">Zip Code Lock</th>
                   <th className="p-4 font-extrabold text-sm">Pricing</th>
-                  <th className="p-4 rounded-tr-xl font-extrabold text-sm text-center">User Rating</th>
+                  <th className="p-4 rounded-tr-xl font-extrabold text-sm text-center">Focus Audience</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {[
-                  { name: "Domestic Real Estate (DomesticRealEstate)", ver: "Real-Time Verified", skip: "Included", zip: "100% Exclusive", price: "Flexible / Deal", rating: "4.9 ★★★★★", badge: "Highest ROI" },
-                  { name: "KVCore", ver: "Standard Imports", skip: "Add-on Extra", zip: "Shared Zip", price: "$499 / month", rating: "4.4 ★★★★☆", badge: "" },
-                  { name: "Follow Up Boss", ver: "Integration Only", skip: "Third-Party", zip: "N/A", price: "$299 / month", rating: "4.7 ★★★★★", badge: "" },
-                  { name: "BoomTown", ver: "Managed PPC", skip: "Not Included", zip: "Shared Zip", price: "$1,000+ / month", rating: "4.3 ★★★★☆", badge: "" },
+                  { name: "Domestic Real Estate (DomesticRealEstate)", ver: "Real-Time Verified", skip: "Included", zip: "100% Exclusive", price: "Flexible / Deal", audience: "Agents, Buyers, & Sellers", badge: "Highest ROI" },
+                  { name: "KVCore", ver: "Standard Imports", skip: "Add-on Extra", zip: "Shared Zip", price: "$499 / month", audience: "Brokerages & Teams", badge: "" },
+                  { name: "Follow Up Boss", ver: "Integration Only", skip: "Third-Party", zip: "N/A", price: "$299 / month", audience: "Sales Teams", badge: "" },
+                  { name: "BoomTown", ver: "Managed PPC", skip: "Not Included", zip: "Shared Zip", price: "$1,000+ / month", audience: "Large Brokerages", badge: "" },
                 ].map((row, idx) => (
                   <tr key={idx} className={idx === 0 ? "bg-amber-500/10 font-bold border-2 border-[#C9A227]" : "hover:bg-slate-50"}>
                     <td className="p-4 font-extrabold text-[#0A2647] text-sm flex items-center gap-2">
@@ -590,7 +606,7 @@ export default function RealEstateBeesHome() {
                     <td className="p-4 text-slate-800">{row.skip}</td>
                     <td className="p-4 text-slate-800">{row.zip}</td>
                     <td className="p-4 font-mono font-bold text-[#0A2647]">{row.price}</td>
-                    <td className="p-4 text-center font-extrabold text-amber-600">{row.rating}</td>
+                    <td className="p-4 text-center font-extrabold text-slate-700">{row.audience}</td>
                   </tr>
                 ))}
               </tbody>
@@ -696,10 +712,11 @@ export default function RealEstateBeesHome() {
               >
                 <div className="flex justify-between items-center text-xs font-bold mb-1">
                   <span className="text-white text-sm font-extrabold">{item.city}</span>
-                  <span className="text-emerald-400 font-mono font-bold">{item.growth}</span>
+                  <span className="text-emerald-400 font-mono font-bold">{item.state}</span>
                 </div>
-                <div className="text-xs text-[#C9A227] font-bold">{item.leads}</div>
-                <div className="text-[11px] text-slate-200 mt-2 font-mono font-semibold">Avg Price: {item.avgPrice}</div>
+                <div className="text-xs text-[#C9A227] font-bold mt-2 hover:underline">
+                  <Link href={`/properties?search=${encodeURIComponent(item.city)}`}>Browse Deals & Listings →</Link>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -794,33 +811,68 @@ export default function RealEstateBeesHome() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {topAgents.map((agent, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ scale: 1.03, y: -4 }}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
-              >
-                <div className="h-44 overflow-hidden relative">
-                  <img src={agent.image} alt={agent.name} className="w-full h-full object-cover" />
-                  <div className="absolute top-3 right-3 bg-[#0A2647] text-[#C9A227] text-xs font-extrabold px-2.5 py-0.5 rounded-full shadow">
-                    {agent.rating}
-                  </div>
+            {loadingAgents ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="animate-pulse bg-white border border-slate-200 rounded-2xl overflow-hidden h-80 p-5 flex flex-col justify-between">
+                  <div className="h-36 bg-slate-200 rounded-xl" />
+                  <div className="h-4 bg-slate-200 rounded w-2/3 mt-4" />
+                  <div className="h-3 bg-slate-200 rounded w-1/2 mt-2" />
+                  <div className="h-8 bg-slate-200 rounded-lg mt-4" />
                 </div>
+              ))
+            ) : featuredAgents.length === 0 ? (
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-slate-50 border border-slate-200 rounded-3xl p-10 text-center">
+                <p className="text-base font-bold text-[#0A2647] mb-2">No Featured Advisor Profiles Found</p>
+                <p className="text-slate-500 text-xs mb-6">Be the first to join the Domestic Real Estate directory as a verified local partner.</p>
+                <Link href="/register" className="inline-block bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-6 py-3 rounded-xl text-xs transition-colors">
+                  Join Directory Now →
+                </Link>
+              </div>
+            ) : (
+              featuredAgents.map((agent, idx) => {
+                const name = agentName(agent);
+                const role = agent.headline || agent.specialties?.[0] || "Licensed Advisor";
+                const location = [agent.office_city, agent.office_state].filter(Boolean).join(", ") || "Nationwide Network";
+                const transCount = agent.sales_count !== undefined ? `${agent.sales_count} Transactions` : "Active Advisor";
+                const ratingLabel = agent.rating ? `${agent.rating} ★` : "Verified";
+                
+                return (
+                  <motion.div
+                    key={agent.id || idx}
+                    whileHover={{ scale: 1.03, y: -4 }}
+                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="h-44 overflow-hidden relative bg-slate-100">
+                        {agent.user?.avatar ? (
+                          <img src={agent.user.avatar} alt={name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#0A2647] to-[#1E627D]/40 flex items-center justify-center text-[#C9A227] font-sans font-extrabold text-3xl">
+                            {agentInitials(agent)}
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3 bg-[#0A2647] text-[#C9A227] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow">
+                          {ratingLabel}
+                        </div>
+                      </div>
 
-                <div className="p-5 text-left">
-                  <h3 className="text-base font-extrabold text-[#0A2647]">{agent.name}</h3>
-                  <p className="text-xs text-[#C9A227] font-extrabold">{agent.role}</p>
-                  <p className="text-xs text-slate-700 font-medium mt-1">{agent.location}</p>
+                      <div className="p-5 text-left">
+                        <h3 className="text-base font-extrabold text-[#0A2647] truncate">{name}</h3>
+                        <p className="text-xs text-[#C9A227] font-extrabold truncate">{role}</p>
+                        <p className="text-xs text-slate-700 font-medium mt-1 truncate">{location}</p>
+                      </div>
+                    </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
-                    <span className="font-mono text-slate-900 font-extrabold">{agent.volume}</span>
-                    <Link href="/realtors/agent-directory" className="text-[#0A2647] font-extrabold hover:underline">
-                      Contact →
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                    <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                      <span className="font-mono text-slate-900 font-extrabold">{transCount}</span>
+                      <Link href={agent.slug ? `/agents/${agent.slug}` : "/realtors/agent-directory"} className="text-[#0A2647] font-extrabold hover:underline">
+                        View Profile →
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
@@ -866,55 +918,46 @@ export default function RealEstateBeesHome() {
         </div>
       </section>
 
-      {/* ── 3D GROWTH & COMMUNITY BANNER (REAL ESTATE BEES STYLE) ── */}
+      {/* ── CENTRALIZED COMMUNITY BLOCK (CENTERED, MINIMALIST PREMIUM) ── */}
       <section className="py-20 bg-gradient-to-r from-[#0A2647] via-[#0D315c] to-[#0A2647] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
-            <div className="lg:col-span-7">
-              <span className="bg-[#C9A227] text-[#0A2647] text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-                Industry Network
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 leading-tight">
-                Join The Largest Rapidly Growing Community of <span className="text-[#C9A227]">Real Estate Experts</span>
-              </h2>
+          <div className="max-w-4xl mx-auto text-center">
+            <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider font-mono">
+              Industry Network
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-6 leading-tight font-heading">
+              Join The Growing Community of <span className="text-[#C9A227]">Real Estate Experts</span>
+            </h2>
 
-              <ul className="mt-6 space-y-3 text-sm text-slate-100 font-medium">
-                <li className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Access exclusive off-market deals and verified motivated seller lead channels.
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Network directly with 45,000+ investors, top brokers, lenders, and tech partners.
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs">✓</span>
-                  Get featured in nationwide real estate directories and rank higher locally.
-                </li>
-              </ul>
-
-              <Link href="/register" className="mt-8 bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-8 py-4 rounded-xl text-sm shadow-2xl hover:scale-105 transition-all cursor-pointer">
-                Join The Club Free →
-              </Link>
-            </div>
-
-            {/* Right 3D Bar Chart Visual Graphic */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl text-center w-full max-w-sm">
-                <div className="text-5xl mb-4">🚀</div>
-                <div className="text-4xl font-extrabold text-[#C9A227] font-mono">+340%</div>
-                <div className="text-xs uppercase tracking-wider text-slate-200 font-extrabold mt-1">Quarterly Growth Rate</div>
-                
-                <div className="mt-6 flex items-end justify-center gap-3 h-28">
-                  <div className="w-8 bg-slate-400/40 rounded-t-lg h-[30%]" />
-                  <div className="w-8 bg-slate-300/60 rounded-t-lg h-[50%]" />
-                  <div className="w-8 bg-amber-400/80 rounded-t-lg h-[75%]" />
-                  <div className="w-8 bg-[#C9A227] rounded-t-lg h-[100%] animate-pulse" />
-                </div>
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
+                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Direct Access</h4>
+                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
+                  Connect to exclusive off-market deals and verified motivated seller lead channels.
+                </p>
+              </div>
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
+                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Network Connections</h4>
+                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
+                  Co-operate and trade directly with active investors, top brokers, lenders, and tech partners.
+                </p>
+              </div>
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
+                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Public Exposure</h4>
+                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
+                  Get listed inside nationwide real estate service directories to rank higher locally.
+                </p>
               </div>
             </div>
 
+            <div className="mt-12">
+              <Link href="/register" className="inline-block bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-8 py-4 rounded-xl text-xs sm:text-sm shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                Join The Network Free →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -1006,8 +1049,11 @@ export default function RealEstateBeesHome() {
                           <span className="text-sm font-black tracking-normal uppercase font-heading">
                             {plan.name} Partner
                           </span>
-                          <span className="text-[8px] font-mono tracking-wider opacity-70">
-                            {plan.icon} EXCLUSIVE KEY
+                          <span className="text-[9px] font-mono tracking-wider opacity-70 flex items-center gap-1 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-[#C9A227] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m-3.418-4.418A3 3 0 1112.582 7H13a2 2 0 012 2v3.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 01-1.414 0L3.293 16.12a1 1 0 010-1.414l6.414-6.414A1 1 0 0110.414 8h3.172v.005z" />
+                            </svg>
+                            EXCLUSIVE KEY
                           </span>
                         </div>
                         <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center border border-white/20">

@@ -261,8 +261,11 @@ export default function PricingPage() {
                         <span className="text-sm font-black tracking-normal uppercase font-heading">
                           {plan.name} Partner
                         </span>
-                        <span className="text-[8px] font-mono tracking-wider opacity-70">
-                          {plan.icon} EXCLUSIVE KEY
+                        <span className="text-[9px] font-mono tracking-wider opacity-70 flex items-center gap-1 mt-0.5">
+                          <svg className="w-3.5 h-3.5 text-[#C9A227] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m-3.418-4.418A3 3 0 1112.582 7H13a2 2 0 012 2v3.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 01-1.414 0L3.293 16.12a1 1 0 010-1.414l6.414-6.414A1 1 0 0110.414 8h3.172v.005z" />
+                          </svg>
+                          EXCLUSIVE KEY
                         </span>
                       </div>
 
@@ -333,7 +336,11 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">🏛️</span>
+                <span className="text-[#C9A227]">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </span>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold font-heading">{ENTERPRISE_PLAN.name}</h3>
                   <p className="text-sm font-semibold text-[#c9a227]">{ENTERPRISE_PLAN.tagline}</p>

@@ -9,42 +9,35 @@ export const metadata: Metadata = {
 
 const channels = [
   {
-    icon: '🏠',
+    icon: 'mls',
     title: 'MLS & Syndication',
-    description: 'Your property listed on the MLS and automatically syndicated to Zillow, Realtor.com, Redfin, Trulia, and 500+ real estate platforms nationwide.',
+    description: 'Your property listed on the MLS and automatically syndicated to Zillow, Realtor.com, Redfin, Trulia, and major real estate platforms nationwide.',
   },
   {
-    icon: '📱',
+    icon: 'social',
     title: 'Social Media Campaigns',
-    description: 'Targeted ads on Facebook, Instagram, and TikTok reaching thousands of potential buyers in your area based on demographics, interests, and search behavior.',
+    description: 'Targeted ads on Facebook, Instagram, and TikTok reaching potential buyers in your area based on demographics, interests, and search behavior.',
   },
   {
-    icon: '🎥',
+    icon: 'video',
     title: 'Video & Drone Tours',
     description: 'Cinematic property videos, aerial drone footage, and interactive 3D Matterport tours that let buyers walk through your home from anywhere.',
   },
   {
-    icon: '✉️',
+    icon: 'email',
     title: 'Email & Direct Mail',
-    description: 'Blast campaigns to our database of 10,000+ active buyers and agents, plus premium postcard mailings to the surrounding neighborhood.',
+    description: 'Blast campaigns to our database of active buyers and agents, plus premium postcard mailings to the surrounding neighborhood.',
   },
   {
-    icon: '🔍',
+    icon: 'search',
     title: 'Search Engine Marketing',
     description: 'Google Ads and SEO-optimized listing pages that capture high-intent buyers actively searching for homes like yours.',
   },
   {
-    icon: '🎤',
+    icon: 'events',
     title: 'Open Houses & Events',
     description: 'Professional open house events with catering, signage, and digital check-in. Private showings coordinated around buyer schedules.',
   },
-];
-
-const stats = [
-  { value: '500+', label: 'Syndication Platforms' },
-  { value: '10K+', label: 'Buyer Database' },
-  { value: '92%', label: 'Online Reach Rate' },
-  { value: '14 Days', label: 'Avg. Time to Offer' },
 ];
 
 export default function MarketingPlanPage() {
@@ -63,8 +56,6 @@ export default function MarketingPlanPage() {
         features={channels}
         columns={3}
       />
-
-      <StatsSection stats={stats} />
 
       <section className="py-20 md:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

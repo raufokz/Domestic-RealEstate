@@ -550,10 +550,10 @@ export default function UniversalChatWidget({
   const selectCategory = (type: string) => {
     setSelectedLeadType(type);
     const text = type === 'buyer' 
-      ? '🏠 I want to Buy Property' 
+      ? 'I want to Buy Property' 
       : type === 'seller' 
-        ? '🏡 I want to Sell My Home' 
-        : '💼 I want to Invest';
+        ? 'I want to Sell My Home' 
+        : 'I want to Invest';
 
     const firstMsg: Message = { id: `sel-${Date.now()}`, role: 'user', content: text };
     
@@ -1035,21 +1035,36 @@ export default function UniversalChatWidget({
               onClick={() => selectCategory('buyer')}
               className="py-2.5 px-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 !text-[#0A2647] dark:!text-[#C9A227] font-semibold text-xs rounded-xl flex items-center justify-between border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-200 group"
             >
-              <span>🏠 Buyer AI Assistance</span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#C9A227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Buyer AI Assistance
+              </span>
               <span className="text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
             </button>
             <button
               onClick={() => selectCategory('seller')}
               className="py-2.5 px-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 !text-[#0A2647] dark:!text-[#C9A227] font-semibold text-xs rounded-xl flex items-center justify-between border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-200 group"
             >
-              <span>🏡 Seller AI Assistance</span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#C9A227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m-3.418-4.418A3 3 0 1112.582 7H13a2 2 0 012 2v3.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 01-1.414 0L3.293 16.12a1 1 0 010-1.414l6.414-6.414A1 1 0 0110.414 8h3.172v.005z" />
+                </svg>
+                Seller AI Assistance
+              </span>
               <span className="text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
             </button>
             <button
               onClick={() => selectCategory('investor')}
               className="py-2.5 px-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 !text-[#0A2647] dark:!text-[#C9A227] font-semibold text-xs rounded-xl flex items-center justify-between border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-200 group"
             >
-              <span>💼 Investor AI Assistance</span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#C9A227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                Investor AI Assistance
+              </span>
               <span className="text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>

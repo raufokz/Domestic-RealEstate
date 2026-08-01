@@ -24,22 +24,15 @@ interface SystemData {
 }
 
 const FALLBACK_DATA: SystemData = {
-  totalUsers: 12847,
-  revenue: "$2.4M",
-  properties: 8932,
-  activeSessions: 342,
-  apiResponseTime: "45ms",
-  databaseSize: "2.8 GB",
-  queueLength: 12,
-  cacheHitRate: "94.2%",
-  recentActivity: [
-    { id: 1, action: "New user registered", detail: "john.doe@email.com — Buyer role", time: "2m ago", type: "user" },
-    { id: 2, action: "Payment processed", detail: "Agent subscription — $49.99/mo", time: "5m ago", type: "payment" },
-    { id: 3, action: "Property listing created", detail: "123 Oak Lane, Austin — $485,000", time: "12m ago", type: "property" },
-    { id: 4, action: "System alert cleared", detail: "API rate limit warning resolved", time: "1h ago", type: "system" },
-    { id: 5, action: "Bulk import completed", detail: "450 properties from MLS feed", time: "2h ago", type: "system" },
-    { id: 6, action: "New broker registered", detail: "Premier Realty Group — 12 agents", time: "3h ago", type: "user" },
-  ],
+  totalUsers: 0,
+  revenue: "$0.00",
+  properties: 0,
+  activeSessions: 0,
+  apiResponseTime: "0ms",
+  databaseSize: "0 GB",
+  queueLength: 0,
+  cacheHitRate: "0%",
+  recentActivity: [],
 };
 
 export default function SuperAdminDashboard() {
@@ -61,9 +54,9 @@ export default function SuperAdminDashboard() {
   }, []);
 
   const STATS = [
-    { label: "Total Users", value: data.totalUsers.toLocaleString(), change: "+124 this week", color: "bg-blue-50 text-blue-600" },
-    { label: "Revenue", value: data.revenue, change: "+18% vs last month", color: "bg-emerald-50 text-emerald-600" },
-    { label: "Properties", value: data.properties.toLocaleString(), change: "+340 this month", color: "bg-amber-50 text-amber-600" },
+    { label: "Total Users", value: data.totalUsers.toLocaleString(), change: data.totalUsers > 0 ? "Active Users" : "No users yet", color: "bg-blue-50 text-blue-600" },
+    { label: "Revenue", value: data.revenue, change: data.revenue !== "$0.00" ? "Platform Revenue" : "No revenue yet", color: "bg-emerald-50 text-emerald-600" },
+    { label: "Properties", value: data.properties.toLocaleString(), change: data.properties > 0 ? "Listed properties" : "No properties yet", color: "bg-amber-50 text-amber-600" },
     { label: "Active Sessions", value: String(data.activeSessions), change: "Real-time", color: "bg-purple-50 text-purple-600" },
   ];
 

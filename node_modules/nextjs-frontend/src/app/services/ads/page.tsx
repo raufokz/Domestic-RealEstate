@@ -160,7 +160,7 @@ export default function AdsServicesPage() {
             <Logo />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight max-w-3xl">
-            Reach Millions with <span className="text-[#C9A227]">Targeted Digital Advertising</span>
+            Reach Your Target Audience with <span className="text-[#C9A227]">Targeted Digital Advertising</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl">
             Get your brand in front of the right people at the right time with campaigns that convert browsers into buyers.
