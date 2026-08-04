@@ -16,7 +16,7 @@ export interface BlogPost {
   featured_image_alt?: string | null;
   featured_image_caption?: string | null;
   featured_image_credit?: string | null;
-  status: "draft" | "published" | "scheduled" | "archived";
+  status: "draft" | "review" | "published" | "scheduled" | "archived";
   published_at?: string | null;
   created_at?: string | null;
   seo_title?: string | null;

@@ -34,9 +34,16 @@ export async function generateMetadata({
     description: post.meta_description || postExcerpt(post),
     path: `/blog/${post.slug}`,
     ogType: "article",
-    image: post.featured_image || undefined,
+    image: post.og_image || post.featured_image || undefined,
     keywords: post.tags ?? undefined,
     publishedTime: post.published_at ?? undefined,
+    noindex: post.robots_index === false,
+    canonicalOverride: post.canonical_url || undefined,
+    ogTitle: post.og_title || undefined,
+    ogDescription: post.og_description || undefined,
+    twitterTitle: post.twitter_title || undefined,
+    twitterDescription: post.twitter_description || undefined,
+    twitterImage: post.twitter_image || undefined,
   });
 }
 

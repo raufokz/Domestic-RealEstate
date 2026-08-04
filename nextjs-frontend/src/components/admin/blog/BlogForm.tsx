@@ -434,6 +434,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Status</label>
             <select value={form.status} onChange={(e) => patch({ status: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
               <option value="draft">Draft</option>
+              <option value="review">In Review</option>
               <option value="published">Published</option>
               <option value="scheduled">Scheduled</option>
               <option value="archived">Archived</option>

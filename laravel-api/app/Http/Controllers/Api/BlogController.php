@@ -79,7 +79,7 @@ class BlogController extends Controller
             'featured_image_alt' => 'nullable|string|max:255',
             'featured_image_caption' => 'nullable|string|max:255',
             'featured_image_credit' => 'nullable|string|max:255',
-            'status' => 'in:draft,published,archived,scheduled',
+            'status' => 'in:draft,review,published,archived,scheduled',
             'scheduled_at' => 'nullable|date|required_if:status,scheduled|after:now',
             'tags' => 'nullable|array',
             'is_featured' => 'boolean',

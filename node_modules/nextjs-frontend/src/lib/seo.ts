@@ -30,6 +30,17 @@ export interface PageSeo {
   noindex?: boolean;
   publishedTime?: string;
   modifiedTime?: string;
+  /**
+   * Editor-supplied overrides (e.g. a blog post's canonical_url, OG, and
+   * Twitter card fields). Each falls back to the generic title/description
+   * /image above when omitted, so filling these in is optional, never required.
+   */
+  canonicalOverride?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
 }
 
 /** Build a complete, consistent `Metadata` object for a page. */
@@ -45,11 +56,18 @@ export function buildMetadata(seo: PageSeo): Metadata {
     noindex = false,
     publishedTime,
     modifiedTime,
+    canonicalOverride,
+    ogTitle: ogTitleOverride,
+    ogDescription,
+    twitterTitle,
+    twitterDescription,
+    twitterImage,
   } = seo;
 
-  const canonical = path.startsWith("/") ? path : `/${path}`;
+  const canonical = canonicalOverride || (path.startsWith("/") ? path : `/${path}`);
   // OG/Twitter don't use the title template, so give them the branded title.
-  const ogTitle = fullTitle ?? `${title} | ${SITE_NAME}`;
+  const ogTitle = ogTitleOverride || fullTitle || `${title} | ${SITE_NAME}`;
+  const ogDesc = ogDescription || description;
 
   return {
     title: fullTitle ? { absolute: fullTitle } : title,
@@ -61,16 +79,16 @@ export function buildMetadata(seo: PageSeo): Metadata {
       url: canonical,
       siteName: SITE_NAME,
       title: ogTitle,
-      description,
+      description: ogDesc,
       images: [{ url: image, width: 1200, height: 630, alt: ogTitle }],
       ...(publishedTime ? { publishedTime } : {}),
       ...(modifiedTime ? { modifiedTime } : {}),
     },
     twitter: {
       card: "summary_large_image",
-      title: ogTitle,
-      description,
-      images: [image],
+      title: twitterTitle || ogTitle,
+      description: twitterDescription || ogDesc,
+      images: [twitterImage || image],
     },
     ...(noindex
       ? { robots: { index: false, follow: false, googleBot: { index: false, follow: false } } }

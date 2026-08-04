@@ -3,6 +3,7 @@
 const COLORS: Record<string, string> = {
   published: "bg-emerald-100 text-emerald-700",
   draft: "bg-slate-200 text-slate-700",
+  review: "bg-blue-100 text-blue-700",
   scheduled: "bg-amber-100 text-amber-800",
   archived: "bg-slate-100 text-slate-500",
   active: "bg-emerald-100 text-emerald-700",

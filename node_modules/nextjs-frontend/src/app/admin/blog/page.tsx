@@ -273,6 +273,7 @@ export default function BlogPage() {
                   label: "Status",
                   options: [
                     { value: "draft", label: "Draft" },
+                    { value: "review", label: "In Review" },
                     { value: "published", label: "Published" },
                     { value: "scheduled", label: "Scheduled" },
                     { value: "archived", label: "Archived" },
