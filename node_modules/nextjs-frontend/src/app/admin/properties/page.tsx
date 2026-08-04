@@ -10,6 +10,7 @@ import PropertyImageManager, { PropertyImage } from "@/components/property/Prope
 interface Property {
   id: number;
   title: string;
+  description?: string | null;
   address: string;
   city: string;
   state: string;
@@ -101,7 +102,7 @@ export default function PropertiesPage() {
     setEditing(p);
     setForm({
       title: p.title || "",
-      description: "",
+      description: p.description || "",
       price: String(p.price || ""),
       address: p.address || "",
       city: p.city || "",

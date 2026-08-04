@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiPost, API_BASE } from "@/lib/api";
+import { apiPost, API_BASE, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
-import PropertyImageManager from "@/components/property/PropertyImageManager";
+import PropertyImageManager, { PropertyImage } from "@/components/property/PropertyImageManager";
 
 function authToken(): string | null {
   return typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
@@ -16,6 +16,7 @@ export default function CreatePropertyPage() {
   const { success, notifyError } = useToast();
   const [saving, setSaving] = useState(false);
   const [createdId, setCreatedId] = useState<number | null>(null);
+  const [createdImages, setCreatedImages] = useState<PropertyImage[]>([]);
   
   // Staged cover and gallery files before property creation
   const [stagedFiles, setStagedFiles] = useState<{ file: File; preview: string; isCover: boolean }[]>([]);
@@ -101,14 +102,32 @@ export default function CreatePropertyPage() {
 
         ordered.forEach((item) => fd.append("images[]", item.file));
         const token = authToken();
-        await fetch(`${API_BASE}/properties/${propId}/images`, {
+        const uploadRes = await fetch(`${API_BASE}/properties/${propId}/images`, {
           method: "POST",
           headers: token ? { Authorization: `Bearer ${token}`, Accept: "application/json" } : { Accept: "application/json" },
           body: fd,
         });
+
+        if (!uploadRes.ok) {
+          let msg = "Property was created, but the photos could not be uploaded. You can add them below.";
+          try {
+            const body = await uploadRes.json();
+            if (body?.message) msg = body.message;
+          } catch {
+            /* keep default */
+          }
+          notifyError(new ApiError(msg, uploadRes.status), msg);
+          setCreatedId(propId);
+          return;
+        }
+
+        const body = (await uploadRes.json()) as { data: PropertyImage[] };
+        setCreatedImages(body.data);
+        success("Property created with cover photos.", "Properties");
+      } else {
+        success("Property created.", "Properties");
       }
 
-      success("Property created with cover photos.", "Properties");
       setCreatedId(propId);
     } catch (err) {
       notifyError(err, "Property could not be created.");
@@ -128,7 +147,7 @@ export default function CreatePropertyPage() {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-bold text-navy mb-1">Property Created Successfully!</h2>
             <p className="text-sm text-slate-500 mb-4">Manage, drag & drop to reorder, or update your cover and gallery photos below.</p>
-            <PropertyImageManager propertyId={createdId} initialImages={[]} />
+            <PropertyImageManager propertyId={createdId} initialImages={createdImages} />
           </div>
           <div className="flex gap-3">
             <button

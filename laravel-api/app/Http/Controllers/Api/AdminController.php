@@ -550,12 +550,33 @@ class AdminController extends Controller
     public function updateProperty(Request $request, $id) {
         $this->checkAdmin();
         $property = Property::findOrFail($id);
-        $property->update($request->only([
-            'title', 'description', 'price', 'address', 'city', 'state', 'zip', 'country',
-            'bedrooms', 'bathrooms', 'sqft', 'property_type_id', 'realtor_id', 'status',
-            'approval_status', 'featured', 'premium', 'year_built', 'lot_size', 'parking_spaces',
-            'amenities', 'nearby_places', 'video_url', 'virtual_tour_url',
-        ]));
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'price' => 'sometimes|numeric|min:0',
+            'address' => 'sometimes|string|max:255',
+            'city' => 'sometimes|string|max:255',
+            'state' => 'sometimes|string|max:255',
+            'zip' => 'sometimes|string|max:20',
+            'country' => 'sometimes|string|max:255',
+            'bedrooms' => 'sometimes|nullable|integer|min:0',
+            'bathrooms' => 'sometimes|nullable|numeric|min:0',
+            'sqft' => 'sometimes|nullable|integer|min:0',
+            'property_type_id' => 'sometimes|nullable|exists:property_types,id',
+            'realtor_id' => 'sometimes|nullable|exists:users,id',
+            'status' => 'sometimes|string',
+            'approval_status' => 'sometimes|string|in:draft,pending,approved,rejected',
+            'featured' => 'sometimes|boolean',
+            'premium' => 'sometimes|boolean',
+            'year_built' => 'sometimes|nullable|integer',
+            'lot_size' => 'sometimes|nullable|string',
+            'parking_spaces' => 'sometimes|nullable|integer',
+            'amenities' => 'sometimes|nullable|array',
+            'nearby_places' => 'sometimes|nullable|array',
+            'video_url' => 'sometimes|nullable|string|max:500',
+            'virtual_tour_url' => 'sometimes|nullable|string|max:500',
+        ]);
+        $property->update($validated);
         $this->logActivity('property_updated', $property);
         return response()->json(['data' => $property->fresh('images'), 'message' => 'Property updated']);
     }
