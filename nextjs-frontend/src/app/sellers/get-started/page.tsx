@@ -24,7 +24,7 @@ const steps = [
     icon: '🤝',
     title: 'Step 3: Close the Deal',
     description: 'Negotiate the best offer, navigate inspections and appraisals, and close with confidence. We handle the paperwork so you don\'t have to.',
-    href: '/sellers/contact',
+    href: '/contact',
   },
 ];
 

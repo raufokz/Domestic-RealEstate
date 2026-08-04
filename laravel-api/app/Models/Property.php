@@ -44,6 +44,14 @@ class Property extends Model
             if (!$model->uuid) $model->uuid = Str::uuid();
             if (!$model->slug) $model->slug = Str::slug($model->title) . '-' . Str::random(5);
         });
+        static::saved(function () {
+            cache()->forget('properties_featured');
+            cache()->forget('properties_premium');
+        });
+        static::deleted(function () {
+            cache()->forget('properties_featured');
+            cache()->forget('properties_premium');
+        });
     }
 
     public function propertyType() { return $this->belongsTo(PropertyType::class); }

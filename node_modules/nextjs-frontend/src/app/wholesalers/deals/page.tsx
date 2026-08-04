@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
 export const metadata: Metadata = {
@@ -51,9 +52,12 @@ export default function DealsPage() {
                       <p className="font-heading font-semibold text-[#0A2647]">{deal.type}</p>
                     </div>
                   </div>
-                  <button className="w-full bg-[#0A2647] text-white font-heading font-semibold py-3 rounded-lg hover:bg-[#0A2647]/90 transition-colors text-sm group-hover:bg-[#C9A227] group-hover:text-[#0A2647]">
+                  <Link
+                    href="/wholesalers/inquiry"
+                    className="block text-center w-full bg-[#0A2647] text-white font-heading font-semibold py-3 rounded-lg hover:bg-[#0A2647]/90 transition-colors text-sm group-hover:bg-[#C9A227] group-hover:text-[#0A2647]"
+                  >
                     Request Details
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}

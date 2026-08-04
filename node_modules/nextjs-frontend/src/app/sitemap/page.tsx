@@ -49,11 +49,11 @@ const groups: LinkGroup[] = [
     title: "For Buyers",
     links: [
       { label: "Buyer Services", href: "/buyers" },
-      { label: "Home Search", href: "/buyers/home-search" },
+      { label: "Home Search", href: "/properties" },
       { label: "Buyer Guide", href: "/buyers/guide" },
       { label: "Mortgage Calculator", href: "/buyers/mortgage-calculator" },
       { label: "Affordability Calculator", href: "/buyers/affordability-calculator" },
-      { label: "First-Time Buyers", href: "/buyers/first-time-buyers" },
+      { label: "First-Time Buyers", href: "/buyers/first-time" },
     ],
   },
   {

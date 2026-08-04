@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import UniversalChatWidget from "@/components/ai/UniversalChatWidget";
+import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import RealEstateBeesHome from "@/components/home/RealEstateBeesHome";
+import type { PublicAgent } from "@/lib/agents";
 
 function FloatingElements() {
   return null;
@@ -135,16 +136,16 @@ function ExitIntentPopup() {
   );
 }
 
-export default function Home() {
+export default function Home({ initialAgents = [] }: { initialAgents?: PublicAgent[] }) {
   return (
     <div className="min-h-screen bg-white">
       <main>
-        <RealEstateBeesHome />
+        <RealEstateBeesHome initialAgents={initialAgents} />
       </main>
 
       <FloatingElements />
       <ExitIntentPopup />
-      <UniversalChatWidget context="home" leadType="general" />
+      <ChatWidgetWrapper context="home" leadType="general" />
     </div>
   );
 }

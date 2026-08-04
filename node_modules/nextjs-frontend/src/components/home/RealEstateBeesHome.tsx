@@ -76,7 +76,7 @@ const planBackgrounds: Record<string, { bg: string; border: string; accentText: 
   },
 };
 
-export default function RealEstateBeesHome() {
+export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgents?: PublicAgent[] }) {
   const [activeHeroTab, setActiveHeroTab] = useState<"leads" | "properties" | "directory" | "academy">("leads");
   const [activeProIndex, setActiveProIndex] = useState(0);
   const [activeDirectoryTab, setActiveDirectoryTab] = useState<"pros" | "buyers" | "category" | "directory">("pros");
@@ -84,10 +84,12 @@ export default function RealEstateBeesHome() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annually">("monthly");
 
-  const [featuredAgents, setFeaturedAgents] = useState<PublicAgent[]>([]);
-  const [loadingAgents, setLoadingAgents] = useState(true);
+  const [featuredAgents, setFeaturedAgents] = useState<PublicAgent[]>(initialAgents);
+  const [loadingAgents, setLoadingAgents] = useState(initialAgents.length === 0);
 
   useEffect(() => {
+    // Skip client-side fetch if server already pre-loaded agents
+    if (initialAgents.length > 0) return;
     let active = true;
     getAgents({ is_featured: 1 }, 4).then((res) => {
       if (!active) return;
@@ -106,7 +108,7 @@ export default function RealEstateBeesHome() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialAgents]);
 
   /* Calculator State */
   const [monthlyLeads, setMonthlyLeads] = useState(50);

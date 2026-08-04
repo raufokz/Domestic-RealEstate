@@ -9,21 +9,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Fix model_has_roles: remove surrogate id, use composite PK
-        DB::statement('ALTER TABLE model_has_roles MODIFY COLUMN id BIGINT UNSIGNED NOT NULL');
-        Schema::table('model_has_roles', function (Blueprint $table) {
-            $table->dropPrimary('PRIMARY');
-            $table->dropColumn('id');
-            $table->primary(['role_id', 'model_id', 'model_type']);
-        });
+        if (DB::getDriverName() === 'mysql') {
+            // Fix model_has_roles: remove surrogate id, use composite PK
+            DB::statement('ALTER TABLE model_has_roles MODIFY COLUMN id BIGINT UNSIGNED NOT NULL');
+            Schema::table('model_has_roles', function (Blueprint $table) {
+                $table->dropPrimary('PRIMARY');
+                $table->dropColumn('id');
+                $table->primary(['role_id', 'model_id', 'model_type']);
+            });
 
-        // Fix model_has_permissions: remove surrogate id, use composite PK
-        DB::statement('ALTER TABLE model_has_permissions MODIFY COLUMN id BIGINT UNSIGNED NOT NULL');
-        Schema::table('model_has_permissions', function (Blueprint $table) {
-            $table->dropPrimary('PRIMARY');
-            $table->dropColumn('id');
-            $table->primary(['permission_id', 'model_id', 'model_type']);
-        });
+            // Fix model_has_permissions: remove surrogate id, use composite PK
+            DB::statement('ALTER TABLE model_has_permissions MODIFY COLUMN id BIGINT UNSIGNED NOT NULL');
+            Schema::table('model_has_permissions', function (Blueprint $table) {
+                $table->dropPrimary('PRIMARY');
+                $table->dropColumn('id');
+                $table->primary(['permission_id', 'model_id', 'model_type']);
+            });
+        }
     }
 
     public function down(): void

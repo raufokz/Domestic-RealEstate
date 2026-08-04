@@ -124,13 +124,16 @@ export default function LeadGenerationPage() {
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full font-heading font-semibold py-3 rounded-lg transition-colors ${
-                  tier.popular
-                    ? 'bg-[#C9A227] text-[#0A2647] hover:bg-[#C9A227]/90'
-                    : 'bg-[#0A2647] text-white hover:bg-[#0A2647]/90'
-                }`}>
+                <Link
+                  href={tier.cta === 'Contact Sales' ? '/contact' : '/register'}
+                  className={`block text-center w-full font-heading font-semibold py-3 rounded-lg transition-colors ${
+                    tier.popular
+                      ? 'bg-[#C9A227] text-[#0A2647] hover:bg-[#C9A227]/90'
+                      : 'bg-[#0A2647] text-white hover:bg-[#0A2647]/90'
+                  }`}
+                >
                   {tier.cta}
-                </button>
+                </Link>
               </div>
             ))}
           </div>

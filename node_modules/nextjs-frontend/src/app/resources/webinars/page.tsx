@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildMetadata, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import { PageHero, FeaturesSection, CTASection, renderIcon } from "@/components/ui/PageTemplate";
@@ -47,9 +48,9 @@ export default function WebinarsPage() {
                 <div className="w-12 h-12 bg-[#0A2647]/10 rounded-xl flex items-center justify-center mb-5 hover:bg-[#C9A227]/20 transition-colors text-[#C9A227]">{renderIcon(w.icon)}</div>
                 <h3 className="font-heading font-bold text-lg text-[#0A2647] mb-2">{w.title}</h3>
                 <p className="font-body text-slate-600 text-sm leading-relaxed">{w.description}</p>
-                <button className="mt-4 text-[#C9A227] font-heading font-semibold text-sm hover:underline">
+                <Link href="/contact?type=webinar" className="mt-4 inline-block text-[#C9A227] font-heading font-semibold text-sm hover:underline">
                   Register Free →
-                </button>
+                </Link>
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getProperties, formatPrice, propertyPhotoPaths, type PublicProperty } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
 
@@ -19,8 +20,7 @@ function PropertyCard({ p }: { p: PublicProperty }) {
     >
       <div className="h-48 bg-gray-100 relative overflow-hidden">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={img} alt={`${p.title}${location ? ` in ${location}` : ""}`} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image src={img} alt={`${p.title}${location ? ` in ${location}` : ""}`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div aria-hidden="true" className="w-full h-full bg-gradient-to-br from-[#0A2647]/10 to-[#C9A227]/10" />
         )}

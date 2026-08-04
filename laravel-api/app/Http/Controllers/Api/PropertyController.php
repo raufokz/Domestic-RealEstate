@@ -55,19 +55,21 @@ class PropertyController extends Controller
     }
 
     public function featured() {
-        return response()->json(
-            Property::where('featured', true)->where('approval_status', 'approved')
+        $properties = cache()->remember('properties_featured', 3600, function () {
+            return Property::where('featured', true)->where('approval_status', 'approved')
                 ->where('status', 'active')->with(['propertyType', 'realtor', 'images'])
-                ->limit(6)->get()
-        );
+                ->limit(6)->get();
+        });
+        return response()->json($properties);
     }
 
     public function premium() {
-        return response()->json(
-            Property::where('premium', true)->where('approval_status', 'approved')
+        $properties = cache()->remember('properties_premium', 3600, function () {
+            return Property::where('premium', true)->where('approval_status', 'approved')
                 ->where('status', 'active')->with(['propertyType', 'realtor', 'images'])
-                ->limit(12)->get()
-        );
+                ->limit(12)->get();
+        });
+        return response()->json($properties);
     }
 
     public function search(Request $request) {
@@ -87,7 +89,11 @@ class PropertyController extends Controller
     }
 
     public function show($slug) {
+        // Mirror index()'s visibility rule: a pending/rejected/inactive listing
+        // must 404 publicly even though the slug is guessable, not render.
         $property = Property::where('slug', $slug)
+            ->where('approval_status', 'approved')
+            ->where('status', 'active')
             ->with(['propertyType', 'realtor.agentProfile', 'broker', 'comments.user', 'images'])
             ->firstOrFail();
         $property->increment('view_count');

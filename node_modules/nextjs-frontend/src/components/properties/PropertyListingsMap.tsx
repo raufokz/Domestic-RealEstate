@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import "leaflet/dist/leaflet.css";
 import { storageUrl } from "@/lib/media";
 import { propertyPhotoPaths } from "@/lib/properties";
 

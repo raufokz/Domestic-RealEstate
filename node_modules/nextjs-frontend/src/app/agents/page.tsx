@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
 import { getAgents, agentName, agentInitials } from "@/lib/agents";
 import { storageUrl } from "@/lib/media";
@@ -78,8 +79,7 @@ export default async function AgentsPage() {
                     <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
                       <div className="w-16 h-16 bg-[#0A2647] rounded-2xl flex items-center justify-center text-[#C9A227] font-heading font-extrabold text-xl shadow-md border border-[#C9A227]/30 overflow-hidden">
                         {avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={avatar} alt={agentName(agent)} className="w-full h-full object-cover" />
+                          <Image src={avatar} alt={agentName(agent)} width={64} height={64} className="w-full h-full object-cover" />
                         ) : (
                           agentInitials(agent)
                         )}

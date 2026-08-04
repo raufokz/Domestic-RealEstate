@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { apiPost } from '@/lib/api';
 import { useToast } from '@/components/Toast';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 
 export default function AgentApplicationPage() {
   const { success, notifyError } = useToast();
@@ -306,7 +306,7 @@ export default function AgentApplicationPage() {
         </div>
       </div>
 
-      <UniversalChatWidget context="agent" leadType="agent" />
+      <ChatWidgetWrapper context="agent" leadType="agent" />
     </div>
   );
 }

@@ -12,11 +12,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE integrations MODIFY category ENUM('social','email','ai','maps','calendar','storage','analytics','esign','automation','payments','sms','other') NOT NULL DEFAULT 'other'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE integrations MODIFY category ENUM('social','email','ai','maps','calendar','storage','analytics','esign','automation','payments','sms','other') NOT NULL DEFAULT 'other'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE integrations MODIFY category ENUM('social','email','ai','maps','calendar','storage','analytics','esign','automation','other') NOT NULL DEFAULT 'other'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE integrations MODIFY category ENUM('social','email','ai','maps','calendar','storage','analytics','esign','automation','other') NOT NULL DEFAULT 'other'");
+        }
     }
 };

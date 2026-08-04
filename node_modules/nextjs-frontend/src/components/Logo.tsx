@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 interface LogoProps {
   /** Visual size preset */
@@ -42,15 +43,15 @@ export default function Logo({
   const img = (
     /* flex + items-center keeps the image vertically centred inside any flex parent */
     <span className={`inline-flex items-center flex-shrink-0 ${className}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src="/Domestic-logo.png"
         alt="Domestic Real Estate"
-        /* w-auto lets the browser compute the natural aspect ratio width */
+        width={220}
+        height={56}
         className={`${h} w-auto object-contain select-none ${dark ? "brightness-0 invert" : ""}`}
-        /* prevent layout shift – the logo is wide so give a generous max */
         style={{ maxWidth: "220px" }}
         draggable={false}
+        priority
       />
     </span>
   );

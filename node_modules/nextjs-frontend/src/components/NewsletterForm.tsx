@@ -1,15 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { apiPost, ApiError } from "@/lib/api";
 
-export default function NewsletterForm() {
+export default function NewsletterForm({ source = "website" }: { source?: string }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await apiPost("/newsletter", { email, source });
       setSubmitted(true);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 422) {
+        setError("This email is already subscribed — you're all set!");
+      } else {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Could not subscribe right now. Please try again shortly."
+        );
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -52,11 +71,17 @@ export default function NewsletterForm() {
         />
         <button
           type="submit"
-          className="bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors whitespace-nowrap"
+          disabled={submitting}
+          className="bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors whitespace-nowrap disabled:opacity-60"
         >
-          Subscribe
+          {submitting ? "Subscribing…" : "Subscribe"}
         </button>
       </form>
+      {error && (
+        <p className="font-body text-xs text-red-600 text-center mt-3" role="alert">
+          {error}
+        </p>
+      )}
       <p className="font-body text-xs text-gray-400 text-center mt-4">
         No spam, ever. Unsubscribe anytime. We respect your privacy.
       </p>

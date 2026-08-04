@@ -7,6 +7,7 @@ use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class BlogController extends Controller
@@ -53,6 +54,8 @@ class BlogController extends Controller
         $slug = Str::slug($request->title);
         $existing = Blog::where('slug', $slug)->count();
         if ($existing > 0) $slug .= '-' . time();
+
+        Cache::forget('blog:tags');
 
         $post = Blog::create([
             'title' => $request->title,
@@ -108,12 +111,14 @@ class BlogController extends Controller
         }
 
         $post->update($data);
+        Cache::forget('blog:tags');
         return response()->json($post);
     }
 
     public function destroy($id) {
         $post = Blog::findOrFail($id);
         $post->delete();
+        Cache::forget('blog:tags');
         return response()->json(['message' => 'Post deleted']);
     }
 
@@ -163,22 +168,29 @@ class BlogController extends Controller
     }
 
     public function tags() {
-        $counts = [];
-        Blog::whereNotNull('tags')->pluck('tags')->each(function ($tags) use (&$counts) {
-            foreach ((is_array($tags) ? $tags : []) as $tag) {
-                $tag = trim((string) $tag);
-                if ($tag === '') {
-                    continue;
+        // Recomputes by scanning every post's tags column — cache briefly so it
+        // isn't redone on every request; store()/update()/destroy()/destroyTag()
+        // all forget this key so edits still show up immediately.
+        $items = Cache::remember('blog:tags', 600, function () {
+            $counts = [];
+            Blog::whereNotNull('tags')->pluck('tags')->each(function ($tags) use (&$counts) {
+                foreach ((is_array($tags) ? $tags : []) as $tag) {
+                    $tag = trim((string) $tag);
+                    if ($tag === '') {
+                        continue;
+                    }
+                    $counts[$tag] = ($counts[$tag] ?? 0) + 1;
                 }
-                $counts[$tag] = ($counts[$tag] ?? 0) + 1;
-            }
-        });
+            });
 
-        $items = [];
-        foreach ($counts as $name => $count) {
-            $items[] = ['name' => $name, 'slug' => Str::slug($name), 'posts_count' => $count];
-        }
-        usort($items, fn ($a, $b) => strcmp($a['name'], $b['name']));
+            $items = [];
+            foreach ($counts as $name => $count) {
+                $items[] = ['name' => $name, 'slug' => Str::slug($name), 'posts_count' => $count];
+            }
+            usort($items, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+            return $items;
+        });
 
         return ApiResponse::ok($items, 'Tags loaded');
     }
@@ -210,6 +222,7 @@ class BlogController extends Controller
                 $p->save();
             }
         }
+        Cache::forget('blog:tags');
         return ApiResponse::ok(null, 'Tag removed from posts');
     }
 }

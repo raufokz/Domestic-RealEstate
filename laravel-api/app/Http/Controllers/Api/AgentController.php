@@ -30,7 +30,14 @@ class AgentController extends Controller
     }
 
     public function show($slug) {
-        $profile = AgentProfile::where('slug', $slug)->with(['user', 'documents'])->firstOrFail();
+        // Mirror index()'s visibility rule (unpublished/unapproved profiles 404
+        // publicly), and never eager-load `documents` here — those are private
+        // license/ID verification uploads, not public-profile content.
+        $profile = AgentProfile::where('slug', $slug)
+            ->where('is_published', true)
+            ->where('status', 'approved')
+            ->with('user')
+            ->firstOrFail();
 
         $listings = Property::where('realtor_id', $profile->user_id)
             ->where('approval_status', 'approved')

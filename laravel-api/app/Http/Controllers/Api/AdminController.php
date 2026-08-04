@@ -19,6 +19,7 @@ use App\Models\EmailCampaign;
 use App\Models\AdminActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
@@ -42,32 +43,37 @@ class AdminController extends Controller
 
     public function dashboard() {
         $this->checkAdmin();
-        return response()->json([
-            'stats' => [
-                'total_users' => User::count(),
-                'total_agents' => User::where('role', 'agent')->count(),
-                'total_properties' => Property::count(),
-                'active_properties' => Property::where('status', 'active')->count(),
-                'total_leads' => Lead::count(),
-                'new_leads' => Lead::where('status', 'new')->count(),
-                'hot_leads' => Lead::where('priority', 'hot')->count(),
-                'total_enquiries' => Enquiry::count(),
-                'pending_approvals' => Property::where('approval_status', 'pending')->count(),
-                'pending_agents' => AgentProfile::where('status', 'pending')->count(),
-                'service_requests_new' => ServiceRequest::where('status', 'new')->count(),
-                'contracts_pending' => Contract::where('status', 'sent')->count(),
-                'invoices_unpaid' => Invoice::whereIn('status', ['sent', 'overdue'])->count(),
-                'invoices_total_unpaid' => Invoice::whereIn('status', ['sent', 'overdue'])->sum('amount'),
-                'newsletter_subscribers' => NewsletterSubscriber::where('status', 'active')->count(),
-                'total_blogs' => Blog::count(),
-                'total_testimonials' => Testimonial::count(),
-                'total_faqs' => Faq::count(),
-                'active_campaigns' => EmailCampaign::where('status', 'sending')->count(),
-            ],
-            'recent_leads' => Lead::with('assignee')->latest()->limit(10)->get(),
-            'recent_properties' => Property::latest()->limit(5)->get(),
-            'recent_service_requests' => ServiceRequest::latest()->limit(5)->get(),
-        ]);
+        // Stats are a point-in-time overview, not live data — cached briefly to
+        // avoid ~19 count/sum queries running on every dashboard load/poll.
+        $data = Cache::remember('admin:dashboard', 90, function () {
+            return [
+                'stats' => [
+                    'total_users' => User::count(),
+                    'total_agents' => User::where('role', 'agent')->count(),
+                    'total_properties' => Property::count(),
+                    'active_properties' => Property::where('status', 'active')->count(),
+                    'total_leads' => Lead::count(),
+                    'new_leads' => Lead::where('status', 'new')->count(),
+                    'hot_leads' => Lead::where('priority', 'hot')->count(),
+                    'total_enquiries' => Enquiry::count(),
+                    'pending_approvals' => Property::where('approval_status', 'pending')->count(),
+                    'pending_agents' => AgentProfile::where('status', 'pending')->count(),
+                    'service_requests_new' => ServiceRequest::where('status', 'new')->count(),
+                    'contracts_pending' => Contract::where('status', 'sent')->count(),
+                    'invoices_unpaid' => Invoice::whereIn('status', ['sent', 'overdue'])->count(),
+                    'invoices_total_unpaid' => Invoice::whereIn('status', ['sent', 'overdue'])->sum('amount'),
+                    'newsletter_subscribers' => NewsletterSubscriber::where('status', 'active')->count(),
+                    'total_blogs' => Blog::count(),
+                    'total_testimonials' => Testimonial::count(),
+                    'total_faqs' => Faq::count(),
+                    'active_campaigns' => EmailCampaign::where('status', 'sending')->count(),
+                ],
+                'recent_leads' => Lead::with('assignee')->latest()->limit(10)->get(),
+                'recent_properties' => Property::latest()->limit(5)->get(),
+                'recent_service_requests' => ServiceRequest::latest()->limit(5)->get(),
+            ];
+        });
+        return response()->json($data);
     }
 
     public function stats(Request $request) {
@@ -157,7 +163,7 @@ class AdminController extends Controller
         if ($request->filled('status')) $query->where('status', $request->status);
         if ($request->filled('type')) $query->where('type', $request->type);
         if ($request->filled('priority')) $query->where('priority', $request->priority);
-        return response()->json($query->orderBy('created_at', 'desc')->paginate(25));
+        return response()->json($query->orderBy('created_at', 'desc')->paginate(min((int) $request->get('per_page', 25), 200)));
     }
 
     public function enquiries(Request $request) {
@@ -290,6 +296,18 @@ class AdminController extends Controller
     {
         $this->checkAdmin();
         $days = (int) ($request->get('days', 30));
+
+        // ~18 aggregate queries incl. full page_views scans — this is a
+        // point-in-time report, not live data, so cache briefly per period.
+        $data = Cache::remember("admin:analytics:{$days}", 180, function () use ($days) {
+            return $this->buildAnalytics($days);
+        });
+
+        return response()->json($data);
+    }
+
+    private function buildAnalytics(int $days): array
+    {
         $startDate = now()->subDays($days);
 
         $totalPageViews = \Illuminate\Support\Facades\DB::table('page_views')->where('created_at', '>=', $startDate)->count();
@@ -361,7 +379,7 @@ class AdminController extends Controller
         $totalInvoices = Invoice::count();
         $revenueData = Invoice::where('status', 'paid')->sum('amount');
 
-        return response()->json([
+        return [
             'period_days' => $days,
             'page_views' => [
                 'total' => $totalPageViews,
@@ -396,7 +414,7 @@ class AdminController extends Controller
                 'total_invoices' => $totalInvoices,
                 'total_collected' => $revenueData,
             ],
-        ]);
+        ];
     }
 
     // Newsletter Subscribers

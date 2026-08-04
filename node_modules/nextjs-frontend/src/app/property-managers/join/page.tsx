@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
 export default function PropertyManagerJoinPage() {
@@ -121,7 +121,7 @@ export default function PropertyManagerJoinPage() {
         secondaryAction={{ label: 'Back to Property Managers', href: '/property-managers' }}
       />
 
-      <UniversalChatWidget context="property-manager" leadType="property_manager" />
+      <ChatWidgetWrapper context="property-manager" leadType="property_manager" />
     </main>
   );
 }

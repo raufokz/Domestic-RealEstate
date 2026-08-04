@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
 export default function BrokerageJoinPage() {
@@ -126,7 +126,7 @@ export default function BrokerageJoinPage() {
         secondaryAction={{ label: 'Back to Brokerages', href: '/brokerages' }}
       />
 
-      <UniversalChatWidget context="brokerage" leadType="brokerage" />
+      <ChatWidgetWrapper context="brokerage" leadType="brokerage" />
     </main>
   );
 }

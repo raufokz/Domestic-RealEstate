@@ -7,7 +7,29 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.domesticrealestate.us",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.amazonaws.com",
+      },
     ],
+    formats: ["image/avif", "image/webp"],
+  },
+  poweredByHeader: false,
+  compress: true,
+  experimental: {
+    optimizePackageImports: ["framer-motion", "recharts", "leaflet"],
   },
 };
 

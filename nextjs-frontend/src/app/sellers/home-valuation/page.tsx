@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiPost } from '@/lib/api';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 
 const conditions = ['Excellent', 'Very Good', 'Good', 'Fair', 'Needs Work'];
 
@@ -301,7 +301,7 @@ export default function HomeValuationPage() {
           </div>
         </section>
       )}
-      <UniversalChatWidget context="seller" leadType="seller" />
+      <ChatWidgetWrapper context="seller" leadType="seller" />
     </main>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
 export default function LenderJoinPage() {
@@ -103,7 +103,7 @@ export default function LenderJoinPage() {
         secondaryAction={{ label: 'Back to Lenders', href: '/lenders' }}
       />
 
-      <UniversalChatWidget context="lender" leadType="lender" />
+      <ChatWidgetWrapper context="lender" leadType="lender" />
     </main>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildMetadata, SITE_NAME, SITE_URL, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import HomeClient from "@/components/home/HomeClient";
+import { getAgents, type PublicAgent } from "@/lib/agents";
 
 export const metadata: Metadata = buildMetadata({
   fullTitle: "Domestic Real Estate | #1 AI Property & Off-Market Marketplace (DomesticRealEstate)",
@@ -61,11 +62,22 @@ const websiteSchema = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Pre-fetch featured agents server-side to eliminate client-side loading spinner & CLS
+  let initialAgents: PublicAgent[] = [];
+  try {
+    initialAgents = await getAgents({ is_featured: 1 }, 4);
+    if (initialAgents.length === 0) {
+      initialAgents = await getAgents({}, 4);
+    }
+  } catch {
+    // Graceful fallback — client component will re-try if needed
+  }
+
   return (
     <>
       <JsonLd data={[orgSchema, websiteSchema, breadcrumbLd([{ name: "Home", path: "/" }])]} />
-      <HomeClient />
+      <HomeClient initialAgents={initialAgents} />
     </>
   );
 }

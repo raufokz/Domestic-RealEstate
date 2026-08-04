@@ -5,15 +5,17 @@ import SiteLayout from "@/components/SiteLayout";
 import ExtensionCleanup from "@/components/ExtensionCleanup";
 
 import { ToastProvider } from "@/components/Toast";
+import { AuthProvider } from "@/hooks/useAuth";
 import SkipToContent from "@/components/SkipToContent";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  // 300 dropped: sitewide usage of font-light is ~2 occurrences, not worth the
+  // extra font-file weight shipped to every page.
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const poppins = Poppins({
@@ -183,8 +185,10 @@ export default function RootLayout({
         </Script>
         <ExtensionCleanup />
         <ToastProvider>
-          <SkipToContent />
-          <SiteLayout>{children}</SiteLayout>
+          <AuthProvider>
+            <SkipToContent />
+            <SiteLayout>{children}</SiteLayout>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

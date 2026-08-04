@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import PropertyGrid from "@/components/properties/PropertyGrid";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, faqLd, SITE_URL } from "@/lib/seo";
@@ -89,6 +90,12 @@ const CITY_SLUGS = [
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
   const { city: slug } = await params;
+
+  // CITY_SLUGS is the curated set of city landing pages this site actually
+  // publishes (matches /cities' index). Anything outside it renders a fully
+  // fabricated page for whatever string the visitor typed — a soft-404.
+  if (!CITY_SLUGS.includes(slug)) notFound();
+
   const city = CITY_DB[slug] ?? fallbackCity(slug);
   const loc = city.state ? `${city.name}, ${city.state}` : city.name;
   return buildMetadata({
@@ -102,6 +109,9 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 
 export default async function CityDetailPage({ params }: { params: Promise<{ city: string }> }) {
   const { city: slug } = await params;
+
+  if (!CITY_SLUGS.includes(slug)) notFound();
+
   const city = CITY_DB[slug] ?? fallbackCity(slug);
 
   const stats = [

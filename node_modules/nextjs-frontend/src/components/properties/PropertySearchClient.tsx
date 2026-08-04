@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { apiGet, ApiError } from "@/lib/api";
 import { propertyPhotoPaths } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
-import UniversalChatWidget from "@/components/ai/UniversalChatWidget";
+import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import dynamic from "next/dynamic";
 
 const PropertyListingsMap = dynamic(() => import("./PropertyListingsMap"), { ssr: false });
@@ -497,7 +497,7 @@ export default function PropertySearchClient() {
         </div>
       </main>
 
-      <UniversalChatWidget context="property" leadType="buyer" />
+      <ChatWidgetWrapper context="property" leadType="buyer" />
     </div>
   );
 }

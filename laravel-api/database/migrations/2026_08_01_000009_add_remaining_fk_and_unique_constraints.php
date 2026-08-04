@@ -27,15 +27,17 @@ return new class extends Migration
         });
 
         // ad_placements.price: money precision consistency (was decimal(8,2), caps at ~999,999.99)
-        DB::statement('ALTER TABLE ad_placements MODIFY price DECIMAL(12,2) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE ad_placements MODIFY price DECIMAL(12,2) NOT NULL');
 
-        // leads.pre_approved / consent_given: nullable booleans are a tri-state bug magnet.
-        // Existing NULLs (560/561 rows) mean "never answered" -> default to false (the safe,
-        // conservative reading), not true.
-        DB::statement("UPDATE leads SET pre_approved = 0 WHERE pre_approved IS NULL");
-        DB::statement("UPDATE leads SET consent_given = 0 WHERE consent_given IS NULL");
-        DB::statement('ALTER TABLE leads MODIFY pre_approved TINYINT(1) NOT NULL DEFAULT 0');
-        DB::statement('ALTER TABLE leads MODIFY consent_given TINYINT(1) NOT NULL DEFAULT 0');
+            // leads.pre_approved / consent_given: nullable booleans are a tri-state bug magnet.
+            // Existing NULLs (560/561 rows) mean "never answered" -> default to false (the safe,
+            // conservative reading), not true.
+            DB::statement("UPDATE leads SET pre_approved = 0 WHERE pre_approved IS NULL");
+            DB::statement("UPDATE leads SET consent_given = 0 WHERE consent_given IS NULL");
+            DB::statement('ALTER TABLE leads MODIFY pre_approved TINYINT(1) NOT NULL DEFAULT 0');
+            DB::statement('ALTER TABLE leads MODIFY consent_given TINYINT(1) NOT NULL DEFAULT 0');
+        }
     }
 
     public function down(): void
@@ -49,8 +51,10 @@ return new class extends Migration
         Schema::table('webhook_events', function (Blueprint $table) {
             $table->dropUnique('uq_webhook_events_payload_hash');
         });
-        DB::statement('ALTER TABLE ad_placements MODIFY price DECIMAL(8,2) NOT NULL');
-        DB::statement('ALTER TABLE leads MODIFY pre_approved TINYINT(1) NULL DEFAULT NULL');
-        DB::statement('ALTER TABLE leads MODIFY consent_given TINYINT(1) NULL DEFAULT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE ad_placements MODIFY price DECIMAL(8,2) NOT NULL');
+            DB::statement('ALTER TABLE leads MODIFY pre_approved TINYINT(1) NULL DEFAULT NULL');
+            DB::statement('ALTER TABLE leads MODIFY consent_given TINYINT(1) NULL DEFAULT NULL');
+        }
     }
 };

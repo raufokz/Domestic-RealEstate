@@ -14,4 +14,10 @@ class Testimonial extends Model
     ];
 
     protected function casts(): array { return ['featured' => 'boolean', 'sort_order' => 'integer', 'rating' => 'integer']; }
+
+    protected static function boot() {
+        parent::boot();
+        static::saved(function () { cache()->forget('seo_testimonials'); });
+        static::deleted(function () { cache()->forget('seo_testimonials'); });
+    }
 }

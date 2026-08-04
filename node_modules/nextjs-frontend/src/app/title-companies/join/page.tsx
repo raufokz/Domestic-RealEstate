@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import UniversalChatWidget from '@/components/ai/UniversalChatWidget';
+import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
 export default function TitleCompanyJoinPage() {
@@ -103,7 +103,7 @@ export default function TitleCompanyJoinPage() {
         secondaryAction={{ label: 'Back to Title Partners', href: '/title-companies' }}
       />
 
-      <UniversalChatWidget context="title-company" leadType="title_company" />
+      <ChatWidgetWrapper context="title-company" leadType="title_company" />
     </main>
   );
 }

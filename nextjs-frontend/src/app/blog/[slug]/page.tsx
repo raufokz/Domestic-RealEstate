@@ -6,11 +6,16 @@ import { buildMetadata, breadcrumbLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
   getBlogPostBySlug,
   getRelatedPosts,
+  getAdjacentPosts,
+  extractToc,
   formatBlogDate,
   formatReadingTime,
   authorInitials,
   postExcerpt,
 } from "@/lib/blog";
+import BlogShareButtons from "@/components/blog/BlogShareButtons";
+import BlogLeadForm from "@/components/blog/BlogLeadForm";
+import NewsletterForm from "@/components/NewsletterForm";
 
 export async function generateMetadata({
   params,
@@ -48,10 +53,13 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const related = await getRelatedPosts(post);
+  const { prev, next } = await getAdjacentPosts(post);
+  const { html: contentHtml, toc } = extractToc(post.content);
   const date = formatBlogDate(post.published_at ?? post.created_at);
   const readTime = formatReadingTime(post.reading_time);
   const authorName = post.author?.name ?? SITE_NAME;
   const tags = post.tags ?? [];
+  const shareUrl = `${SITE_URL}/blog/${post.slug}`;
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -116,7 +124,7 @@ export default async function BlogPostPage({
               )}
             </div>
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#0A2647] rounded-full flex items-center justify-center shrink-0">
                   <span className="text-white text-xs font-bold">{authorInitials(authorName)}</span>
@@ -128,6 +136,7 @@ export default async function BlogPostPage({
                   </p>
                 </div>
               </div>
+              <BlogShareButtons url={shareUrl} title={post.title} />
             </div>
 
             <h1 className="font-heading text-3xl md:text-4xl font-bold text-[#0A2647] mb-6 leading-tight">
@@ -138,25 +147,48 @@ export default async function BlogPostPage({
               <p className="font-body text-gray-500 text-lg mb-8">{post.excerpt}</p>
             )}
 
+            {toc.length > 1 && (
+              <nav
+                aria-label="Table of contents"
+                className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-10"
+              >
+                <p className="font-heading text-xs font-bold uppercase tracking-wider text-[#0A2647] mb-3">
+                  In This Article
+                </p>
+                <ol className="space-y-2">
+                  {toc.map((item) => (
+                    <li key={item.id} className={item.level === 3 ? "ml-4" : ""}>
+                      <a
+                        href={`#${item.id}`}
+                        className="font-body text-sm text-gray-600 hover:text-[#C9A227] transition-colors"
+                      >
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
+
             {/*
               Post bodies are HTML authored through the admin editor, which is behind
               auth:sanctum + the admin route group — the same trust boundary as JsonLd.
               Styling is applied via arbitrary variants since @tailwindcss/typography
               is not a dependency of this project.
             */}
-            {post.content ? (
+            {contentHtml ? (
               <div
                 className="font-body text-gray-700 text-base mb-10
                   [&_p]:leading-relaxed [&_p]:mb-5
-                  [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-[#0A2647] [&_h2]:mt-10 [&_h2]:mb-4
-                  [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-[#0A2647] [&_h3]:mt-8 [&_h3]:mb-3
+                  [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-[#0A2647] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:scroll-mt-24
+                  [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-[#0A2647] [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:scroll-mt-24
                   [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-5
                   [&_li]:mb-2
                   [&_a]:text-[#C9A227] [&_a]:underline hover:[&_a]:text-[#0A2647]
                   [&_blockquote]:border-l-4 [&_blockquote]:border-[#C9A227] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:my-6
                   [&_img]:rounded-xl [&_img]:my-6 [&_img]:max-w-full [&_img]:h-auto
                   [&_strong]:text-[#0A2647]"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
               />
             ) : (
               <p className="font-body text-gray-500 italic mb-10">
@@ -199,14 +231,62 @@ export default async function BlogPostPage({
                 Back to all articles
               </Link>
 
-              <Link
-                href="/contact"
-                className="px-5 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition-colors"
-              >
-                Talk to an Advisor
-              </Link>
+              <div className="flex items-center gap-4">
+                <BlogShareButtons url={shareUrl} title={post.title} />
+                <Link
+                  href="/contact"
+                  className="px-5 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition-colors whitespace-nowrap"
+                >
+                  Talk to an Advisor
+                </Link>
+              </div>
             </div>
+
+            {(prev || next) && (
+              <nav
+                aria-label="Article navigation"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-200"
+              >
+                {prev ? (
+                  <Link
+                    href={`/blog/${prev.slug}`}
+                    className="group flex flex-col p-5 rounded-xl border border-gray-200 hover:border-[#C9A227] transition-colors"
+                  >
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                      ← Previous
+                    </span>
+                    <span className="font-heading font-semibold text-[#0A2647] group-hover:text-[#C9A227] transition-colors line-clamp-2">
+                      {prev.title}
+                    </span>
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {next ? (
+                  <Link
+                    href={`/blog/${next.slug}`}
+                    className="group flex flex-col p-5 rounded-xl border border-gray-200 hover:border-[#C9A227] transition-colors sm:text-right sm:items-end"
+                  >
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                      Next →
+                    </span>
+                    <span className="font-heading font-semibold text-[#0A2647] group-hover:text-[#C9A227] transition-colors line-clamp-2">
+                      {next.title}
+                    </span>
+                  </Link>
+                ) : (
+                  <span />
+                )}
+              </nav>
+            )}
           </article>
+        </div>
+      </section>
+
+      <section className="py-16 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <NewsletterForm source="blog" />
+          <BlogLeadForm source={`blog:${post.slug}`} />
         </div>
       </section>
 

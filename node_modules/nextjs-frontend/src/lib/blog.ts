@@ -112,3 +112,63 @@ export function postExcerpt(post: BlogPost): string {
   const text = (post.content ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return text.length > 180 ? `${text.slice(0, 180)}…` : text;
 }
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+function slugifyHeading(text: string, seen: Map<string, number>): string {
+  const base = text
+    .toLowerCase()
+    .replace(/<[^>]*>/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "section";
+  const count = seen.get(base) ?? 0;
+  seen.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count}`;
+}
+
+/**
+ * Walks the admin-authored HTML body, stamps every h2/h3 with a stable id
+ * (skipping ones that already have one), and returns both the patched HTML
+ * and the resulting outline so the table of contents links actually land
+ * on the right heading instead of just the top of the article.
+ */
+export function extractToc(html: string | null | undefined): { html: string; toc: TocItem[] } {
+  if (!html) return { html: "", toc: [] };
+  const toc: TocItem[] = [];
+  const seen = new Map<string, number>();
+  const patched = html.replace(
+    /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi,
+    (match, level, attrs, inner) => {
+      const text = inner.replace(/<[^>]*>/g, "").trim();
+      if (!text) return match;
+      const existingId = /\bid=["']([^"']+)["']/.exec(attrs)?.[1];
+      const id = existingId || slugifyHeading(text, seen);
+      toc.push({ id, text, level: Number(level) as 2 | 3 });
+      const newAttrs = existingId ? attrs : ` id="${id}"${attrs}`;
+      return `<h${level}${newAttrs}>${inner}</h${level}>`;
+    }
+  );
+  return { html: patched, toc };
+}
+
+/**
+ * The post immediately before/after `post` in the published feed (newest
+ * first), for "Previous / Next" article navigation.
+ */
+export async function getAdjacentPosts(
+  post: BlogPost
+): Promise<{ prev: BlogPost | null; next: BlogPost | null }> {
+  const { posts } = await getBlogPosts(100);
+  const index = posts.findIndex((p) => p.id === post.id);
+  if (index === -1) return { prev: null, next: null };
+  return {
+    // Feed is newest-first: the "next" (older) post is at index+1,
+    // the "previous" (newer) post is at index-1.
+    prev: index > 0 ? posts[index - 1] : null,
+    next: index < posts.length - 1 ? posts[index + 1] : null,
+  };
+}

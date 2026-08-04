@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 import { getAgents, agentName, agentInitials } from '@/lib/agents';
 import { storageUrl } from '@/lib/media';
@@ -34,8 +35,7 @@ export default async function AgentDirectoryPage() {
                     <div className="p-6 flex items-center gap-4 border-b border-gray-50">
                       <div className="w-16 h-16 bg-[#C9A227]/20 rounded-full flex items-center justify-center overflow-hidden">
                         {avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={avatar} alt={agentName(agent)} className="w-full h-full object-cover" />
+                          <Image src={avatar} alt={agentName(agent)} width={64} height={64} className="w-full h-full object-cover" />
                         ) : (
                           <span className="font-heading text-xl font-bold text-[#0A2647]">{agentInitials(agent)}</span>
                         )}

@@ -1,12 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
-import ExitPopup from "@/components/ExitPopup";
-import StickyCTA from "@/components/StickyCTA";
-import BackToTop from "@/components/BackToTop";
+
+// These three render nothing until a scroll/timer/mouseleave event fires, so
+// deferring them off the initial bundle (and their framer-motion dependency)
+// has no visual effect — same behavior, smaller first-load JS on every page.
+const ExitPopup = dynamic(() => import("@/components/ExitPopup"), { ssr: false });
+const StickyCTA = dynamic(() => import("@/components/StickyCTA"), { ssr: false });
+const BackToTop = dynamic(() => import("@/components/BackToTop"), { ssr: false });
 
 const dashboardPrefixes = [
   "/admin",
@@ -41,7 +46,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Header />
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <Footer />
       {!hasCustomChat && <ChatWidgetWrapper />}
       <ExitPopup />

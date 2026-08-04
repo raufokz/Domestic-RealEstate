@@ -31,4 +31,15 @@ class SeoLandingPage extends Model
     }
 
     public function getRouteKeyName() { return 'slug'; }
+
+    protected static function boot() {
+        parent::boot();
+        $clearCache = function ($model) {
+            if ($model->slug) {
+                cache()->forget('seo_landing_page_' . $model->slug);
+            }
+        };
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
 }

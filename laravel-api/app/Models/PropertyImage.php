@@ -18,4 +18,16 @@ class PropertyImage extends Model
     }
 
     public function property() { return $this->belongsTo(Property::class); }
+
+    protected static function boot() {
+        parent::boot();
+        static::saved(function () {
+            cache()->forget('properties_featured');
+            cache()->forget('properties_premium');
+        });
+        static::deleted(function () {
+            cache()->forget('properties_featured');
+            cache()->forget('properties_premium');
+        });
+    }
 }

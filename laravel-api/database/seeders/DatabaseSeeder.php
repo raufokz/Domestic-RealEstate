@@ -205,5 +205,8 @@ class DatabaseSeeder extends Seeder
         foreach ($blogs as $blog) {
             Blog::create($blog);
         }
+
+        // ─── Marketplace Leads (PPL & PPC) ───
+        $this->call(MarketplaceSeeder::class);
     }
 }

@@ -53,6 +53,13 @@ Schedule::call(function () {
 })->everyMinute()->name('publish-scheduled-social-posts')->withoutOverlapping();
 
 /**
+ * Release marketplace lead reservations that expired without a payment.
+ */
+Schedule::call(function () {
+    \App\Http\Controllers\Api\MarketplaceController::releaseExpiredReservations();
+})->everyMinute()->name('release-expired-marketplace-reservations')->withoutOverlapping();
+
+/**
  * Flag invoices past their due date so the finance dashboard reflects reality.
  */
 Schedule::call(function () {

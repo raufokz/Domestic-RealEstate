@@ -49,7 +49,23 @@ class LeadNotificationService
             Log::warning("Failed to log lead capture activity: " . $e->getMessage());
         }
 
-        // 3. Send email notifications to admin
+        // 3 & 4. Admin alert + welcome email — SMTP sends are slow, so these run on
+        // the queue instead of blocking the form-submit HTTP response (see
+        // App\Jobs\SendLeadNotificationEmails).
+        \App\Jobs\SendLeadNotificationEmails::dispatch($lead->id, $type);
+    }
+
+    /**
+     * Send the admin alert + lead welcome email. Runs from
+     * App\Jobs\SendLeadNotificationEmails on the queue; kept as a public method
+     * here (not the job itself) so the email HTML/logic stays alongside the
+     * other lead-notification templates below.
+     */
+    public static function sendEmails(Lead $lead, string $type): void
+    {
+        $score = $lead->score ?: ($lead->chat_metadata['qualification_score'] ?? 0);
+
+        // Admin alert
         try {
             $adminEmail = config('mail.from.address', 'admin@domesticrealestate.us');
             Mail::send([], [], function ($msg) use ($adminEmail, $lead, $type, $score) {
@@ -75,11 +91,11 @@ class LeadNotificationService
             Log::warning("Admin lead alert email failed: " . $e->getMessage());
         }
 
-        // 4. Send Welcome Email with PDF attachments
+        // Welcome email with PDF attachment
         if ($lead->email) {
             try {
                 $guideFile = self::getGuidePath($type);
-                
+
                 Mail::send([], [], function ($msg) use ($lead, $type, $guideFile) {
                     $msg->to($lead->email)
                         ->subject(self::getWelcomeSubject($type))

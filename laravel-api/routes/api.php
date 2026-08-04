@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AiPromptController;
 use App\Http\Controllers\Api\FormSubmissionController;
+use App\Http\Controllers\Api\MarketplaceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -140,6 +141,9 @@ Route::get('/email/track/{trackingId}/click/{linkIndex}', [EmailTrackingControll
 Route::get('/email/unsubscribe/{token}', [EmailTrackingController::class, 'unsubscribe']);
 Route::post('/email/unsubscribe', [EmailTrackingController::class, 'processUnsubscribe']);
 
+// Payment Webhooks (Public)
+Route::post('/marketplace/webhook', [MarketplaceController::class, 'handleWebhook']);
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated Routes
@@ -190,6 +194,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/import', [LeadController::class, 'import']);
         Route::post('/reassign', [LeadController::class, 'bulkReassign']);
         Route::post('/qualify', [LeadController::class, 'qualify']);
+    });
+
+    // Pay-Per-Lead Marketplace (authenticated users)
+    Route::prefix('marketplace')->group(function () {
+        Route::get('/', [MarketplaceController::class, 'index']);
+        Route::get('/my-purchases', [MarketplaceController::class, 'myPurchases']);
+        Route::get('/leads/{id}', [MarketplaceController::class, 'show']);
+        Route::post('/leads/{id}/reserve', [MarketplaceController::class, 'reserve']);
+        Route::post('/leads/{id}/purchase', [MarketplaceController::class, 'purchase']);
+        Route::post('/leads/{id}/process-payment', [MarketplaceController::class, 'purchase']);
+        Route::post('/leads/{id}/release', [MarketplaceController::class, 'release']);
+        Route::get('/leads/{id}/details', [MarketplaceController::class, 'details']);
+        Route::get('/purchases/{id}/invoice', [MarketplaceController::class, 'getInvoice']);
+        Route::get('/purchases/{id}/export', [MarketplaceController::class, 'exportLead']);
+    });
+
+    // User notifications
+    Route::prefix('my')->group(function () {
+        Route::get('/notifications', [MarketplaceController::class, 'notifications']);
+        Route::post('/notifications/read', [MarketplaceController::class, 'markNotificationsRead']);
     });
 
     // AI Agent Management
@@ -364,6 +388,25 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::post('/agents/{id}/send-payment-link', [AdminController::class, 'sendAgentPaymentLink']);
     Route::get('/leads', [AdminController::class, 'leads']);
     Route::get('/enquiries', [AdminController::class, 'enquiries']);
+
+    // Pay-Per-Lead Marketplace (admin)
+    Route::prefix('marketplace')->group(function () {
+        Route::get('/', [MarketplaceController::class, 'adminIndex']);
+        Route::get('/analytics', [MarketplaceController::class, 'adminAnalytics']);
+        Route::get('/payment-logs', [MarketplaceController::class, 'adminPaymentLogs']);
+        Route::get('/users', [MarketplaceController::class, 'adminUserPermissions']);
+        Route::post('/users/{id}/permissions', [MarketplaceController::class, 'adminToggleUserPpl']);
+        Route::post('/leads', [MarketplaceController::class, 'adminStore']);
+        Route::put('/leads/{id}', [MarketplaceController::class, 'adminUpdate']);
+        Route::post('/leads/{id}/publish', [MarketplaceController::class, 'adminPublish']);
+        Route::post('/leads/{id}/unpublish', [MarketplaceController::class, 'adminUnpublish']);
+        Route::post('/leads/{id}/relist', [MarketplaceController::class, 'adminRelist']);
+        Route::post('/leads/{id}/assign', [MarketplaceController::class, 'adminAssignLead']);
+        Route::get('/purchases', [MarketplaceController::class, 'adminPurchases']);
+        Route::post('/purchases/{purchaseId}/confirm', [MarketplaceController::class, 'adminConfirmPayment']);
+        Route::post('/purchases/{purchaseId}/cancel', [MarketplaceController::class, 'adminCancelPurchase']);
+        Route::post('/purchases/{purchaseId}/refund', [MarketplaceController::class, 'adminRefund']);
+    });
     Route::get('/settings', [AdminController::class, 'settings']);
     Route::put('/settings', [AdminController::class, 'updateSettings']);
 

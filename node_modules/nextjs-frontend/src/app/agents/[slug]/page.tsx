@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getAgentBySlug, agentName, agentInitials } from "@/lib/agents";
 import { formatPrice, propertyPhotoPaths } from "@/lib/properties";
@@ -39,8 +40,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="w-32 h-32 md:w-40 md:h-40 bg-[#C9A227]/20 rounded-3xl flex items-center justify-center flex-shrink-0 overflow-hidden">
               {agent.user?.avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={storageUrl(agent.user.avatar) ?? undefined} alt={name} className="w-full h-full object-cover" />
+                <Image src={storageUrl(agent.user.avatar) ?? ""} alt={name} width={160} height={160} className="w-full h-full object-cover" priority />
               ) : (
                 <span className="font-heading text-4xl md:text-5xl font-bold text-white">{agentInitials(agent)}</span>
               )}
@@ -169,8 +169,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
                       <Link key={listing.id} href={`/properties/${listing.slug}`} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                         <div className="h-40 bg-gray-100 relative">
                           {photo ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={photo} alt={listing.title} className="w-full h-full object-cover" />
+                            <Image src={photo} alt={listing.title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-[#0A2647]/10 to-[#C9A227]/10" />
                           )}

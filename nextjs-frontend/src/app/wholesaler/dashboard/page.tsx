@@ -78,7 +78,7 @@ export default function WholesalerDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {RECENT_DEALS.map((deal) => (
-                    <tr key={deal.id} className="hover:bg-slate-50 transition cursor-pointer">
+                    <tr key={deal.id} className="hover:bg-slate-50 transition">
                       <td className="px-5 py-4">
                         <p className="font-semibold text-[#0A2647] text-sm">{deal.title}</p>
                         <p className="text-slate-500 text-xs">{deal.address}</p>

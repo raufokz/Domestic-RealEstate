@@ -24,4 +24,14 @@ class NavigationMenu extends Model
     public function scopeHeader($query) { return $query->whereIn('position', ['header', 'both']); }
     public function scopeFooter($query) { return $query->whereIn('position', ['footer', 'both']); }
     public function scopeOrdered($query) { return $query->orderBy('sort_order'); }
+
+    protected static function boot() {
+        parent::boot();
+        $clearCache = function () {
+            cache()->forget('nav_header_items');
+            cache()->forget('nav_footer_items');
+        };
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
 }

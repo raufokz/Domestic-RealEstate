@@ -53,29 +53,39 @@ export default function BrokerDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Manage Team", href: "/broker/dashboard/team", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z", color: "bg-blue-500" },
-            { label: "Team Listings", href: "/broker/dashboard/listings", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5", color: "bg-emerald-500" },
-            { label: "Analytics", href: "/broker/dashboard/analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", color: "bg-amber-500" },
-            { label: "Website", href: "/broker/dashboard/website", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9", color: "bg-purple-500" },
-          ].map((action) => (
-            <div
-
-              key={action.label}
-
-              aria-disabled="true"
-
-              title={`${action.label} is not available yet`}
-
-              className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 opacity-50 cursor-not-allowed select-none"
-
-            >
-              <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
-                </svg>
+            { label: "Team Listings", href: "/broker/dashboard/listings", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5", color: "bg-emerald-500", disabled: true },
+            { label: "Analytics", href: "/broker/dashboard/analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", color: "bg-amber-500", disabled: true },
+            { label: "Website", href: "/broker/dashboard/website", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9", color: "bg-purple-500", disabled: true },
+          ].map((action) =>
+            action.disabled ? (
+              <div
+                key={action.label}
+                aria-disabled="true"
+                title={`${action.label} is not available yet`}
+                className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 opacity-50 cursor-not-allowed select-none"
+              >
+                <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold text-[#0A2647]">{action.label}</span>
               </div>
-              <span className="text-sm font-semibold text-[#0A2647]">{action.label}</span>
-            </div>
-          ))}
+            ) : (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 hover:shadow-md hover:border-[#C9A227]/40 transition"
+              >
+                <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold text-[#0A2647]">{action.label}</span>
+              </Link>
+            )
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

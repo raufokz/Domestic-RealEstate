@@ -7,7 +7,7 @@ import Logo from "@/components/Logo";
 
 const navItems = [
   { name: "Dashboard", href: "/super-admin/dashboard", icon: "📊" },
-  { name: "System Health", href: "/super-admin/dashboard/health", icon: "💓" },
+  { name: "System Health", href: "/admin/system-health", icon: "💓" },
   { name: "All Users", href: "/admin/users", icon: "👥" },
   { name: "All Properties", href: "/admin/properties", icon: "🏠" },
   { name: "Revenue", href: "/admin/analytics", icon: "💰" },

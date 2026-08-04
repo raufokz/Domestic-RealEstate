@@ -79,6 +79,15 @@ const navCategories: NavCategory[] = [
     ],
   },
   {
+    id: "leads",
+    label: "Leads",
+    items: [
+      { title: "Buy Leads (Pay-Per-Lead)", href: "/marketplace", badge: "New" },
+      { title: "My Purchased Leads", href: "/marketplace/purchased" },
+      { title: "How It Works", href: "/marketplace/how-it-works" },
+    ],
+  },
+  {
     id: "agents",
     label: "Agents",
     items: [

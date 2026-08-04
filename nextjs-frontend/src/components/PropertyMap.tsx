@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import "leaflet/dist/leaflet.css";
 
 export default function PropertyMap({ lat, lng, title }: { lat: number; lng: number; title: string }) {
   const mapRef = useRef<HTMLDivElement>(null);

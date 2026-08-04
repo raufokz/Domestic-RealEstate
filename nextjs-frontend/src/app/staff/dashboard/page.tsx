@@ -161,15 +161,20 @@ export default function StaffDashboardPage() {
                   { label: "Generate Report", icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
                   { label: "Send Follow-up", icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
                 ].map((action) => (
-                  <button
+                  <span
                     key={action.label}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-[#0A2647] transition text-left"
+                    aria-disabled="true"
+                    title={`${action.label} is not available yet`}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed select-none"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
                     </svg>
                     {action.label}
-                  </button>
+                    <span className="ml-auto text-[10px] uppercase tracking-wide text-slate-400 border border-slate-300 rounded px-1.5 py-0.5">
+                      Soon
+                    </span>
+                  </span>
                 ))}
               </div>
             </div>

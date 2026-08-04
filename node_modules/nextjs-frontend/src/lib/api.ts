@@ -52,7 +52,18 @@ export function assertApiSuccess(data: unknown, fallbackFeature = "This feature"
   }
 }
 
-export async function apiGet<T>(path: string, options?: RequestInit): Promise<T> {
+/**
+ * `revalidateSeconds` opts a GET into Next.js's fetch cache instead of the
+ * default `no-store` — only safe for public, non-personalized data (property
+ * listings, blog, cities, agents directory, etc). Omit it and behavior is
+ * unchanged (always live), which is required for authenticated/portal/admin
+ * data.
+ */
+export async function apiGet<T>(
+  path: string,
+  options?: RequestInit,
+  revalidateSeconds?: number
+): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -65,7 +76,9 @@ export async function apiGet<T>(path: string, options?: RequestInit): Promise<T>
     res = await fetch(`${API_BASE}${path}`, {
       ...options,
       headers,
-      cache: "no-store",
+      ...(revalidateSeconds
+        ? { next: { revalidate: revalidateSeconds } }
+        : { cache: "no-store" }),
     });
   } catch {
     throw new ApiError(

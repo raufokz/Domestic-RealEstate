@@ -11,13 +11,17 @@ class NavigationController extends Controller
 {
     public function getHeaderMenu(): JsonResponse
     {
-        $items = NavigationMenu::active()->header()->ordered()->get();
+        $items = cache()->remember('nav_header_items', 86400, function () {
+            return NavigationMenu::active()->header()->ordered()->get();
+        });
         return response()->json($items);
     }
 
     public function getFooterMenu(): JsonResponse
     {
-        $items = NavigationMenu::active()->footer()->ordered()->get();
+        $items = cache()->remember('nav_footer_items', 86400, function () {
+            return NavigationMenu::active()->footer()->ordered()->get();
+        });
         return response()->json($items);
     }
 

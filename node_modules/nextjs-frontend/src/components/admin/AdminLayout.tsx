@@ -27,6 +27,10 @@ const navSections = [
     { name: "Enquiries", href: "/admin/enquiries", icon: "✉️" },
     { name: "Service Requests", href: "/admin/service-requests", icon: "📋" },
   ]},
+  { label: "MARKETPLACE", items: [
+    { name: "Marketplace Leads", href: "/admin/marketplace", icon: "💡" },
+    { name: "Purchases", href: "/admin/marketplace/purchases", icon: "💳" },
+  ]},
   { label: "PROPERTIES", items: [
     { name: "All Properties", href: "/admin/properties", icon: "🏠" },
     { name: "Types", href: "/admin/properties/types", icon: "📂" },

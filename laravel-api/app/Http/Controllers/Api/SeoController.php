@@ -14,15 +14,24 @@ class SeoController extends Controller
     }
 
     public function showLandingPage($slug) {
-        return response()->json(SeoLandingPage::where('slug', $slug)->where('status', 'published')->firstOrFail());
+        $data = cache()->remember('seo_landing_page_' . $slug, 86400, function () use ($slug) {
+            return SeoLandingPage::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        });
+        return response()->json($data);
     }
 
     public function testimonials() {
-        return response()->json(Testimonial::orderBy('sort_order')->get());
+        $data = cache()->remember('seo_testimonials', 86400, function () {
+            return Testimonial::orderBy('sort_order')->get();
+        });
+        return response()->json($data);
     }
 
     public function faqs() {
-        return response()->json(Faq::where('is_active', true)->orderBy('sort_order')->get());
+        $data = cache()->remember('seo_faqs', 86400, function () {
+            return Faq::where('is_active', true)->orderBy('sort_order')->get();
+        });
+        return response()->json($data);
     }
 
     public function adminIndex(Request $request)
