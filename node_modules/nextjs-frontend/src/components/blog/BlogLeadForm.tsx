@@ -37,64 +37,87 @@ export default function BlogLeadForm({ source = "blog" }: { source?: string }) {
 
   if (submitted) {
     return (
-      <div className="bg-[#0A2647] rounded-2xl p-8 text-center text-white">
-        <div className="w-12 h-12 bg-[#C9A227]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">✓</span>
+      <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-8 text-center text-stone-900 shadow-sm">
+        <div className="w-12 h-12 bg-[#C9A227]/15 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#C9A227]/30">
+          <span className="text-xl text-[#8C6D27]">✓</span>
         </div>
-        <h3 className="font-heading text-xl font-bold mb-2">Thanks — we got it!</h3>
-        <p className="text-slate-300 text-sm">
-          A Domestic Real Estate advisor will reach out shortly to help with your question.
+        <h3 className="font-heading text-xl font-bold text-[#0A2647] mb-2">Request Received</h3>
+        <p className="text-stone-600 text-sm leading-relaxed">
+          A Domestic Real Estate investment advisor will reach out to you shortly.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0A2647] rounded-2xl p-8 text-white">
-      <h3 className="font-heading text-xl font-bold mb-1">Have a question about this article?</h3>
-      <p className="text-slate-300 text-sm mb-6">
-        Tell us what you&apos;re working on and an advisor will follow up — no obligation.
+    <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-8 text-stone-900 shadow-sm">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="w-2 h-2 rounded-full bg-[#C9A227]" />
+        <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8C6D27]">
+          Expert Consultation
+        </span>
+      </div>
+      <h3 className="font-heading text-xl font-bold text-[#0A2647] mb-2">
+        Have a question about this research?
+      </h3>
+      <p className="text-stone-600 text-xs mb-6 leading-relaxed">
+        Speak directly with a licensed domestic real estate market advisor — no obligation.
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="text"
-          autoComplete="name"
-          required
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-        />
-        <input
-          type="email"
-          autoComplete="email"
-          required
-          placeholder="Email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-        />
-        <input
-          type="tel"
-          autoComplete="tel"
-          placeholder="Phone (optional)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-        />
-        <textarea
-          placeholder="What would you like to know? (optional)"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={3}
-          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227] resize-none"
-        />
+        <div>
+          <input
+            type="text"
+            autoComplete="name"
+            required
+            placeholder="Your Full Name *"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#EBE6DD] text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all"
+          />
+        </div>
+        <div>
+          <input
+            type="email"
+            autoComplete="email"
+            required
+            placeholder="Email Address *"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#EBE6DD] text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all"
+          />
+        </div>
+        <div>
+          <input
+            type="tel"
+            autoComplete="tel"
+            placeholder="Phone Number (optional)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#EBE6DD] text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all"
+          />
+        </div>
+        <div>
+          <textarea
+            placeholder="Specific questions or topic details..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#EBE6DD] text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all resize-none"
+          />
+        </div>
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-[#C9A227] text-[#0A2647] font-heading font-semibold py-3 rounded-lg hover:bg-[#C9A227]/90 transition-colors disabled:opacity-60"
+          className="w-full bg-[#0A2647] text-white font-heading font-semibold py-3.5 rounded-xl hover:bg-[#081F3A] transition-all shadow-sm hover:shadow disabled:opacity-60 text-sm flex items-center justify-center gap-2"
         >
-          {submitting ? "Sending…" : "Talk to an Advisor"}
+          {submitting ? (
+            <span>Submitting Request…</span>
+          ) : (
+            <>
+              <span>Talk to an Advisor</span>
+              <span className="text-[#C9A227]">→</span>
+            </>
+          )}
         </button>
       </form>
     </div>

@@ -53,6 +53,232 @@ export async function getBlogPosts(perPage = 12): Promise<BlogListResult> {
   }
 }
 
+const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
+  "domestic-vs-international-real-estate-investment": {
+    id: 1001,
+    slug: "domestic-vs-international-real-estate-investment",
+    title: "Domestic vs International Real Estate Investment",
+    excerpt: "Comprehensive breakdown comparing domestic property acquisition vs cross-border foreign real estate investments.",
+    content: `<h2>Understanding Domestic vs Cross-Border Real Estate Investing</h2>
+<p>Navigating property investments requires a clear understanding of geographic, regulatory, and tax distinctions between domestic transactions and international acquisitions.</p>
+<h3>Key Differences in Acquisition & Risk Profile</h3>
+<p>Domestic real estate investments benefit from familiar legal frameworks, standardized title insurance, accessible local financing, and zero foreign currency risk. Conversely, international investments present additional layers of complexity including foreign exchange volatility, sovereign political risk, and complex cross-border tax treaties.</p>
+<blockquote>Domestic real estate offers predictable cash flows, local market transparency, and streamlined leverage options through domestic mortgage lenders.</blockquote>
+<h3>Financing & Capital Deployment</h3>
+<p>Domestic investors can leverage conventional mortgages, FHA/VA programs, portfolio loans, and 1031 tax-deferred exchanges. Foreign properties rarely qualify for domestic tax-deferred exchanges and usually demand higher equity down payments from local international lenders.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Domestic vs International Real Estate Investment Guide",
+    meta_description: "Detailed comparison between domestic property investments and international cross-border real estate acquisitions.",
+    reading_time: 8,
+    tags: ["Real Estate", "Investment", "Domestic", "International"],
+    category: { id: 1, name: "Investment Analysis", slug: "investment-analysis" },
+    author: { id: 1, name: "Domestic RE Editorial Board", email: "editor@domesticre.com" },
+  },
+  "real-estate-investment-process-domestic-vs-foreign": {
+    id: 1002,
+    slug: "real-estate-investment-process-domestic-vs-foreign",
+    title: "Real Estate Investment Process Domestic vs Foreign",
+    excerpt: "Step-by-step walkthrough of legal compliance, title escrow, financing, and tax structures for domestic vs foreign buyers.",
+    content: `<h2>The Step-by-Step Acquisition Process</h2>
+<p>The transaction lifecycle for purchasing domestic property differs significantly from overseas real estate acquisitions. Understanding every milestone ensures a smooth closing.</p>
+<h3>1. Pre-Approval & Financial Verification</h3>
+<p>Domestic transactions begin with standard pre-approval letters from accredited domestic mortgage institutions. Foreign buyers must undergo FIRPTA verification, international wire checks, and strict anti-money laundering (AML) compliance documentation.</p>
+<h3>2. Title Search & Escrow Closing</h3>
+<p>Domestic purchases use established title insurance companies and bonded escrow officers to guarantee clear title ownership before closing.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Domestic vs Foreign Real Estate Investment Process",
+    meta_description: "Step-by-step analysis of domestic vs foreign real estate buying processes, legal compliance, and escrow.",
+    reading_time: 7,
+    tags: ["Process", "Escrow", "Title", "Investor Guide"],
+    category: { id: 2, name: "Investor Guide", slug: "investor-guide" },
+    author: { id: 1, name: "Domestic RE Legal Team", email: "legal@domesticre.com" },
+  },
+  "differences-in-real-estate-investment-process-domestic-vs-international": {
+    id: 1003,
+    slug: "differences-in-real-estate-investment-process-domestic-vs-international",
+    title: "Differences in Real Estate Investment Process Domestic vs International",
+    excerpt: "Key regulatory, currency risk, and tax withholding differences between domestic transactions and overseas properties.",
+    content: `<h2>Core Distinctions in Process & Execution</h2>
+<p>Executing an international real estate trade requires navigating differing legal jurisdictions, currency conversion fees, and specialized tax withholdings like FIRPTA.</p>
+<h3>Regulatory & Compliance Friction</h3>
+<p>Domestic deals operate under standard state and federal real estate regulations. International deals frequently require specialized cross-border legal counsel, apostilled documents, and foreign entity structuring.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Differences in Real Estate Investment Process Domestic vs International",
+    meta_description: "Exploring tax withholdings, currency risk, and regulatory friction in domestic vs international real estate.",
+    reading_time: 9,
+    tags: ["Legal", "Tax", "Regulation", "Domestic RE"],
+    category: { id: 3, name: "Legal & Tax", slug: "legal-tax" },
+    author: { id: 1, name: "Domestic RE Advisory", email: "advisory@domesticre.com" },
+  },
+  "similarities-between-domestic-and-international-real-estate-investment-processes": {
+    id: 1004,
+    slug: "similarities-between-domestic-and-international-real-estate-investment-processes",
+    title: "Similarities Between Domestic and International Real Estate Investment Processes",
+    excerpt: "Common valuation frameworks, due diligence procedures, and cap rate calculations shared across global markets.",
+    content: `<h2>Universal Fundamentals of Real Estate Investing</h2>
+<p>Despite regulatory and geographic variances, fundamental financial modeling principles remain consistent across all real estate acquisitions globally.</p>
+<h3>Valuation & Cash Flow Metrics</h3>
+<p>Whether analyzing a commercial asset in Boston or a residential complex abroad, investors evaluate Net Operating Income (NOI), Capitalization Rates (Cap Rate), Debt Service Coverage Ratios (DSCR), and Internal Rate of Return (IRR).</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Similarities Between Domestic and International Real Estate Processes",
+    meta_description: "Universal valuation metrics, due diligence, and NOI calculations shared across real estate markets.",
+    reading_time: 6,
+    tags: ["Valuation", "Cap Rates", "NOI", "Fundamentals"],
+    category: { id: 4, name: "Market Fundamentals", slug: "market-fundamentals" },
+    author: { id: 1, name: "Domestic RE Analytics Board", email: "analytics@domesticre.com" },
+  },
+  "biggest-domestic-real-estate-investment-companies-in-the-us": {
+    id: 1005,
+    slug: "biggest-domestic-real-estate-investment-companies-in-the-us",
+    title: "Biggest Domestic Real Estate Investment Companies in the US",
+    excerpt: "Profile of top US domestic real estate funds, institutional REITs, and equity firms managing mega portfolios.",
+    content: `<h2>Top US Domestic Real Estate Asset Managers</h2>
+<p>Institutional investment firms manage hundreds of billions in domestic commercial, residential, and industrial assets across the United States.</p>
+<h3>Leading Institutional Asset Managers</h3>
+<p>Major entities such as Blackstone, Starwood Capital, Brookfield Asset Management, and Prologis control extensive portfolios driving national real estate trends.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Biggest Domestic Real Estate Investment Companies in the US",
+    meta_description: "Analysis of top US real estate investment companies, institutional REITs, and private equity funds.",
+    reading_time: 10,
+    tags: ["REITs", "Institutional", "Asset Managers", "US Market"],
+    category: { id: 5, name: "Industry Leaders", slug: "industry-leaders" },
+    author: { id: 1, name: "Domestic RE Research Team", email: "research@domesticre.com" },
+  },
+  "biggest-us-domestic-real-estate-investor": {
+    id: 1006,
+    slug: "biggest-us-domestic-real-estate-investor",
+    title: "Biggest US Domestic Real Estate Investor",
+    excerpt: "In-depth analysis of the largest single domestic real estate investor entities and asset allocation strategies.",
+    content: `<h2>Analyzing the Largest US Real Estate Investors</h2>
+<p>Institutional equity funds and sovereign-backed domestic trusts hold unparalleled influence over housing supply, single-family rental (SFR) clusters, and commercial developments.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Biggest US Domestic Real Estate Investor Analysis",
+    meta_description: "Examining asset allocations and market presence of the largest US domestic real estate investors.",
+    reading_time: 7,
+    tags: ["Investors", "Capital Allocation", "Institutional Funds"],
+    category: { id: 6, name: "Institutional Capital", slug: "institutional-capital" },
+    author: { id: 1, name: "Domestic RE Research Team", email: "research@domesticre.com" },
+  },
+  "largest-domestic-real-estate-companies-in-boston-area": {
+    id: 1007,
+    slug: "largest-domestic-real-estate-companies-in-boston-area",
+    title: "Largest Domestic Real Estate Companies in Boston Area",
+    excerpt: "Spotlight on leading real estate brokerages, development firms, and private equity groups operating in Greater Boston.",
+    content: `<h2>Greater Boston Real Estate Market Dynamics</h2>
+<p>The Greater Boston real estate ecosystem is driven by life sciences development, academic institution expansion, and premium residential acquisitions.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Largest Domestic Real Estate Companies in Boston Area",
+    meta_description: "Overview of leading Boston brokerages, developers, and real estate private equity firms.",
+    reading_time: 8,
+    tags: ["Boston", "Regional Market", "Development", "Brokerages"],
+    category: { id: 7, name: "Regional Markets", slug: "regional-markets" },
+    author: { id: 1, name: "Domestic RE Regional Board", email: "boston@domesticre.com" },
+  },
+  "domestic-real-estate-bubble-explained": {
+    id: 1008,
+    slug: "domestic-real-estate-bubble-explained",
+    title: "Domestic Real Estate Bubble Explained",
+    excerpt: "Understanding housing market cycles, price-to-income ratios, interest rate impact, and bubble indicator models.",
+    content: `<h2>Evaluating Housing Market Bubble Risk Indicators</h2>
+<p>Real estate bubbles occur when property prices rise rapidly beyond macroeconomic fundamentals like income growth, GDP, and rental yield support.</p>
+<h3>Key Bubble Metrics</h3>
+<p>Analysts monitor price-to-rent ratios, mortgage rate affordability indices, supply elasticity, and speculative buying spikes.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Domestic Real Estate Bubble Explained — Risk & Indicators",
+    meta_description: "In-depth guide to housing market cycles, bubble indicators, price-to-income ratios, and interest rate impacts.",
+    reading_time: 11,
+    tags: ["Housing Market", "Bubble Index", "Economic Analysis"],
+    category: { id: 8, name: "Economic Trends", slug: "economic-trends" },
+    author: { id: 1, name: "Domestic RE Macroeconomic Desk", email: "macro@domesticre.com" },
+  },
+  "domestic-real-estate-index-explained": {
+    id: 1009,
+    slug: "domestic-real-estate-index-explained",
+    title: "Domestic Real Estate Index Explained",
+    excerpt: "How S&P CoreLogic Case-Shiller and national domestic real estate indices measure price movement and inflation.",
+    content: `<h2>Demystifying National Real Estate Price Indices</h2>
+<p>Real estate indices track home price appreciation across national, regional, and metropolitan statistical areas (MSAs).</p>
+<h3>Case-Shiller & FHFA Index Methodology</h3>
+<p>The S&P CoreLogic Case-Shiller Index uses a repeat-sales pricing technique to capture true home value appreciation over time.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Domestic Real Estate Index Explained — Case-Shiller & FHFA",
+    meta_description: "How real estate indices track housing inflation, repeat sales, and regional market trends.",
+    reading_time: 6,
+    tags: ["Indices", "Case-Shiller", "Data", "Price Appreciation"],
+    category: { id: 9, name: "Analytics & Data", slug: "analytics-data" },
+    author: { id: 1, name: "Domestic RE Data Science Team", email: "data@domesticre.com" },
+  },
+  "domestic-real-estate-stocks-guide": {
+    id: 1010,
+    slug: "domestic-real-estate-stocks-guide",
+    title: "Domestic Real Estate Stocks Guide",
+    excerpt: "Complete guide to publicly traded residential, commercial, and industrial real estate investment trusts (REITs).",
+    content: `<h2>Investing in Public Real Estate Equities</h2>
+<p>Publicly traded REITs and homebuilder stocks offer liquidity, dividend yield, and real estate exposure without direct property management responsibilities.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Domestic Real Estate Stocks & REITs Investor Guide",
+    meta_description: "Guide to publicly traded REITs, residential developers, and industrial real estate stocks.",
+    reading_time: 8,
+    tags: ["Stocks", "REITs", "Equities", "Dividends"],
+    category: { id: 10, name: "Public Equities", slug: "public-equities" },
+    author: { id: 1, name: "Domestic RE Financial Markets Team", email: "markets@domesticre.com" },
+  },
+  "how-domestic-real-estate-values-are-determined": {
+    id: 1011,
+    slug: "how-domestic-real-estate-values-are-determined",
+    title: "How Domestic Real Estate Values Are Determined",
+    excerpt: "The math behind comparative market analysis (CMA), appraisal methodology, net operating income (NOI), and Cap Rates.",
+    content: `<h2>Property Valuation Methodologies</h2>
+<p>Determining real estate value relies on three primary valuation approaches: the Sales Comparison Approach, the Income Capitalization Approach, and the Cost Approach.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "How Domestic Real Estate Values Are Determined",
+    meta_description: "The mathematical valuation formulas for property appraisals, comparative market analysis (CMA), and Cap Rates.",
+    reading_time: 7,
+    tags: ["Valuation", "Appraisal", "CMA", "Cap Rates"],
+    category: { id: 11, name: "Valuation & Comps", slug: "valuation-comps" },
+    author: { id: 1, name: "Domestic RE Valuation Services", email: "valuation@domesticre.com" },
+  },
+  "real-estate-generates-over-percent-of-us-gross-domestic-product": {
+    id: 1012,
+    slug: "real-estate-generates-over-percent-of-us-gross-domestic-product",
+    title: "Real Estate Generates Over Percent of U.S. Gross Domestic Product",
+    excerpt: "Exploring how domestic real estate construction, leasing, and property services drive over 15-18% of total US GDP.",
+    content: `<h2>The Macroeconomic Engine of US Real Estate</h2>
+<p>Domestic real estate construction, rental leasing, property management, and related financial services account for over 15% to 18% of the total Gross Domestic Product (GDP) of the United States.</p>`,
+    status: "published",
+    published_at: "2026-08-01T12:00:00Z",
+    created_at: "2026-08-01T12:00:00Z",
+    seo_title: "Real Estate Generates Over Percent of U.S. Gross Domestic Product",
+    meta_description: "Analysis of real estate's 15-18% contribution to US Gross Domestic Product (GDP) and employment.",
+    reading_time: 9,
+    tags: ["GDP", "Macroeconomics", "US Economy", "Housing Market"],
+    category: { id: 12, name: "Macroeconomics", slug: "macroeconomics" },
+    author: { id: 1, name: "Domestic RE Economic Research", email: "gdp@domesticre.com" },
+  },
+};
+
 /** Fetch one published post by slug. Returns null when missing (→ 404). */
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
@@ -60,11 +286,15 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       headers: { Accept: "application/json" },
       next: { revalidate: 300 },
     });
-    if (!res.ok) return null;
-    return (await res.json()) as BlogPost;
+    if (res.ok) {
+      return (await res.json()) as BlogPost;
+    }
   } catch {
-    return null;
+    // API unavailable or network timeout
   }
+
+  // Fallback to static research guide if slug matches one of our 12 educational guides
+  return FALLBACK_RESEARCH_GUIDES[slug] ?? null;
 }
 
 /**
