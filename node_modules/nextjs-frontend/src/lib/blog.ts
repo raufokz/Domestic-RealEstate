@@ -10,18 +10,44 @@ export interface BlogPost {
   slug: string;
   title: string;
   excerpt?: string | null;
-  /** Admin-authored HTML (the admin editor is a raw HTML textarea). */
+  /** Admin-authored HTML (the admin editor is a rich-text/WYSIWYG editor). */
   content?: string | null;
   featured_image?: string | null;
-  status: "draft" | "published" | "scheduled";
+  featured_image_alt?: string | null;
+  featured_image_caption?: string | null;
+  featured_image_credit?: string | null;
+  status: "draft" | "published" | "scheduled" | "archived";
   published_at?: string | null;
   created_at?: string | null;
   seo_title?: string | null;
   meta_description?: string | null;
   reading_time?: number | null;
+  word_count?: number | null;
   tags?: string[] | null;
   category?: { id: number; name?: string; slug?: string } | null;
+  categories?: { id: number; name?: string; slug?: string }[] | null;
   author?: { id: number; name?: string; email?: string } | null;
+  co_author?: { id: number; name?: string; email?: string } | null;
+  is_featured?: boolean;
+  is_trending?: boolean;
+  is_popular?: boolean;
+  is_editors_choice?: boolean;
+  view_count?: number;
+  like_count?: number;
+  share_count?: number;
+  focus_keyword?: string | null;
+  canonical_url?: string | null;
+  robots_index?: boolean;
+  og_title?: string | null;
+  og_description?: string | null;
+  og_image?: string | null;
+  twitter_title?: string | null;
+  twitter_description?: string | null;
+  twitter_image?: string | null;
+  json_ld_override?: string | null;
+  faq_schema?: { question: string; answer: string }[] | null;
+  breadcrumb_title?: string | null;
+  images?: { id: number; url: string; webp_url?: string | null; alt_text?: string | null; caption?: string | null; credit?: string | null }[] | null;
 }
 
 /**
@@ -334,6 +360,11 @@ export function authorInitials(name?: string | null): string {
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
+}
+
+/** Fire-and-forget view counter increment — called client-side so it only fires for real readers, not SSR/crawler fetches. */
+export function incrementBlogView(slug: string): void {
+  fetch(`${API_BASE}/blogs/${encodeURIComponent(slug)}/view`, { method: "POST", keepalive: true }).catch(() => {});
 }
 
 /** Short teaser: the stored excerpt, or the first 180 chars of the body text. */

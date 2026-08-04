@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
 interface MediaFile {
@@ -13,6 +13,10 @@ interface MediaFile {
   size: number;
   collection: string;
   url: string;
+  webp_url: string | null;
+  width: number | null;
+  height: number | null;
+  meta: { alt_text?: string; caption?: string } | null;
   created_at: string;
 }
 
@@ -25,6 +29,9 @@ export default function MediaPage() {
   const [collectionFilter, setCollectionFilter] = useState("All");
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [editing, setEditing] = useState<MediaFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFiles = useCallback(async () => {
@@ -49,6 +56,7 @@ export default function MediaPage() {
   });
 
   const collections = [...new Set(files.map((f) => f.collection).filter(Boolean))];
+  const allFilteredSelected = filtered.length > 0 && filtered.every((f) => selected.includes(f.id));
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -93,9 +101,42 @@ export default function MediaPage() {
       await apiDelete(`/admin/media/${id}`);
       setDeleteConfirm(null);
       success("File deleted.");
+      setSelected((prev) => prev.filter((i) => i !== id));
       fetchFiles();
     } catch (e) {
       notifyError(e, "Could not delete this file. Please try again.");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      await apiPost("/admin/media/bulk-delete", { ids: selected });
+      success(`${selected.length} file(s) deleted.`);
+      setSelected([]);
+      setBulkDeleteConfirm(false);
+      fetchFiles();
+    } catch (e) {
+      notifyError(e, "Could not delete the selected files.");
+    }
+  };
+
+  const handleSaveMeta = async (id: number, meta: { alt_text: string; caption: string }) => {
+    try {
+      await apiPut(`/admin/media/${id}`, { meta });
+      success("Details saved.");
+      setEditing(null);
+      fetchFiles();
+    } catch (e) {
+      notifyError(e, "Could not save file details.");
+    }
+  };
+
+  const copyUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      success("URL copied to clipboard.");
+    } catch {
+      notifyError(new Error("Clipboard unavailable"), "Could not copy URL.");
     }
   };
 
@@ -125,6 +166,20 @@ export default function MediaPage() {
         </div>
       </div>
 
+      {selected.length > 0 && (
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-[#0A2647] text-white rounded-xl px-4 py-2.5 mb-4 shadow-md">
+          <span className="text-sm font-semibold">{selected.length} selected</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setBulkDeleteConfirm(true)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700">
+              Delete Selected
+            </button>
+            <button onClick={() => setSelected([])} className="text-xs font-semibold text-slate-300 hover:text-white px-2">
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -137,22 +192,48 @@ export default function MediaPage() {
           </div>
         ) : (
           <>
+            <div className="flex items-center gap-2 px-4 pt-4">
+              <input
+                type="checkbox"
+                checked={allFilteredSelected}
+                onChange={() => setSelected(allFilteredSelected ? [] : filtered.map((f) => f.id))}
+              />
+              <span className="text-xs text-gray-500 font-semibold">Select all</span>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
               {filtered.map((file) => (
                 <div key={file.id} className="group relative border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(file.id)}
+                    onChange={() =>
+                      setSelected((prev) => (prev.includes(file.id) ? prev.filter((i) => i !== file.id) : [...prev, file.id]))
+                    }
+                    className="absolute top-1 left-1 z-10"
+                  />
                   <div className="aspect-square bg-gray-100 flex items-center justify-center">
                     {file.mime_type.startsWith("image/") && file.url ? (
-                      <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
+                      <img src={file.webp_url || file.url} alt={file.meta?.alt_text || file.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-4xl">{getFileIcon(file.mime_type)}</span>
+                    )}
+                    {file.webp_url && (
+                      <span className="absolute bottom-1 left-1 text-[9px] font-bold bg-emerald-600 text-white px-1.5 py-0.5 rounded">
+                        WEBP
+                      </span>
                     )}
                   </div>
                   <div className="p-2">
                     <p className="text-xs font-medium text-gray-900 truncate" title={file.name}>{file.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(file.size)}
+                      {file.width && file.height ? ` · ${file.width}×${file.height}` : ""}
+                    </p>
                   </div>
-                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setDeleteConfirm(file.id)} className="w-6 h-6 bg-[#8B1E3F] text-white rounded-full flex items-center justify-center text-xs hover:bg-red-800">✕</button>
+                  <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => copyUrl(file.url)} title="Copy URL" className="w-6 h-6 bg-[#0A2647] text-white rounded-full flex items-center justify-center text-xs hover:bg-[#07162C]">🔗</button>
+                    <button onClick={() => setEditing(file)} title="Edit alt/caption" className="w-6 h-6 bg-slate-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-slate-700">✎</button>
+                    <button onClick={() => setDeleteConfirm(file.id)} title="Delete" className="w-6 h-6 bg-[#8B1E3F] text-white rounded-full flex items-center justify-center text-xs hover:bg-red-800">✕</button>
                   </div>
                 </div>
               ))}
@@ -176,6 +257,58 @@ export default function MediaPage() {
           </div>
         </div>
       )}
+
+      {bulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-semibold text-[#0A2647] mb-2">Delete {selected.length} Files</h3>
+            <p className="text-gray-600 mb-4">Are you sure? This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setBulkDeleteConfirm(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+              <button onClick={handleBulkDelete} className="flex-1 px-4 py-2 bg-[#8B1E3F] text-white rounded-lg font-semibold hover:bg-red-800">Delete All</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editing && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-semibold text-[#0A2647] mb-4">Edit File Details</h3>
+            <EditMetaForm file={editing} onSave={(meta) => handleSaveMeta(editing.id, meta)} onCancel={() => setEditing(null)} />
+          </div>
+        </div>
+      )}
     </AdminLayout>
+  );
+}
+
+function EditMetaForm({
+  file,
+  onSave,
+  onCancel,
+}: {
+  file: MediaFile;
+  onSave: (meta: { alt_text: string; caption: string }) => void;
+  onCancel: () => void;
+}) {
+  const [alt, setAlt] = useState(file.meta?.alt_text ?? "");
+  const [caption, setCaption] = useState(file.meta?.caption ?? "");
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 mb-1">Alt Text</label>
+        <input type="text" value={alt} onChange={(e) => setAlt(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 mb-1">Caption</label>
+        <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none" />
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button onClick={onCancel} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+        <button onClick={() => onSave({ alt_text: alt, caption })} className="flex-1 px-4 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f]">Save</button>
+      </div>
+    </div>
   );
 }

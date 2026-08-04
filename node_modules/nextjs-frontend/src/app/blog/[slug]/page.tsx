@@ -16,6 +16,7 @@ import {
 import BlogShareButtons from "@/components/blog/BlogShareButtons";
 import BlogLeadForm from "@/components/blog/BlogLeadForm";
 import NewsletterForm from "@/components/NewsletterForm";
+import ViewTracker from "@/components/blog/ViewTracker";
 
 export async function generateMetadata({
   params,
@@ -76,16 +77,43 @@ export default async function BlogPostPage({
     ...(tags.length ? { keywords: tags.join(", ") } : {}),
   };
 
+  const faqLd =
+    post.faq_schema && post.faq_schema.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: post.faq_schema.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: { "@type": "Answer", text: item.answer },
+          })),
+        }
+      : null;
+
+  // Admin-authored raw JSON-LD, additive alongside the auto-generated schema above
+  // (not a replacement — a malformed override should never take down the good schema).
+  let overrideLd: unknown = null;
+  if (post.json_ld_override) {
+    try {
+      overrideLd = JSON.parse(post.json_ld_override);
+    } catch {
+      overrideLd = null;
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#FDFBF7] text-stone-900 font-body">
+      <ViewTracker slug={post.slug} />
       <JsonLd
         data={[
           articleLd,
           breadcrumbLd([
             { name: "Home", path: "/" },
             { name: "Blog", path: "/blog" },
-            { name: post.title, path: `/blog/${post.slug}` },
+            { name: post.breadcrumb_title || post.title, path: `/blog/${post.slug}` },
           ]),
+          ...(faqLd ? [faqLd] : []),
+          ...(overrideLd ? [overrideLd] : []),
         ]}
       />
 

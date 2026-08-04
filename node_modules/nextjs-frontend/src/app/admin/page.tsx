@@ -24,6 +24,14 @@ interface DashboardStats {
   total_testimonials: number;
   total_faqs: number;
   active_campaigns: number;
+  deals_won: number;
+}
+
+interface TopBlog {
+  id: number;
+  title: string;
+  slug: string;
+  view_count: number;
 }
 
 interface DashboardData {
@@ -31,6 +39,7 @@ interface DashboardData {
   recent_leads: any[];
   recent_properties: any[];
   recent_service_requests: any[];
+  top_blogs: TopBlog[];
 }
 
 export default function AdminDashboard() {
@@ -84,7 +93,12 @@ export default function AdminDashboard() {
               { label: "Properties", value: stats.total_properties.toLocaleString(), change: `${stats.active_properties} active`, color: "bg-emerald-50 text-emerald-600" },
               { label: "Leads", value: stats.total_leads.toLocaleString(), change: `${stats.new_leads} new`, color: "bg-amber-50 text-amber-600" },
               { label: "Revenue", value: `$${(stats.invoices_total_unpaid / 1000).toFixed(0)}K`, change: `${stats.invoices_unpaid} unpaid`, color: "bg-purple-50 text-purple-600" },
-              { label: "Conversion Rate", value: "4.8%", change: "+0.3% vs last month", color: "bg-rose-50 text-rose-600" },
+              {
+                label: "Conversion Rate",
+                value: `${stats.total_leads > 0 ? ((stats.deals_won / stats.total_leads) * 100).toFixed(1) : "0.0"}%`,
+                change: `${stats.deals_won} deals won`,
+                color: "bg-rose-50 text-rose-600",
+              },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex items-center justify-between mb-2">
@@ -186,6 +200,26 @@ export default function AdminDashboard() {
                     <span className="text-sm text-slate-600">FAQs</span>
                     <span className="text-sm font-medium text-[#0A2647]">{stats.total_faqs}</span>
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-lg font-bold text-[#0A2647] mb-4">Most Viewed Blogs</h2>
+                <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+                  {dashboardData?.top_blogs && dashboardData.top_blogs.length > 0 ? (
+                    dashboardData.top_blogs.map((post) => (
+                      <a
+                        key={post.id}
+                        href={`/admin/blog/${post.id}/edit`}
+                        className="flex items-center justify-between gap-3 hover:text-[#C9A227] transition-colors"
+                      >
+                        <span className="text-sm text-slate-700 truncate">{post.title}</span>
+                        <span className="text-xs font-semibold text-slate-400 shrink-0">{post.view_count.toLocaleString()} views</span>
+                      </a>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400">No published posts with views yet.</p>
+                  )}
                 </div>
               </div>
             </div>

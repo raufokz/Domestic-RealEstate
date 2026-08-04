@@ -72,7 +72,7 @@ export default function NewsletterForm({ source = "website" }: { source?: string
         <button
           type="submit"
           disabled={submitting}
-          className="bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors whitespace-nowrap disabled:opacity-60"
+          className="w-full sm:w-auto bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-xl hover:bg-amber-400 transition-all whitespace-nowrap disabled:opacity-60 shadow-sm shrink-0"
         >
           {submitting ? "Subscribing…" : "Subscribe"}
         </button>

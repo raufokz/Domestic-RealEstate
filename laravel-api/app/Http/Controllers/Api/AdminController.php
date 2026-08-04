@@ -67,10 +67,15 @@ class AdminController extends Controller
                     'total_testimonials' => Testimonial::count(),
                     'total_faqs' => Faq::count(),
                     'active_campaigns' => EmailCampaign::where('status', 'sending')->count(),
+                    'deals_won' => \App\Models\Deal::where('status', 'won')->count(),
                 ],
                 'recent_leads' => Lead::with('assignee')->latest()->limit(10)->get(),
                 'recent_properties' => Property::latest()->limit(5)->get(),
                 'recent_service_requests' => ServiceRequest::latest()->limit(5)->get(),
+                'top_blogs' => Blog::where('status', 'published')
+                    ->orderBy('view_count', 'desc')
+                    ->limit(5)
+                    ->get(['id', 'title', 'slug', 'view_count']),
             ];
         });
         return response()->json($data);

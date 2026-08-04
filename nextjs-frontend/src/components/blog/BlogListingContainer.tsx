@@ -77,44 +77,44 @@ export default function BlogListingContainer({
 
   return (
     <div className="bg-[#FDFBF7] text-stone-900 font-body min-h-screen">
-      {/* Hero Header Section */}
-      <section className="relative border-b border-[#EBE6DD] bg-[#FDFBF7] py-20 lg:py-28 overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-[#C9A227]/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-[#0A2647]/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Hero Header Section (Matches standard page hero design) */}
+      <section className="relative bg-[#0A2647] text-white py-24 sm:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A2647] via-[#081F3A] to-slate-900 z-0" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#C9A227]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-[#F5F0E6] border border-[#E3DAC9] rounded-full px-4 py-1.5 mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#C9A227] animate-pulse" />
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8C6D27]">
-              Swiss Editorial &amp; Market Research
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
+            <span className="w-2.5 h-2.5 bg-[#C9A227] rounded-full animate-pulse" />
+            <span className="text-white text-xs sm:text-sm font-semibold tracking-wider uppercase">
+              Domestic RE Publication
             </span>
           </div>
 
-          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A2647] max-w-4xl mx-auto leading-tight tracking-tight">
-            Domestic Real Estate <span className="text-[#8C6D27] italic font-serif">Insights &amp; Guides</span>
+          <h1 className="font-heading text-4xl sm:text-6xl font-bold text-white max-w-4xl mx-auto leading-tight">
+            Domestic Real Estate <span className="text-[#C9A227]">Insights &amp; Guides</span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed font-body">
-            Comprehensive market analysis, investment framework comparisons, macro GDP indicators, and valuation models authored for domestic real estate investors.
+          <p className="mt-6 text-lg sm:text-xl text-slate-200 max-w-3xl mx-auto leading-relaxed font-body">
+            Market forecasts, investment process comparisons, GDP research, and domestic real estate valuations written by industry experts.
           </p>
 
           {/* Quick Metrics Bar */}
-          <div className="mt-10 max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-[#EBE6DD] pt-8">
+          <div className="mt-10 max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-white/10 pt-8">
             <div>
-              <p className="text-xs uppercase tracking-wider text-stone-400 font-semibold">Publication</p>
-              <p className="text-lg font-bold text-[#0A2647] font-heading mt-0.5">Weekly</p>
+              <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Publication</p>
+              <p className="text-lg font-bold text-white font-heading mt-0.5">Weekly</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-stone-400 font-semibold">Research Guides</p>
-              <p className="text-lg font-bold text-[#0A2647] font-heading mt-0.5">12+ Series</p>
+              <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Research Guides</p>
+              <p className="text-lg font-bold text-white font-heading mt-0.5">12+ Series</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-stone-400 font-semibold">Market Scope</p>
-              <p className="text-lg font-bold text-[#0A2647] font-heading mt-0.5">US Domestic</p>
+              <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Market Scope</p>
+              <p className="text-lg font-bold text-white font-heading mt-0.5">US Domestic</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-stone-400 font-semibold">Accuracy Rating</p>
-              <p className="text-lg font-bold text-[#8C6D27] font-heading mt-0.5">99.4% Verified</p>
+              <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Accuracy Rating</p>
+              <p className="text-lg font-bold text-[#C9A227] font-heading mt-0.5">99.4% Verified</p>
             </div>
           </div>
         </div>

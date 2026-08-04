@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Blog;
 use App\Models\Contact;
 use App\Models\DataExport;
 use App\Models\Lead;
@@ -117,6 +118,10 @@ class ProcessDataExport implements ShouldQueue
             'contacts' => $this->mapRows(
                 $this->applyFilters(Contact::query(), $filters)->get(),
                 ['id', 'first_name', 'last_name', 'email', 'phone', 'created_at']
+            ),
+            'blogs' => $this->mapRows(
+                $this->applyFilters(Blog::query(), $filters)->get(),
+                ['id', 'title', 'slug', 'status', 'word_count', 'reading_time', 'view_count', 'like_count', 'published_at', 'created_at']
             ),
             default => throw new \RuntimeException('Unsupported export type: '.$export->export_type),
         };

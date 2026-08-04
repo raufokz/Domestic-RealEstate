@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MediaLibrary;
+use App\Services\ImageProcessingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class MediaLibraryController extends Controller
 {
+    public function __construct(protected ImageProcessingService $imageProcessor)
+    {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = MediaLibrary::query();
@@ -43,19 +48,29 @@ class MediaLibraryController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('media', 'public');
-
-        $media = MediaLibrary::create([
+        $attributes = [
             'name' => $file->getClientOriginalName(),
             'file_name' => $file->getClientOriginalName(),
             'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'path' => $path,
             'disk' => 'public',
             'collection' => $validated['collection'] ?? 'default',
             'meta' => $validated['meta'] ?? null,
             'uploaded_by' => $request->user()->id,
-        ]);
+        ];
+
+        if ($this->imageProcessor->isProcessableImage($file)) {
+            $processed = $this->imageProcessor->process($file, 'public', 'media');
+            $attributes['path'] = $processed['path'];
+            $attributes['webp_path'] = $processed['webp_path'];
+            $attributes['width'] = $processed['width'];
+            $attributes['height'] = $processed['height'];
+            $attributes['size'] = $processed['size'];
+        } else {
+            $attributes['path'] = $file->store('media', 'public');
+            $attributes['size'] = $file->getSize();
+        }
+
+        $media = MediaLibrary::create($attributes);
 
         return response()->json($media, 201);
     }
@@ -85,13 +100,32 @@ class MediaLibraryController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $media = MediaLibrary::findOrFail($id);
+        $this->deleteFiles($media);
+        $media->delete();
+        return response()->json(['message' => 'Media deleted']);
+    }
 
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'integer']);
+
+        $items = MediaLibrary::whereIn('id', $validated['ids'])->get();
+        foreach ($items as $media) {
+            $this->deleteFiles($media);
+            $media->delete();
+        }
+
+        return response()->json(['message' => count($items) . ' file(s) deleted']);
+    }
+
+    protected function deleteFiles(MediaLibrary $media): void
+    {
         if (Storage::disk($media->disk)->exists($media->path)) {
             Storage::disk($media->disk)->delete($media->path);
         }
-
-        $media->delete();
-        return response()->json(['message' => 'Media deleted']);
+        if ($media->webp_path && Storage::disk($media->disk)->exists($media->webp_path)) {
+            Storage::disk($media->disk)->delete($media->webp_path);
+        }
     }
 
     public function getCollections(): JsonResponse

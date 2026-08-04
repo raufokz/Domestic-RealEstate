@@ -2,6 +2,7 @@
 
 use App\Jobs\ProcessDataExport;
 use App\Jobs\PublishScheduledSocialPost;
+use App\Models\Blog;
 use App\Models\DataExport;
 use App\Models\Invoice;
 use App\Models\SocialPost;
@@ -58,6 +59,23 @@ Schedule::call(function () {
 Schedule::call(function () {
     \App\Http\Controllers\Api\MarketplaceController::releaseExpiredReservations();
 })->everyMinute()->name('release-expired-marketplace-reservations')->withoutOverlapping();
+
+/**
+ * Publish blog posts whose scheduled time has arrived — the admin UI offers
+ * "Schedule" as a status but nothing ever flipped it to published without this.
+ */
+Schedule::call(function () {
+    Blog::where('status', 'scheduled')
+        ->whereNotNull('scheduled_at')
+        ->where('scheduled_at', '<=', now())
+        ->get()
+        ->each(function (Blog $post) {
+            $post->status = 'published';
+            $post->published_at = now();
+            $post->scheduled_at = null;
+            $post->save();
+        });
+})->everyMinute()->name('publish-scheduled-blogs')->withoutOverlapping();
 
 /**
  * Flag invoices past their due date so the finance dashboard reflects reality.

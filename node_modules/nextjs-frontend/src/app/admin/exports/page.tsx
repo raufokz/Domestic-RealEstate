@@ -143,7 +143,7 @@ export default function ExportsPage() {
       <div className="space-y-6">
         <HowTo
           title="How to Export Your Data"
-          summary="Download leads, properties, users, or contacts as a spreadsheet or PDF report."
+          summary="Download leads, properties, users, contacts, or blog posts as a spreadsheet or PDF report."
           requirements={[
             "A queue worker must be running — exports are processed in the background, not instantly.",
           ]}
@@ -288,6 +288,7 @@ export default function ExportsPage() {
                     <option value="properties">Properties</option>
                     <option value="users">Users</option>
                     <option value="contacts">Contacts</option>
+                    <option value="blogs">Blog Posts</option>
                   </select>
                 </div>
                 <div>

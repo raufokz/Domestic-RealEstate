@@ -85,7 +85,9 @@ Route::prefix('seo-pages')->group(function () {
 Route::prefix('blogs')->group(function () {
     Route::get('/', [BlogController::class, 'index']);
     Route::get('/{slug}', [BlogController::class, 'show']);
+    Route::post('/{slug}/view', [BlogController::class, 'incrementView']);
 });
+Route::middleware('auth:sanctum')->post('/blogs/{id}/like', [BlogController::class, 'like']);
 
 // Content
 Route::get('/testimonials', [SeoController::class, 'testimonials']);
@@ -533,6 +535,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/media/{id}', [MediaLibraryController::class, 'show']);
     Route::put('/media/{id}', [MediaLibraryController::class, 'update']);
     Route::delete('/media/{id}', [MediaLibraryController::class, 'destroy']);
+    Route::post('/media/bulk-delete', [MediaLibraryController::class, 'bulkDestroy']);
 
     // Data Exports
     Route::get('/exports', [DataExportController::class, 'index']);
@@ -567,10 +570,24 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::prefix('blog')->group(function () {
         Route::get('/posts', [BlogController::class, 'adminIndex']);
         Route::post('/posts', [BlogController::class, 'store']);
+        Route::get('/posts/trashed', [BlogController::class, 'trashed']);
+        Route::post('/posts/bulk-delete', [BlogController::class, 'bulkDestroy']);
+        Route::post('/posts/bulk-restore', [BlogController::class, 'bulkRestore']);
+        Route::post('/posts/bulk-publish', [BlogController::class, 'bulkPublish']);
+        Route::post('/posts/bulk-draft', [BlogController::class, 'bulkDraft']);
         Route::get('/posts/{id}', [BlogController::class, 'showAdmin']);
         Route::put('/posts/{id}', [BlogController::class, 'update']);
         Route::delete('/posts/{id}', [BlogController::class, 'destroy']);
         Route::match(['patch', 'post'], '/posts/{id}/publish', [BlogController::class, 'togglePublish']);
+        Route::post('/posts/{id}/duplicate', [BlogController::class, 'duplicatePost']);
+        Route::post('/posts/{id}/restore', [BlogController::class, 'restore']);
+        Route::delete('/posts/{id}/force', [BlogController::class, 'forceDelete']);
+        Route::get('/posts/{id}/revisions', [BlogController::class, 'revisions']);
+        Route::post('/posts/{id}/revisions/{revisionId}/restore', [BlogController::class, 'restoreRevision']);
+        Route::post('/posts/{id}/images', [BlogController::class, 'storeImage']);
+        Route::put('/posts/{id}/images/{imageId}', [BlogController::class, 'updateImageMeta']);
+        Route::delete('/posts/{id}/images/{imageId}', [BlogController::class, 'destroyImage']);
+        Route::post('/posts/{id}/images/reorder', [BlogController::class, 'reorderImages']);
     });
 
     // SEO Pages (Admin)

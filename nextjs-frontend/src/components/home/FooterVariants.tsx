@@ -94,20 +94,20 @@ export default function FooterVariants() {
             <p className="text-slate-400 text-sm mt-4 max-w-md leading-relaxed">
               Domestic Real Estate (DomesticRealEstate / Domestic Realestate) — Your trusted platform for real estate investments, agent connections, and property discovery across the United States and Canada.
             </p>
-            <form onSubmit={handleSubscribe} className="mt-6 flex items-center gap-2">
+            <form onSubmit={handleSubscribe} className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <input
                 type="email"
-                placeholder="Enter your email..."
+                placeholder="Enter your email address..."
                 value={newsletterEmail}
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 required
-                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A227]"
+                className="flex-1 px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A227] transition-colors"
               />
               <button
                 type="submit"
-                className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] text-sm font-extrabold px-5 py-2.5 rounded-lg whitespace-nowrap"
+                className="w-full sm:w-auto bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] text-sm font-extrabold px-6 py-3 rounded-xl whitespace-nowrap transition-all shadow-sm flex items-center justify-center gap-2"
               >
-                {subscribed ? "Subscribed!" : "Subscribe"}
+                {subscribed ? "Subscribed! ✓" : "Subscribe"}
               </button>
             </form>
           </div>
