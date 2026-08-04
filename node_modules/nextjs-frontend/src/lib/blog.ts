@@ -80,6 +80,42 @@ export async function getBlogPosts(perPage = 12): Promise<BlogListResult> {
 }
 
 const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
+  "where-to-buy-real-estate-in-nyc-guide": {
+    id: 2001,
+    slug: "where-to-buy-real-estate-in-nyc-guide",
+    title: "Where to Buy Real Estate in NYC: Complete Guide to New York City Real Estate Listings & Homes",
+    excerpt: "Comprehensive buyer and investor guide detailing where to buy real estate in NYC, analyzing top New York City real estate listings, property in NYC, and houses in NYC across all five boroughs.",
+    content: `<h2>Mastering the New York City Real Estate Market</h2>
+<p>Navigating <strong>new york city real estate</strong> requires a strategic approach whether you are a first-time homebuyer, relocating professional, or institutional investor. From iconic Manhattan condos to historic brownstones and spacious <strong>houses in nyc</strong>, the market offers unmatched diversity and long-term equity growth.</p>
+
+<h2>Where to Buy Real Estate in NYC: Borough Breakdown</h2>
+<p>Deciding <strong>where to buy real estate in nyc</strong> depends heavily on your lifestyle preferences, commute requirements, and target investment yields:</p>
+<ul>
+  <li><strong>Manhattan:</strong> Ideal for luxury high-rise condos, co-ops, and premier commercial <strong>new york city properties</strong>. Prime locations include Upper West Side, SoHo, and Tribeca.</li>
+  <li><strong>Brooklyn:</strong> Known for historic brownstones, modern waterfront developments in Williamsburg, and family-friendly <strong>new york city homes</strong> in Park Slope.</li>
+  <li><strong>Queens:</strong> Long Island City and Astoria offer exceptional modern <strong>property in nyc</strong> with rapid transit access to Midtown Manhattan.</li>
+  <li><strong>The Bronx & Staten Island:</strong> Emerging neighborhoods providing high rental yields and affordable single-family <strong>real estate in new york city</strong>.</li>
+</ul>
+
+<h2>Navigating New York City Real Estate Listings</h2>
+<p>Finding verified <strong>new york city real estate listings</strong> is essential in a competitive market. When reviewing <strong>nyc real estate</strong> properties, pay close attention to property tax abatements (such as 421-a or 17-J), monthly HOA/common charges, and co-op board approval requirements.</p>
+
+<h2>Why Invest in Real Estate New York City?</h2>
+<p>The market for <strong>real estate new york city</strong> has consistently outperformed broader macroeconomic benchmarks. Strong rental demand, limited inventory supply, and global financial liquidity make premium <strong>new york city properties</strong> an cornerstone asset class for portfolio preservation.</p>`,
+    status: "published",
+    published_at: "2026-08-04T12:00:00Z",
+    created_at: "2026-08-04T12:00:00Z",
+    seo_title: "Where to Buy Real Estate in NYC | New York City Listings Guide",
+    meta_description: "Expert guide on where to buy real estate in NYC. Explore verified New York City real estate listings, houses in NYC, property in NYC, and market trends.",
+    reading_time: 7,
+    tags: ["New York City Real Estate", "NYC Real Estate", "Real Estate in New York City", "New York City Listings"],
+    category: { id: 1, name: "Buyer Guide", slug: "buyer-guide" },
+    author: { id: 1, name: "Domestic RE Editorial Board", email: "editor@domesticrealestate.us" },
+    faq_schema: [
+      { question: "Where is the best place to buy real estate in NYC?", answer: "Top locations for buying real estate in NYC include Long Island City for modern condos, Williamsburg for high rental demand, and Park Slope for historic family homes." },
+      { question: "How do I search active New York City real estate listings?", answer: "Browse active listings on Domestic Real Estate to filter by borough, price, square footage, and amenities across Manhattan, Brooklyn, and Queens." }
+    ],
+  },
   "domestic-vs-international-real-estate-investment": {
     id: 1001,
     slug: "domestic-vs-international-real-estate-investment",

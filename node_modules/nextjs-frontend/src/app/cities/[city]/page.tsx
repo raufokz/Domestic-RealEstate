@@ -27,7 +27,7 @@ export const CITY_DB: Record<string, CityData> = {
     medianIncome: "$70,663",
     medianHomePrice: "$1,850,000",
     description:
-      "New York City is the most populous city in the United States, known for its iconic skyline, world-class culture, and diverse neighborhoods. The NYC real estate market remains one of the most dynamic and competitive in the world.",
+      "Explore premier New York City real estate, exclusive NYC real estate listings, luxury condos, and spacious houses in NYC across Manhattan, Brooklyn, Queens, and beyond. Whether you are searching for property in NYC, real estate in New York City, or deciding where to buy real estate in NYC, our AI matching platform connects you to top-rated new york city homes and real estate new york city offers.",
     neighborhoods: ["Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island", "Williamsburg", "SoHo", "Tribeca", "Upper East Side", "Harlem"],
     schools: [
       { name: "Stuyvesant High School", rating: "10/10", type: "Public" },
@@ -35,9 +35,10 @@ export const CITY_DB: Record<string, CityData> = {
       { name: "New York University", rating: "9/10", type: "University" },
     ],
     faqs: [
-      { q: "What is the average home price in NYC?", a: "The median home price in New York City is approximately $1,850,000, though this varies significantly by borough and neighborhood. Manhattan tends to be the most expensive, while Brooklyn and Queens offer more affordable options." },
-      { q: "Is NYC a good market for real estate investment?", a: "NYC real estate has historically provided strong long-term returns. The city's limited supply, high demand, and diverse economy make it a resilient investment market, particularly for rental properties." },
-      { q: "What are the best neighborhoods for families?", a: "Family-friendly neighborhoods include Park Slope (Brooklyn), Riverdale (Bronx), and the Upper West Side (Manhattan). These areas offer good schools, parks, and a strong sense of community." },
+      { q: "Where to buy real estate in NYC for maximum value?", a: "When determining where to buy real estate in NYC, top recommendations include Williamsburg in Brooklyn, Long Island City in Queens, and the Upper West Side in Manhattan. These areas offer prime new york city homes with excellent appreciation and transit access." },
+      { q: "How can I search verified New York City real estate listings?", a: "You can browse verified new york city real estate listings on Domestic Real Estate. Filter by price, bedrooms, property type, and neighborhood to find luxury condos, townhouses, and houses in NYC." },
+      { q: "What is the average price for property in NYC?", a: "The median home price for real estate in New York City is approximately $1,850,000. Prices vary significantly across new york city properties, with Manhattan leading in price per square foot, followed by Brooklyn and Queens." },
+      { q: "Why invest in NYC real estate and new york city properties?", a: "Investing in nyc real estate and real estate new york city provides historical stability, high rental yields, and strong capital preservation due to high global demand and limited land supply." },
     ],
   },
   "los-angeles": {
