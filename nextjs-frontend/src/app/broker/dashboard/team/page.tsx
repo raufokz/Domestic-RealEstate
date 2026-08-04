@@ -22,14 +22,14 @@ interface TeamMember {
 }
 
 const TEAM: TeamMember[] = [
-  { id: 1, name: "Sarah Johnson", email: "sarah@domesticre.com", role: "Senior Agent", avatar: "SJ", listings: 24, sold: 18, revenue: "$142K", rating: 4.9, leads: 32, status: "Active", joinedDate: "Jan 2024", specialization: "Luxury Residential" },
-  { id: 2, name: "Lisa Anderson", email: "lisa@domesticre.com", role: "Senior Agent", avatar: "LA", listings: 21, sold: 16, revenue: "$124K", rating: 4.9, leads: 28, status: "Active", joinedDate: "Mar 2024", specialization: "Commercial" },
-  { id: 3, name: "Michael Chen", email: "michael@domesticre.com", role: "Agent", avatar: "MC", listings: 19, sold: 14, revenue: "$108K", rating: 4.7, leads: 25, status: "Active", joinedDate: "Jun 2024", specialization: "Condos & Lofts" },
-  { id: 4, name: "Emily Davis", email: "emily@domesticre.com", role: "Agent", avatar: "ED", listings: 15, sold: 11, revenue: "$86K", rating: 4.8, leads: 19, status: "Active", joinedDate: "Aug 2024", specialization: "Family Homes" },
-  { id: 5, name: "Robert Wilson", email: "robert@domesticre.com", role: "Junior Agent", avatar: "RW", listings: 12, sold: 9, revenue: "$72K", rating: 4.6, leads: 15, status: "Active", joinedDate: "Oct 2024", specialization: "First-Time Buyers" },
-  { id: 6, name: "Anna Martinez", email: "anna@domesticre.com", role: "Agent", avatar: "AM", listings: 8, sold: 5, revenue: "$42K", rating: 4.5, leads: 11, status: "On Leave", joinedDate: "Feb 2025", specialization: "Waterfront Properties" },
-  { id: 7, name: "James Taylor", email: "james@domesticre.com", role: "Junior Agent", avatar: "JT", listings: 6, sold: 3, revenue: "$28K", rating: 4.3, leads: 8, status: "Active", joinedDate: "Apr 2025", specialization: "Investment Properties" },
-  { id: 8, name: "Rachel Kim", email: "rachel@domesticre.com", role: "Agent", avatar: "RK", listings: 0, sold: 0, revenue: "$0", rating: 0, leads: 0, status: "Inactive", joinedDate: "Jan 2026", specialization: "Residential" },
+  { id: 1, name: "Sarah Johnson", email: "sarah@domesticrealestate.us", role: "Senior Agent", avatar: "SJ", listings: 24, sold: 18, revenue: "$142K", rating: 4.9, leads: 32, status: "Active", joinedDate: "Jan 2024", specialization: "Luxury Residential" },
+  { id: 2, name: "Lisa Anderson", email: "lisa@domesticrealestate.us", role: "Senior Agent", avatar: "LA", listings: 21, sold: 16, revenue: "$124K", rating: 4.9, leads: 28, status: "Active", joinedDate: "Mar 2024", specialization: "Commercial" },
+  { id: 3, name: "Michael Chen", email: "michael@domesticrealestate.us", role: "Agent", avatar: "MC", listings: 19, sold: 14, revenue: "$108K", rating: 4.7, leads: 25, status: "Active", joinedDate: "Jun 2024", specialization: "Condos & Lofts" },
+  { id: 4, name: "Emily Davis", email: "emily@domesticrealestate.us", role: "Agent", avatar: "ED", listings: 15, sold: 11, revenue: "$86K", rating: 4.8, leads: 19, status: "Active", joinedDate: "Aug 2024", specialization: "Family Homes" },
+  { id: 5, name: "Robert Wilson", email: "robert@domesticrealestate.us", role: "Junior Agent", avatar: "RW", listings: 12, sold: 9, revenue: "$72K", rating: 4.6, leads: 15, status: "Active", joinedDate: "Oct 2024", specialization: "First-Time Buyers" },
+  { id: 6, name: "Anna Martinez", email: "anna@domesticrealestate.us", role: "Agent", avatar: "AM", listings: 8, sold: 5, revenue: "$42K", rating: 4.5, leads: 11, status: "On Leave", joinedDate: "Feb 2025", specialization: "Waterfront Properties" },
+  { id: 7, name: "James Taylor", email: "james@domesticrealestate.us", role: "Junior Agent", avatar: "JT", listings: 6, sold: 3, revenue: "$28K", rating: 4.3, leads: 8, status: "Active", joinedDate: "Apr 2025", specialization: "Investment Properties" },
+  { id: 8, name: "Rachel Kim", email: "rachel@domesticrealestate.us", role: "Agent", avatar: "RK", listings: 0, sold: 0, revenue: "$0", rating: 0, leads: 0, status: "Inactive", joinedDate: "Jan 2026", specialization: "Residential" },
 ];
 
 export default function TeamPage() {

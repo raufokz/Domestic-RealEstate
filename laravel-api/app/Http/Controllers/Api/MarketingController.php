@@ -63,7 +63,7 @@ class MarketingController extends Controller
 
         Enquiry::create([
             'name' => $request->input('name', 'Valuation Visitor'),
-            'email' => $request->input('email', 'noreply@domesticre.com'),
+            'email' => $request->input('email', 'info@domesticrealestate.us'),
             'phone' => $request->input('phone', ''),
             'subject' => 'Home Valuation Request - ' . $request->address,
             'message' => json_encode($request->only([

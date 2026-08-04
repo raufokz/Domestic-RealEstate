@@ -136,7 +136,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 8,
     tags: ["Real Estate", "Investment", "Domestic", "International"],
     category: { id: 1, name: "Investment Analysis", slug: "investment-analysis" },
-    author: { id: 1, name: "Domestic RE Editorial Board", email: "editor@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Editorial Board", email: "info@domesticrealestate.us" },
   },
   "real-estate-investment-process-domestic-vs-foreign": {
     id: 1002,
@@ -157,7 +157,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 7,
     tags: ["Process", "Escrow", "Title", "Investor Guide"],
     category: { id: 2, name: "Investor Guide", slug: "investor-guide" },
-    author: { id: 1, name: "Domestic RE Legal Team", email: "legal@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Legal Team", email: "info@domesticrealestate.us" },
   },
   "differences-in-real-estate-investment-process-domestic-vs-international": {
     id: 1003,
@@ -176,7 +176,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 9,
     tags: ["Legal", "Tax", "Regulation", "Domestic RE"],
     category: { id: 3, name: "Legal & Tax", slug: "legal-tax" },
-    author: { id: 1, name: "Domestic RE Advisory", email: "advisory@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Advisory", email: "info@domesticrealestate.us" },
   },
   "similarities-between-domestic-and-international-real-estate-investment-processes": {
     id: 1004,
@@ -195,7 +195,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 6,
     tags: ["Valuation", "Cap Rates", "NOI", "Fundamentals"],
     category: { id: 4, name: "Market Fundamentals", slug: "market-fundamentals" },
-    author: { id: 1, name: "Domestic RE Analytics Board", email: "analytics@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Analytics Board", email: "info@domesticrealestate.us" },
   },
   "biggest-domestic-real-estate-investment-companies-in-the-us": {
     id: 1005,
@@ -214,7 +214,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 10,
     tags: ["REITs", "Institutional", "Asset Managers", "US Market"],
     category: { id: 5, name: "Industry Leaders", slug: "industry-leaders" },
-    author: { id: 1, name: "Domestic RE Research Team", email: "research@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Research Team", email: "info@domesticrealestate.us" },
   },
   "biggest-us-domestic-real-estate-investor": {
     id: 1006,
@@ -231,7 +231,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 7,
     tags: ["Investors", "Capital Allocation", "Institutional Funds"],
     category: { id: 6, name: "Institutional Capital", slug: "institutional-capital" },
-    author: { id: 1, name: "Domestic RE Research Team", email: "research@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Research Team", email: "info@domesticrealestate.us" },
   },
   "largest-domestic-real-estate-companies-in-boston-area": {
     id: 1007,
@@ -248,7 +248,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 8,
     tags: ["Boston", "Regional Market", "Development", "Brokerages"],
     category: { id: 7, name: "Regional Markets", slug: "regional-markets" },
-    author: { id: 1, name: "Domestic RE Regional Board", email: "boston@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Regional Board", email: "info@domesticrealestate.us" },
   },
   "domestic-real-estate-bubble-explained": {
     id: 1008,
@@ -267,7 +267,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 11,
     tags: ["Housing Market", "Bubble Index", "Economic Analysis"],
     category: { id: 8, name: "Economic Trends", slug: "economic-trends" },
-    author: { id: 1, name: "Domestic RE Macroeconomic Desk", email: "macro@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Macroeconomic Desk", email: "info@domesticrealestate.us" },
   },
   "domestic-real-estate-index-explained": {
     id: 1009,
@@ -286,7 +286,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 6,
     tags: ["Indices", "Case-Shiller", "Data", "Price Appreciation"],
     category: { id: 9, name: "Analytics & Data", slug: "analytics-data" },
-    author: { id: 1, name: "Domestic RE Data Science Team", email: "data@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Data Science Team", email: "info@domesticrealestate.us" },
   },
   "domestic-real-estate-stocks-guide": {
     id: 1010,
@@ -303,7 +303,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 8,
     tags: ["Stocks", "REITs", "Equities", "Dividends"],
     category: { id: 10, name: "Public Equities", slug: "public-equities" },
-    author: { id: 1, name: "Domestic RE Financial Markets Team", email: "markets@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Financial Markets Team", email: "info@domesticrealestate.us" },
   },
   "how-domestic-real-estate-values-are-determined": {
     id: 1011,
@@ -320,7 +320,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 7,
     tags: ["Valuation", "Appraisal", "CMA", "Cap Rates"],
     category: { id: 11, name: "Valuation & Comps", slug: "valuation-comps" },
-    author: { id: 1, name: "Domestic RE Valuation Services", email: "valuation@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Valuation Services", email: "info@domesticrealestate.us" },
   },
   "real-estate-generates-over-percent-of-us-gross-domestic-product": {
     id: 1012,
@@ -337,7 +337,7 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     reading_time: 9,
     tags: ["GDP", "Macroeconomics", "US Economy", "Housing Market"],
     category: { id: 12, name: "Macroeconomics", slug: "macroeconomics" },
-    author: { id: 1, name: "Domestic RE Economic Research", email: "gdp@domesticre.com" },
+    author: { id: 1, name: "Domestic RE Economic Research", email: "info@domesticrealestate.us" },
   },
 };
 

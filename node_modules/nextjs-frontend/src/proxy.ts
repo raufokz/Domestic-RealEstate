@@ -129,7 +129,7 @@ function blockedResponse(message: string): NextResponse {
     <p class="eyebrow">403 &middot; Access Restricted</p>
     <h1>Access Restricted</h1>
     <p>${safeMessage}</p>
-    <a href="mailto:support@domesticrealestate.us">Contact Support</a>
+    <a href="mailto:info@domesticrealestate.us">Contact Support</a>
   </div>
 </main>
 </body>

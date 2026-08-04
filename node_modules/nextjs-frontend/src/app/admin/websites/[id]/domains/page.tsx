@@ -145,7 +145,7 @@ export default function WebsiteDomainsPage() {
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addDomain()}
-              placeholder="example.com or subdomain.domesticre.com"
+              placeholder="example.com or subdomain.domesticrealestate.us"
               className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none"
             />
             <button

@@ -638,7 +638,7 @@ export default function WebsiteDetailPage() {
                     onChange={(e) => setNewDomain((prev) => ({ ...prev, type: e.target.value as "subdomain" | "custom" }))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none"
                   >
-                    <option value="subdomain">Subdomain (*.domesticre.com)</option>
+                    <option value="subdomain">Subdomain (*.domesticrealestate.us)</option>
                     <option value="custom">Custom Domain</option>
                   </select>
                 </div>
@@ -655,7 +655,7 @@ export default function WebsiteDetailPage() {
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none"
                     />
                     {newDomain.type === "subdomain" && (
-                      <span className="px-3 py-2.5 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">.domesticre.com</span>
+                      <span className="px-3 py-2.5 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">.domesticrealestate.us</span>
                     )}
                   </div>
                 </div>

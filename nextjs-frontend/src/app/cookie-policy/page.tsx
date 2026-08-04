@@ -94,7 +94,7 @@ const sections: LegalSection[] = [
     body: (
       <p>
         Questions about our use of cookies? Email{" "}
-        <a href="mailto:privacy@domesticrealestate.us">privacy@domesticrealestate.us</a>. See also our{" "}
+        <a href="mailto:info@domesticrealestate.us">info@domesticrealestate.us</a>. See also our{" "}
         <a href="/privacy">Privacy Policy</a>.
       </p>
     ),

@@ -40,12 +40,8 @@ const CAMPAIGN_TYPES = [
 ];
 
 const DEPARTMENT_EMAILS = [
+  "admin@domesticrealestate.us",
   "info@domesticrealestate.us",
-  "sales@domesticrealestate.us",
-  "leads@domesticrealestate.us",
-  "support@domesticrealestate.us",
-  "noreply@domesticrealestate.us",
-  "billing@domesticrealestate.us",
 ];
 
 const STATUS_COLORS: Record<string, string> = {

@@ -196,7 +196,7 @@ const sections: LegalSection[] = [
     heading: "Contact Us",
     body: (
       <p>
-        Questions about these Terms? Email <a href="mailto:legal@domesticrealestate.us">legal@domesticrealestate.us</a>{" "}
+        Questions about these Terms? Email <a href="mailto:admin@domesticrealestate.us">admin@domesticrealestate.us</a>{" "}
         or visit our <a href="/contact">contact page</a>.
       </p>
     ),

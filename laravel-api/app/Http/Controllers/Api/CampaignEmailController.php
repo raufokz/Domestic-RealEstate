@@ -49,9 +49,9 @@ class CampaignEmailController extends Controller
         if (!isset($validated['from_email'])) {
             $typeMap = [
                 'newsletter' => 'info@domesticrealestate.us',
-                'nurture' => 'leads@domesticrealestate.us',
-                'outreach' => 'sales@domesticrealestate.us',
-                'reengagement' => 'support@domesticrealestate.us',
+                'nurture' => 'info@domesticrealestate.us',
+                'outreach' => 'admin@domesticrealestate.us',
+                'reengagement' => 'info@domesticrealestate.us',
             ];
             $validated['from_email'] = $typeMap[$validated['type']] ?? 'info@domesticrealestate.us';
         }
@@ -287,7 +287,7 @@ class CampaignEmailController extends Controller
             'type' => 'outreach',
             'subject' => $validated['subject'],
             'body' => $validated['body'],
-            'from_email' => $validated['from_email'] ?? 'sales@domesticrealestate.us',
+            'from_email' => $validated['from_email'] ?? 'admin@domesticrealestate.us',
             'recipient_source' => 'leads',
             'created_by' => $request->user()->id,
             'status' => 'sending',

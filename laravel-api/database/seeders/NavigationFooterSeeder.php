@@ -69,8 +69,8 @@ class NavigationFooterSeeder extends Seeder
         // ─── Email Settings ───
         $emailSettings = [
             ['setting_key' => 'from_name', 'value' => 'Domestic Real Estate', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Sender name'],
-            ['setting_key' => 'from_email', 'value' => 'noreply@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Sender email'],
-            ['setting_key' => 'reply_to', 'value' => 'support@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Reply-to email'],
+            ['setting_key' => 'from_email', 'value' => 'info@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Sender email'],
+            ['setting_key' => 'reply_to', 'value' => 'info@domesticrealestate.us', 'type' => 'string', 'setting_group' => 'general', 'description' => 'Reply-to email'],
             ['setting_key' => 'smtp_host', 'value' => '', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP server host'],
             ['setting_key' => 'smtp_port', 'value' => '587', 'type' => 'integer', 'setting_group' => 'smtp', 'description' => 'SMTP server port'],
             ['setting_key' => 'smtp_username', 'value' => '', 'type' => 'string', 'setting_group' => 'smtp', 'description' => 'SMTP username'],

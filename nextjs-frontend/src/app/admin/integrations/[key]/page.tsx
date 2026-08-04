@@ -47,7 +47,7 @@ const FIELDS_BY_CATEGORY: Record<string, FieldDef[]> = {
     { key: "webhook_url", label: "Webhook URL", type: "text", placeholder: "https://hooks.zapier.com/..." },
   ],
   payments: [
-    { key: "email", label: "Payoneer Account Email", type: "email", placeholder: "billing@domesticrealestate.us" },
+    { key: "email", label: "Payoneer Account Email", type: "email", placeholder: "admin@domesticrealestate.us" },
   ],
   social: [],
 };

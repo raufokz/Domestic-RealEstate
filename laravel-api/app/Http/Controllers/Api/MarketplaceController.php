@@ -748,7 +748,7 @@ class MarketplaceController extends Controller
             'company' => [
                 'name' => 'Domestic Real Estate',
                 'address' => 'USA Nationwide Network',
-                'support_email' => 'support@domesticrealestate.us',
+                'support_email' => 'info@domesticrealestate.us',
             ],
         ]);
     }

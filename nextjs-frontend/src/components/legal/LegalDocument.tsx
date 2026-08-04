@@ -120,10 +120,10 @@ export default function LegalDocument({
             <p>
               Questions about this document? Contact{" "}
               <a
-                href="mailto:legal@domesticrealestate.us"
+                href="mailto:admin@domesticrealestate.us"
                 className="text-[#C9A227] font-semibold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] rounded"
               >
-                legal@domesticrealestate.us
+                admin@domesticrealestate.us
               </a>
               .
             </p>

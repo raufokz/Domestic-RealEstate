@@ -94,7 +94,7 @@ const sections: LegalSection[] = [
         </p>
         <p>
           To exercise any right, email{" "}
-          <a href="mailto:privacy@domesticrealestate.us">privacy@domesticrealestate.us</a>. We will verify your
+          <a href="mailto:info@domesticrealestate.us">info@domesticrealestate.us</a>. We will verify your
           request and respond within the timeframes required by applicable law.
         </p>
       </>
@@ -169,7 +169,7 @@ const sections: LegalSection[] = [
     body: (
       <p>
         Questions or requests about your privacy? Email{" "}
-        <a href="mailto:privacy@domesticrealestate.us">privacy@domesticrealestate.us</a> or visit our{" "}
+        <a href="mailto:info@domesticrealestate.us">info@domesticrealestate.us</a> or visit our{" "}
         <a href="/contact">contact page</a>.
       </p>
     ),

@@ -323,7 +323,7 @@ export default function BulkEmailFollowUpPage() {
             <h3 className="text-sm font-bold text-[#0A2647]">Live Inbox Email Preview</h3>
             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 text-xs">
               <p className="text-slate-500 mb-1"><strong>Subject:</strong> {subject.replace("{{first_name}}", "Jane")}</p>
-              <p className="text-slate-500 mb-3 border-b pb-2"><strong>From:</strong> sales@domesticrealestate.us</p>
+              <p className="text-slate-500 mb-3 border-b pb-2"><strong>From:</strong> admin@domesticrealestate.us</p>
               <div
                 className="prose prose-xs max-w-none text-slate-800 font-body"
                 dangerouslySetInnerHTML={{

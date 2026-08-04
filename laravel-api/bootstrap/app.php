@@ -88,7 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $status === 403 => 'You do not have permission to do this.',
                 $status === 404 => 'We could not find what you asked for.',
                 $status === 429 => 'Too many requests. Please wait a moment and try again.',
-                $status >= 500 => 'Something went wrong on our side. Please try again, or contact support@domesticrealestate.us if it keeps happening.',
+                $status >= 500 => 'Something went wrong on our side. Please try again, or contact info@domesticrealestate.us if it keeps happening.',
                 default => ($raw !== '' ? $raw : 'Something went wrong. Please try again.'),
             };
 
@@ -98,7 +98,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => $friendly,
                 'reason' => $status >= 500 ? 'an unexpected server error occurred' : 'the request could not be completed',
                 'fix' => $status >= 500
-                    ? 'Refresh the page and try again. If the problem continues, email support@domesticrealestate.us.'
+                    ? 'Refresh the page and try again. If the problem continues, email info@domesticrealestate.us.'
                     : null,
                 'debug_message' => config('app.debug') ? $raw : null,
             ], $status >= 400 ? $status : 500);

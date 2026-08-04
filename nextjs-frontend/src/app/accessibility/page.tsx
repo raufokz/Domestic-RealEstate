@@ -86,7 +86,7 @@ const sections: LegalSection[] = [
     body: (
       <p>
         We welcome your feedback on the accessibility of Domestic Real Estate. If you encounter a barrier, please
-        email <a href="mailto:accessibility@domesticrealestate.us">accessibility@domesticrealestate.us</a> with a
+        email <a href="mailto:info@domesticrealestate.us">info@domesticrealestate.us</a> with a
         description of the issue and the page URL. We aim to respond within five business days.
       </p>
     ),
