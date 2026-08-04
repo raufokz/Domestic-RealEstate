@@ -71,19 +71,56 @@ export default function RealtorDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/realtor/dashboard/profile"
+              className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 border border-[#C9A227]/30"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Setup / Edit Profile</span>
+            </Link>
             <button className="relative p-2 text-slate-400 hover:text-slate-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#C9A227] rounded-full" />
             </button>
-            <div className="w-9 h-9 bg-[#0A2647] rounded-full flex items-center justify-center">
+            <Link href="/realtor/dashboard/profile" className="w-9 h-9 bg-[#0A2647] rounded-full flex items-center justify-center hover:opacity-90 transition">
               <span className="text-white text-sm font-bold">SJ</span>
-            </div>
+            </Link>
           </div>
         </header>
 
         <div className="p-6 space-y-6">
+          {/* Profile Completeness & Setup Banner */}
+          <div className="bg-gradient-to-r from-[#0A2647] to-[#143B6B] rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-white/10 relative overflow-hidden">
+            <div className="space-y-2 max-w-xl z-10">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#C9A227] text-[#0A2647] text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  85% Complete
+                </span>
+                <span className="text-xs text-slate-300">MLS Board: MIAMI REALTORS®</span>
+              </div>
+              <h2 className="text-lg font-extrabold text-white">Complete Your Agent Profile to Unlock Premium Leads</h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Verified agent profiles with headshots, MLS licenses, and specialties receive up to 4.2x more client inquiries and lead assignments on the platform.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 z-10 w-full md:w-auto justify-between md:justify-end">
+              <div className="w-32 bg-white/10 p-3 rounded-xl border border-white/10 text-center">
+                <p className="text-[10px] text-slate-300 uppercase font-semibold">Verification</p>
+                <p className="text-xs font-bold text-emerald-400 mt-0.5">✓ Verified Agent</p>
+              </div>
+              <Link
+                href="/realtor/dashboard/profile"
+                className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-5 py-3 rounded-xl shadow-lg transition whitespace-nowrap"
+              >
+                + Complete Profile Details →
+              </Link>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Total Leads", value: "30", change: "+8 this week", color: "bg-blue-50 text-blue-600", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },

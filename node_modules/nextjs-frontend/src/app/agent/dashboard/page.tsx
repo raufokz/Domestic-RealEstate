@@ -197,6 +197,15 @@ export default function AgentDashboard() {
           <div>
             <h2 className="text-lg font-bold text-[#0A2647] mb-4">Quick Actions</h2>
             <div className="space-y-3">
+              <Link href="/realtor/dashboard/profile" className="flex items-center gap-3 bg-gradient-to-r from-[#0A2647] to-[#143b6b] rounded-xl border border-[#C9A227]/30 p-4 hover:shadow-lg transition text-white">
+                <div className="w-10 h-10 rounded-lg bg-[#C9A227] flex items-center justify-center text-[#0A2647] font-black text-lg">
+                  +
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Setup / Edit Agent Profile</p>
+                  <p className="text-xs text-slate-300">MLS info, headshots, bio & preferences</p>
+                </div>
+              </Link>
               <Link href="/marketplace" className="flex items-center gap-3 bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition">
                 <div className="w-10 h-10 rounded-lg bg-[#C9A227] flex items-center justify-center text-[#0A2647] font-black">$</div>
                 <div>
