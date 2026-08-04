@@ -24,6 +24,7 @@ class Lead extends Model
         'realtor_status', 'contact_time', 'consent_given', 'chat_metadata',
         'marketplace_status', 'marketplace_title', 'marketplace_category',
         'marketplace_description', 'marketplace_price',
+        'pricing_model', 'commission_rate', 'payout_method', 'payout_email',
         'reserved_by', 'reservation_expires_at', 'sold_to', 'sold_at', 'listed_at',
         'state', 'city', 'attachments', 'views_count', 'publish_at',
     ];
@@ -34,6 +35,7 @@ class Lead extends Model
             'pre_approved' => 'boolean', 'consent_given' => 'boolean',
             'chat_metadata' => 'array',
             'marketplace_price' => 'decimal:2',
+            'commission_rate' => 'decimal:2',
             'reservation_expires_at' => 'datetime',
             'sold_at' => 'datetime',
             'listed_at' => 'datetime',

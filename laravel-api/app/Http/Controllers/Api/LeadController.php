@@ -14,12 +14,56 @@ use Illuminate\Support\Str;
 
 class LeadController extends Controller
 {
+    /**
+     * Roles that may view/edit every lead in the CRM.
+     * Every other role is strictly scoped to leads they own or were assigned.
+     */
+    private function isPrivileged($user): bool
+    {
+        return in_array($user->role, ['admin', 'super_admin'], true);
+    }
+
+    /** Restrict a lead query to records the given user is allowed to see. */
+    private function scopeToUser($query, $user)
+    {
+        if ($this->isPrivileged($user)) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('assigned_to', $user->id)
+                ->orWhere('created_by', $user->id)
+                ->orWhere('sold_to', $user->id)
+                ->orWhere('reserved_by', $user->id);
+        });
+    }
+
+    /** Load a lead only if the user may access it, else 403. */
+    private function findLeadForUser($id, $user): Lead
+    {
+        $lead = Lead::findOrFail($id);
+
+        if ($this->isPrivileged($user)) {
+            return $lead;
+        }
+
+        $canAccess = $lead->assigned_to === $user->id
+            || $lead->created_by === $user->id
+            || $lead->sold_to === $user->id
+            || $lead->reserved_by === $user->id;
+
+        abort_if(!$canAccess, 403, 'You do not have access to this lead.');
+
+        return $lead;
+    }
+
     public function index(Request $request) {
         $query = Lead::with(['assignee', 'realtor']);
+        $this->scopeToUser($query, $request->user());
         if ($request->filled('status')) $query->where('status', $request->status);
         if ($request->filled('type')) $query->where('type', $request->type);
         if ($request->filled('priority')) $query->where('priority', $request->priority);
-        if ($request->filled('assigned_to')) $query->where('assigned_to', $request->assigned_to);
+        if ($this->isPrivileged($request->user()) && $request->filled('assigned_to')) $query->where('assigned_to', $request->assigned_to);
         $leads = $query->orderBy('created_at', 'desc')->paginate($request->get('per_page', 25));
         return response()->json($leads);
     }
@@ -125,6 +169,11 @@ class LeadController extends Controller
         $validated['user_agent'] = $request->userAgent();
         $validated['page_url'] = $request->header('referer', '');
 
+        // Non-privileged users (agents) can only create leads for themselves.
+        $validated['assigned_to'] = $this->isPrivileged($request->user())
+            ? ($request->input('assigned_to') ?? $request->user()->id)
+            : $request->user()->id;
+
         $lead = Lead::create($validated);
 
         \App\Models\AuditLog::log('lead.created', 'lead', null, null, $request->only(['email', 'first_name', 'last_name']));
@@ -139,15 +188,16 @@ class LeadController extends Controller
         return response()->json($lead, 201);
     }
 
-    public function show($id) {
+    public function show(Request $request, $id) {
+        $lead = $this->findLeadForUser($id, $request->user());
         return response()->json(
-            Lead::with(['assignee', 'realtor', 'activities.performer', 'notes.creator', 'tasks', 'assignments.agent'])->findOrFail($id)
+            $lead->load(['assignee', 'realtor', 'activities.performer', 'notes.creator', 'tasks', 'assignments.agent'])
         );
     }
 
     public function updateStatus(Request $request, $id) {
         $request->validate(['status' => 'required|in:new,contacted,qualified,scheduled,negotiation,converted,lost,archived']);
-        $lead = Lead::findOrFail($id);
+        $lead = $this->findLeadForUser($id, $request->user());
         $oldStatus = $lead->status;
         $lead->update(['status' => $request->status]);
 
@@ -164,7 +214,7 @@ class LeadController extends Controller
     }
 
     public function update(Request $request, $id) {
-        $lead = Lead::findOrFail($id);
+        $lead = $this->findLeadForUser($id, $request->user());
         $validated = $request->validate([
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
@@ -199,14 +249,15 @@ class LeadController extends Controller
         return response()->json($lead->fresh(['assignee', 'realtor']));
     }
 
-    public function destroy($id) {
-        $lead = Lead::findOrFail($id);
+    public function destroy(Request $request, $id) {
+        $lead = $this->findLeadForUser($id, $request->user());
         $lead->delete();
         return response()->json(['message' => 'Lead deleted']);
     }
 
     public function addNote(Request $request, $id) {
         $request->validate(['note' => 'required|string']);
+        $this->findLeadForUser($id, $request->user());
         $note = LeadNote::create([
             'lead_id' => $id,
             'note' => $request->note,
@@ -223,6 +274,7 @@ class LeadController extends Controller
             'priority' => 'sometimes|in:low,normal,high,urgent',
             'due_date' => 'nullable|date',
         ]);
+        $this->findLeadForUser($id, $request->user());
         $validated['lead_id'] = $id;
         $validated['created_by'] = $request->user()->id;
         $validated['assigned_to'] = $request->get('assigned_to', $request->user()->id);
@@ -231,6 +283,7 @@ class LeadController extends Controller
     }
 
     public function assign(Request $request, $id) {
+        abort_unless($this->isPrivileged($request->user()), 403, 'Only administrators can reassign leads.');
         $request->validate(['agent_id' => 'required|exists:users,id']);
         \App\Models\AuditLog::log('lead.assigned', 'lead', $id, null, ['agent_id' => $request->agent_id]);
 
@@ -251,6 +304,7 @@ class LeadController extends Controller
      * Every run is persisted as an ImportBatch with per-row failure reasons.
      */
     public function import(Request $request) {
+        abort_unless($this->isPrivileged($request->user()), 403, 'Only administrators can import leads.');
         $request->validate([
             'file' => 'required|file|max:10240',
             // Explicit override when the admin picks the column manually.
@@ -516,6 +570,7 @@ class LeadController extends Controller
     }
 
     public function bulkReassign(Request $request) {
+        abort_unless($this->isPrivileged($request->user()), 403, 'Only administrators can reassign leads.');
         $request->validate([
             'lead_ids' => 'required|array',
             'agent_id' => 'required|exists:users,id',
@@ -526,7 +581,7 @@ class LeadController extends Controller
 
     public function qualify(Request $request) {
         $request->validate(['lead_id' => 'required|exists:leads,id']);
-        $lead = Lead::findOrFail($request->lead_id);
+        $lead = $this->findLeadForUser($request->lead_id, $request->user());
 
         $score = 0;
 

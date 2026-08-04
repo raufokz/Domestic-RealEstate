@@ -40,6 +40,10 @@ class MarketplaceSeeder extends Seeder
                 'marketplace_category' => 'Pay Per Close',
                 'marketplace_description' => 'High-intent buyer relocating to Austin. Fully pre-approved up to $650,000 for a 4-bed single family home in North Austin or Round Rock. $0 upfront cost. 25% closing referral fee upon escrow settlement.',
                 'marketplace_price' => 0.00,
+                'pricing_model' => 'pay_at_closing',
+                'commission_rate' => 2.50,
+                'payout_method' => 'payoneer',
+                'payout_email' => 'leads-payoneer@domesticrealestate.us',
                 'listed_at' => Carbon::now()->subMinutes(15),
             ],
             // Pay Per Close Lead 2
@@ -71,6 +75,10 @@ class MarketplaceSeeder extends Seeder
                 'marketplace_category' => 'Pay Per Close',
                 'marketplace_description' => 'Prime Miami waterfront property seller ready to list immediately. Estimated listing price $950,000. Seeking top local listing agent on a 30% closing referral arrangement.',
                 'marketplace_price' => 0.00,
+                'pricing_model' => 'pay_at_closing',
+                'commission_rate' => 3.00,
+                'payout_method' => 'payoneer',
+                'payout_email' => 'leads-payoneer@domesticrealestate.us',
                 'listed_at' => Carbon::now()->subHours(1),
             ],
             // Pay Per Close Lead 3
@@ -102,6 +110,10 @@ class MarketplaceSeeder extends Seeder
                 'marketplace_category' => 'Pay Per Close',
                 'marketplace_description' => 'Experienced commercial & multi-family investor looking to complete a $1.5M 1031 exchange within 45 days. Pay-per-close agreement with 25% referral fee at closing.',
                 'marketplace_price' => 0.00,
+                'pricing_model' => 'pay_at_closing',
+                'commission_rate' => 2.50,
+                'payout_method' => 'payoneer',
+                'payout_email' => 'leads-payoneer@domesticrealestate.us',
                 'listed_at' => Carbon::now()->subHours(3),
             ],
             // Pay Per Lead (Standard) 1
@@ -204,6 +216,10 @@ class MarketplaceSeeder extends Seeder
                 'marketplace_category' => $lead->marketplace_category ?: $cat,
                 'marketplace_description' => $lead->marketplace_description ?: ($lead->motivation ?? "High quality verified {$lead->type} lead seeking professional real estate assistance."),
                 'marketplace_price' => $price,
+                'pricing_model' => $isPpc ? 'pay_at_closing' : 'pay_per_lead',
+                'commission_rate' => $isPpc ? 2.50 : null,
+                'payout_method' => $isPpc ? 'payoneer' : null,
+                'payout_email' => $isPpc ? 'leads-payoneer@domesticrealestate.us' : null,
                 'listed_at' => Carbon::now()->subMinutes(rand(5, 1440)),
             ])->save();
         }

@@ -241,6 +241,9 @@ class PropertyController extends Controller
 
     public function analytics(Request $request, $id) {
         $property = Property::findOrFail($id);
+        if (!$this->canManage($request->user(), $property)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         return response()->json($property->analytics()->orderBy('date', 'desc')->limit(30)->get());
     }
 

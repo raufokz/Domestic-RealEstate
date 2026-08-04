@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AiPromptController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\MarketplaceController;
+use App\Http\Controllers\Api\AgentPortalController;
 use App\Http\Controllers\Api\GeoCheckController;
 use App\Http\Controllers\Api\GeoWhitelistController;
 use App\Http\Controllers\Api\GeoBlacklistController;
@@ -214,6 +215,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/leads/{id}/reserve', [MarketplaceController::class, 'reserve']);
         Route::post('/leads/{id}/purchase', [MarketplaceController::class, 'purchase']);
         Route::post('/leads/{id}/process-payment', [MarketplaceController::class, 'purchase']);
+        Route::post('/leads/{id}/claim', [MarketplaceController::class, 'claim']);
         Route::post('/leads/{id}/release', [MarketplaceController::class, 'release']);
         Route::get('/leads/{id}/details', [MarketplaceController::class, 'details']);
         Route::get('/purchases/{id}/invoice', [MarketplaceController::class, 'getInvoice']);
@@ -360,16 +362,44 @@ Route::post('/leads', [LeadController::class, 'capture']);
 
 /*
 |--------------------------------------------------------------------------
-| Agent Portal — the signed-in agent's own documents
+| Agent Portal — RBAC enforced at the route level (agent/admin/super_admin).
+| Every endpoint is additionally scoped to the signed-in user's own data.
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/agent/documents', [AgentController::class, 'myDocuments']);
-    Route::post('/agent/documents', [AgentController::class, 'storeMyDocument']);
-    Route::get('/agent/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
-    Route::delete('/agent/documents/{id}', [AgentController::class, 'destroyMyDocument']);
-    Route::get('/agent/stats', [AgentController::class, 'stats']);
-    Route::get('/agent/enquiries', [AgentController::class, 'enquiries']);
+Route::middleware(['auth:sanctum', 'role:agent,admin,super_admin'])->prefix('agent')->group(function () {
+    Route::get('/dashboard', [AgentPortalController::class, 'dashboard']);
+    Route::get('/stats', [AgentController::class, 'stats']);
+    Route::get('/enquiries', [AgentController::class, 'enquiries']);
+
+    // Properties (own listings only)
+    Route::get('/properties', [AgentPortalController::class, 'properties']);
+    Route::post('/properties/{id}/duplicate', [AgentPortalController::class, 'duplicateProperty']);
+    Route::post('/properties/{id}/submit', [AgentPortalController::class, 'submitProperty']);
+
+    // Leads / Clients / CRM
+    Route::get('/clients', [AgentPortalController::class, 'clients']);
+
+    // Tasks
+    Route::get('/tasks', [AgentPortalController::class, 'tasks']);
+    Route::post('/tasks', [AgentPortalController::class, 'storeTask']);
+    Route::put('/tasks/{id}', [AgentPortalController::class, 'updateTask']);
+
+    // Calendar / Appointments
+    Route::get('/appointments', [AgentPortalController::class, 'appointments']);
+    Route::post('/appointments', [AgentPortalController::class, 'storeAppointment']);
+    Route::put('/appointments/{id}', [AgentPortalController::class, 'updateAppointment']);
+    Route::delete('/appointments/{id}', [AgentPortalController::class, 'destroyAppointment']);
+
+    // Messages / Analytics / Earnings
+    Route::get('/messages', [AgentPortalController::class, 'messages']);
+    Route::get('/analytics', [AgentPortalController::class, 'analytics']);
+    Route::get('/pay-at-closing', [AgentPortalController::class, 'payAtClosingLeads']);
+
+    // Documents (own profile only)
+    Route::get('/documents', [AgentController::class, 'myDocuments']);
+    Route::post('/documents', [AgentController::class, 'storeMyDocument']);
+    Route::get('/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
+    Route::delete('/documents/{id}', [AgentController::class, 'destroyMyDocument']);
 });
 
 /*
@@ -416,6 +446,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('/purchases/{purchaseId}/confirm', [MarketplaceController::class, 'adminConfirmPayment']);
         Route::post('/purchases/{purchaseId}/cancel', [MarketplaceController::class, 'adminCancelPurchase']);
         Route::post('/purchases/{purchaseId}/refund', [MarketplaceController::class, 'adminRefund']);
+        Route::get('/payouts', [MarketplaceController::class, 'adminPayouts']);
+        Route::post('/payouts/{purchasedLeadId}/status', [MarketplaceController::class, 'adminMarkPayout']);
     });
     Route::get('/settings', [AdminController::class, 'settings']);
     Route::put('/settings', [AdminController::class, 'updateSettings']);

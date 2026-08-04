@@ -132,6 +132,9 @@ class MarketplaceController extends Controller
             'category' => $lead->marketplace_category,
             'description' => $lead->marketplace_description,
             'price' => (float) $lead->marketplace_price,
+            'pricing_model' => $lead->pricing_model ?? 'pay_per_lead',
+            'commission_rate' => $lead->commission_rate !== null ? (float) $lead->commission_rate : null,
+            'payout_method' => $lead->payout_method ?? null,
             'status' => $status,
             'location' => $lead->location,
             'state' => $lead->state,
@@ -223,6 +226,14 @@ class MarketplaceController extends Controller
         // Lead Type filter
         if ($request->filled('type')) {
             $query->where('type', $request->type);
+        }
+
+        // Pricing model filter (pay_per_lead / pay_at_closing)
+        if ($request->filled('pricing_model')) {
+            $query->where('pricing_model', $request->pricing_model);
+        } else {
+            // Default marketplace view is Pay-Per-Lead only.
+            $query->where('pricing_model', 'pay_per_lead');
         }
 
         // Price range filter
@@ -483,6 +494,86 @@ class MarketplaceController extends Controller
                 'status' => 'awaiting_confirmation',
                 'message' => 'Payment submitted for processing. Lead is held for you while payment is confirmed.',
                 'expires_at' => $holdUntil->toISOString(),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    /**
+     * Claim a Pay-at-Closing lead. No upfront payment: the agent takes the lead
+     * now and pays the recorded commission at closing (via Payoneer by default).
+     */
+    public function claim(Request $request, $id)
+    {
+        $user = $request->user();
+        $this->checkPplPermission($user);
+
+        $result = DB::transaction(function () use ($id, $user) {
+            $lead = Lead::whereKey($id)->lockForUpdate()->first();
+
+            abort_if(!$lead || $lead->marketplace_status === self::STATUS_NONE, 404, 'This lead is not available in the marketplace.');
+            abort_if(($lead->pricing_model ?? 'pay_per_lead') !== 'pay_at_closing', 422, 'This lead is not available on a Pay-at-Closing basis.');
+            abort_if($lead->marketplace_status === self::STATUS_SOLD, 409, 'This lead has already been claimed by another agent.');
+            abort_if($lead->marketplace_status === self::STATUS_RESERVED, 409, 'This lead is currently reserved by another buyer.');
+
+            $commission = $lead->commission_rate ?? 0;
+            $payoutMethod = $lead->payout_method ?? 'payoneer';
+
+            MarketplaceLeadPurchase::create([
+                'lead_id' => $lead->id,
+                'user_id' => $user->id,
+                'amount' => 0,
+                'status' => MarketplaceLeadPurchase::STATUS_PENDING,
+                'reserved_at' => now(),
+                'purchased_at' => null,
+                'notes' => 'Claimed — Pay-at-Closing via ' . ucfirst($payoutMethod),
+            ]);
+
+            $lead->forceFill([
+                'marketplace_status' => self::STATUS_SOLD,
+                'sold_to' => $user->id,
+                'sold_at' => now(),
+                'reserved_by' => null,
+                'reservation_expires_at' => null,
+            ])->save();
+
+            PurchasedLead::firstOrCreate(
+                ['lead_id' => $lead->id, 'user_id' => $user->id],
+                [
+                    'amount' => 0,
+                    'purchased_at' => now(),
+                    'commission_amount' => $commission,
+                    'payout_method' => $payoutMethod,
+                    'payout_email' => $lead->payout_email,
+                    'payout_status' => 'pending',
+                    'claimed_at' => now(),
+                ]
+            );
+
+            MarketplacePaymentLog::create([
+                'purchase_id' => MarketplaceLeadPurchase::where('lead_id', $lead->id)->latest('id')->value('id'),
+                'lead_id' => $lead->id,
+                'user_id' => $user->id,
+                'payment_gateway' => $payoutMethod,
+                'amount' => $commission,
+                'status' => 'pending',
+                'payload' => ['pay_at_closing' => true, 'claimed_at' => now()->toDateTimeString()],
+            ]);
+
+            $this->notifyUser(
+                $user,
+                'Lead claimed',
+                'You claimed "' . ($lead->marketplace_title ?: $lead->lead_number) . '" on a Pay-at-Closing basis. Commission of $' . number_format((float) $commission, 2) . ' is due at closing.',
+                '/agent/dashboard/marketplace/pay-at-closing',
+                'View my claims',
+                ['lead_id' => $lead->id]
+            );
+
+            return [
+                'status' => 'claimed',
+                'message' => 'Lead claimed on a Pay-at-Closing basis. Commission is due at closing.',
+                'lead_id' => $lead->id,
             ];
         });
 
@@ -792,6 +883,54 @@ class MarketplaceController extends Controller
         return response()->json($purchases);
     }
 
+    /** Pay-at-Closing claims (agent claims + commission payouts). */
+    public function adminPayouts(Request $request)
+    {
+        $this->checkAdmin();
+        $query = PurchasedLead::with('lead', 'user')
+            ->whereNotNull('payout_method');
+
+        if ($request->filled('status')) {
+            $query->where('payout_status', $request->status);
+        }
+
+        return response()->json($query->latest('claimed_at')->paginate($request->get('per_page', 25)));
+    }
+
+    /** Mark a Pay-at-Closing commission as paid out (Payoneer etc). */
+    public function adminMarkPayout(Request $request, $purchasedLeadId)
+    {
+        $this->checkAdmin();
+        $admin = $request->user();
+        $validated = $request->validate([
+            'payout_status' => 'required|in:paid,cancelled',
+            'closing_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $purchased = PurchasedLead::with('lead')->findOrFail($purchasedLeadId);
+
+        abort_if($purchased->payout_method === null, 422, 'This is not a Pay-at-Closing purchase.');
+
+        $purchased->update([
+            'payout_status' => $validated['payout_status'],
+            'closing_date' => $validated['closing_date'] ?? $purchased->closing_date,
+        ]);
+
+        $this->notifyUser(
+            $purchased->user,
+            'Payout ' . $validated['payout_status'],
+            'Your Pay-at-Closing commission of $' . number_format((float) $purchased->commission_amount, 2)
+                . ' for "' . ($purchased->lead?->marketplace_title ?: 'a lead') . '" was marked as '
+                . $validated['payout_status'] . '.',
+            '/agent/dashboard/marketplace/pay-at-closing',
+            'View claims',
+            ['purchase_id' => $purchased->id]
+        );
+
+        return response()->json(['message' => 'Payout status updated.', 'data' => $purchased]);
+    }
+
     public function adminPaymentLogs(Request $request)
     {
         $this->checkAdmin();
@@ -844,6 +983,10 @@ class MarketplaceController extends Controller
             'marketplace_category' => 'nullable|string|max:100',
             'marketplace_description' => 'nullable|string|max:2000',
             'marketplace_price' => 'required|numeric|min:0',
+            'pricing_model' => 'sometimes|in:pay_per_lead,pay_at_closing',
+            'commission_rate' => 'nullable|numeric|min:0|max:99999',
+            'payout_method' => 'nullable|string|max:50',
+            'payout_email' => 'nullable|email|max:255',
             'location' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:255',
@@ -885,6 +1028,10 @@ class MarketplaceController extends Controller
             'marketplace_category' => $validated['marketplace_category'] ?? $lead->marketplace_category,
             'marketplace_description' => $validated['marketplace_description'] ?? $lead->marketplace_description,
             'marketplace_price' => $validated['marketplace_price'],
+            'pricing_model' => $validated['pricing_model'] ?? ($lead->pricing_model ?? 'pay_per_lead'),
+            'commission_rate' => $validated['commission_rate'] ?? $lead->commission_rate,
+            'payout_method' => $validated['payout_method'] ?? $lead->payout_method ?? 'payoneer',
+            'payout_email' => $validated['payout_email'] ?? $lead->payout_email,
             'location' => $validated['location'] ?? $lead->location,
             'state' => $validated['state'] ?? $lead->state,
             'city' => $validated['city'] ?? $lead->city,
@@ -923,6 +1070,10 @@ class MarketplaceController extends Controller
             'marketplace_category' => 'sometimes|nullable|string|max:100',
             'marketplace_description' => 'sometimes|nullable|string|max:2000',
             'marketplace_price' => 'sometimes|numeric|min:0',
+            'pricing_model' => 'sometimes|in:pay_per_lead,pay_at_closing',
+            'commission_rate' => 'sometimes|nullable|numeric|min:0|max:99999',
+            'payout_method' => 'sometimes|nullable|string|max:50',
+            'payout_email' => 'sometimes|nullable|email|max:255',
             'location' => 'sometimes|nullable|string|max:255',
             'state' => 'sometimes|nullable|string|max:100',
             'city' => 'sometimes|nullable|string|max:255',
