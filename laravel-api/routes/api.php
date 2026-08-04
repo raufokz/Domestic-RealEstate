@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\AiPromptController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\AgentPortalController;
+use App\Http\Controllers\Api\AdminRealtorController;
 use App\Http\Controllers\Api\GeoCheckController;
 use App\Http\Controllers\Api\GeoWhitelistController;
 use App\Http\Controllers\Api\GeoBlacklistController;
@@ -424,8 +425,24 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/agents', [AdminController::class, 'agents']);
     Route::post('/agents', [AdminController::class, 'storeAgent']);
     Route::put('/agents/{id}', [AdminController::class, 'updateAgent']);
-    Route::delete('/agents/{id}', [AdminController::class, 'destroyAgent']);
-    Route::post('/agents/{id}/send-payment-link', [AdminController::class, 'sendAgentPaymentLink']);
+    // Realtor Profile Self-Management (RBAC)
+    Route::get('/agent-profile/me', [AgentController::class, 'me']);
+    Route::put('/agent-profile/me', [AgentController::class, 'updateMe']);
+    Route::post('/agent-profile/me/media', [AgentController::class, 'uploadMediaMe']);
+    Route::get('/agent-profile/me/documents', [AgentController::class, 'myDocuments']);
+    Route::post('/agent-profile/me/documents', [AgentController::class, 'storeMyDocument']);
+    Route::get('/agent-profile/me/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
+    Route::delete('/agent-profile/me/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+
+    // Admin Realtor Management & Verification Portal
+    Route::get('/realtors', [AdminRealtorController::class, 'index']);
+    Route::get('/realtors/{id}', [AdminRealtorController::class, 'show']);
+    Route::put('/realtors/{id}', [AdminRealtorController::class, 'update']);
+    Route::post('/realtors/{id}/status', [AdminRealtorController::class, 'updateStatus']);
+    Route::get('/realtors/{id}/audits', [AdminRealtorController::class, 'audits']);
+    Route::post('/realtors/{id}/documents', [AdminRealtorController::class, 'uploadDocument']);
+    Route::delete('/realtors/{id}/documents/{docId}', [AdminRealtorController::class, 'destroyDocument']);
+
     Route::get('/leads', [AdminController::class, 'leads']);
     Route::get('/enquiries', [AdminController::class, 'enquiries']);
 

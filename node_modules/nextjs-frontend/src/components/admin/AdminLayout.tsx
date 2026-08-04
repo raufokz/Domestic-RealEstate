@@ -39,6 +39,7 @@ const navSections = [
     { name: "Analytics", href: "/admin/properties/analytics", icon: "📈" },
   ]},
   { label: "AGENTS", items: [
+    { name: "Realtors & Verification", href: "/admin/realtors", icon: "🎖️" },
     { name: "Agent Management", href: "/admin/agents", icon: "🧑‍💼" },
     { name: "Performance", href: "/admin/agents/performance", icon: "📈" },
   ]},

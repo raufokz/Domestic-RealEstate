@@ -9,9 +9,6 @@ class AgentProfile extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /** Canonical "Services Needed" category tree offered on the Preferred Agent
-     * registration form. Registration validates `services_needed` against this
-     * flattened list so `specialties` never stores an arbitrary free-text value. */
     public const SERVICE_CATALOG = [
         'Core Services' => [
             'Executive Virtual Assistant', 'Email Management', 'Calendar Management',
@@ -34,11 +31,6 @@ class AgentProfile extends Model
         return array_merge(...array_values(self::SERVICE_CATALOG));
     }
 
-    /** Preferred Agent pricing tiers. `cap` = max services selectable (null =
-     * unlimited); `categories` = SERVICE_CATALOG keys the tier may pick from
-     * (null = any category). Mirrors the tier cards on the home page & register
-     * form so the server enforces the same rules a user could otherwise bypass
-     * by editing the request directly. */
     public const PLAN_TIERS = [
         'Solo' => ['cap' => 2, 'categories' => null],
         'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech']],
@@ -47,10 +39,6 @@ class AgentProfile extends Model
         'Enterprise Custom' => ['cap' => null, 'categories' => null],
     ];
 
-    /** Services a given plan name is allowed to include, or null if the plan
-     * doesn't restrict category (still may cap the count). Unknown plan names
-     * return null (no restriction) — registration falls back to "trust the
-     * catalog validation" for plans we don't recognize. */
     public static function planAllowedServices(?string $planName): ?array {
         $tier = self::PLAN_TIERS[$planName] ?? null;
         if (!$tier || $tier['categories'] === null) {
@@ -60,28 +48,72 @@ class AgentProfile extends Model
     }
 
     protected $fillable = [
-        'user_id', 'slug', 'headline', 'bio', 'brokerage_name', 'broker_name',
-        'license_number', 'license_status', 'mls_board', 'years_experience',
-        'specialties', 'languages', 'service_areas', 'lead_type_preferences',
-        'partnership_type', 'office_address', 'office_city', 'office_state',
-        'office_zip', 'office_country', 'office_phone', 'office_email',
-        'website', 'social_links', 'e_signature', 'rating', 'review_count',
-        'sales_count', 'is_featured', 'is_published', 'status', 'approved_at',
+        'user_id', 'slug', 'middle_name', 'preferred_name', 'dob', 'gender', 'ethnicity', 'nationality', 'timezone',
+        'headline', 'bio', 'profile_photo', 'cover_photo', 'company_logo', 'intro_video_url', 'office_photos', 'team_photos', 'property_portfolio_images',
+        'brokerage_name', 'broker_name', 'brokerage_address', 'brokerage_website', 'brokerage_contact',
+        'license_number', 'license_state', 'license_expiry_date', 'license_status', 'mls_board', 'mls_number', 'years_experience',
+        'nar_membership', 'realtor_membership', 'certifications', 'awards', 'designations',
+        'specialties', 'property_types', 'languages', 'service_areas', 'lead_type_preferences', 'partnership_type',
+        'office_address', 'office_city', 'office_state', 'office_zip', 'office_country', 'office_phone', 'office_email',
+        'secondary_email', 'mobile_number', 'office_number', 'whatsapp_number', 'fax', 'website', 'social_links',
+        'business_name', 'business_email', 'business_phone', 'office_hours', 'team_name', 'team_members', 'assistant_info',
+        'notification_preferences', 'privacy_settings', 'e_signature', 'rating', 'review_count', 'sales_count',
+        'is_featured', 'is_published', 'status', 'approved_at', 'rejection_reason', 'verified_by', 'verified_at',
         'payment_status', 'payoneer_checkout_url', 'payment_link_sent_at',
     ];
 
     protected function casts(): array {
         return [
-            'specialties' => 'array', 'languages' => 'array', 'service_areas' => 'array',
-            'lead_type_preferences' => 'array', 'social_links' => 'array',
-            'rating' => 'decimal:2', 'is_featured' => 'boolean', 'is_published' => 'boolean',
-            'approved_at' => 'datetime', 'years_experience' => 'integer',
-            'review_count' => 'integer', 'sales_count' => 'integer',
+            'specialties' => 'array',
+            'property_types' => 'array',
+            'languages' => 'array',
+            'service_areas' => 'array',
+            'lead_type_preferences' => 'array',
+            'social_links' => 'array',
+            'office_photos' => 'array',
+            'team_photos' => 'array',
+            'property_portfolio_images' => 'array',
+            'certifications' => 'array',
+            'awards' => 'array',
+            'designations' => 'array',
+            'office_hours' => 'array',
+            'team_members' => 'array',
+            'assistant_info' => 'array',
+            'notification_preferences' => 'array',
+            'privacy_settings' => 'array',
+            'rating' => 'decimal:2',
+            'nar_membership' => 'boolean',
+            'realtor_membership' => 'boolean',
+            'is_featured' => 'boolean',
+            'is_published' => 'boolean',
+            'dob' => 'date',
+            'license_expiry_date' => 'date',
+            'approved_at' => 'datetime',
+            'verified_at' => 'datetime',
+            'years_experience' => 'integer',
+            'review_count' => 'integer',
+            'sales_count' => 'integer',
             'payment_link_sent_at' => 'datetime',
         ];
     }
 
     public function user() { return $this->belongsTo(User::class); }
+    public function verifiedByAdmin() { return $this->belongsTo(User::class, 'verified_by'); }
     public function documents() { return $this->hasMany(AgentDocument::class, 'agent_id'); }
-    public function reviews() { return $this->hasManyThrough(Review::class, Review::class, 'reviewable_id'); }
+    public function audits() { return $this->hasMany(AgentProfileAudit::class, 'agent_profile_id')->latest(); }
+
+    public function logAudit(string $action, ?string $fieldName = null, $previousValue = null, $newValue = null, ?array $changes = null, ?int $actorUserId = null): AgentProfileAudit
+    {
+        return AgentProfileAudit::create([
+            'agent_profile_id' => $this->id,
+            'user_id' => $actorUserId ?? auth()->id(),
+            'action' => $action,
+            'field_name' => $fieldName,
+            'previous_value' => is_array($previousValue) ? json_encode($previousValue) : (string) $previousValue,
+            'new_value' => is_array($newValue) ? json_encode($newValue) : (string) $newValue,
+            'changes' => $changes,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
 }
