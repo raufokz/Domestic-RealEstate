@@ -7,6 +7,7 @@ use App\Models\SiteSetting;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends Controller
 {
@@ -173,5 +174,77 @@ class SettingsController extends Controller
         ];
         $saved = $this->saveGroup('notifications', $validated, $defaults);
         return ApiResponse::ok($saved, 'Notification settings updated');
+    }
+
+    private function geoDefaults(): array
+    {
+        return [
+            'geo_blocking_enabled' => true,
+            'mode' => 'blacklist',
+            'blocked_countries' => ['PK'],
+            'allowed_countries' => [],
+            'vpn_detection_enabled' => true,
+            'proxy_detection_enabled' => true,
+            'tor_blocking_enabled' => true,
+            'datacenter_blocking_enabled' => true,
+            'custom_blocked_asns' => [],
+            'blocked_message' => config('geo.default_blocked_message'),
+            'log_retention_days' => 90,
+        ];
+    }
+
+    public function getGeoSettings(): JsonResponse
+    {
+        $defaults = $this->geoDefaults();
+        $rows = SiteSetting::where('group_name', 'geo_access')->get()->keyBy('key_name');
+        $result = $defaults;
+
+        foreach ($defaults as $key => $default) {
+            if (!$rows->has($key)) {
+                continue;
+            }
+            $val = $rows[$key]->value;
+            if (is_array($default)) {
+                $decoded = json_decode((string) $val, true);
+                $result[$key] = is_array($decoded) ? $decoded : $default;
+            } elseif (is_bool($default)) {
+                $result[$key] = $val === 'true';
+            } elseif (is_int($default)) {
+                $result[$key] = is_numeric($val) ? (int) $val : $default;
+            } else {
+                $result[$key] = $val;
+            }
+        }
+
+        return ApiResponse::ok($result);
+    }
+
+    public function updateGeoSettings(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'geo_blocking_enabled' => 'nullable|boolean',
+            'mode' => 'nullable|in:blacklist,allowlist',
+            'blocked_countries' => 'nullable|array',
+            'blocked_countries.*' => 'string|size:2',
+            'allowed_countries' => 'nullable|array',
+            'allowed_countries.*' => 'string|size:2',
+            'vpn_detection_enabled' => 'nullable|boolean',
+            'proxy_detection_enabled' => 'nullable|boolean',
+            'tor_blocking_enabled' => 'nullable|boolean',
+            'datacenter_blocking_enabled' => 'nullable|boolean',
+            'custom_blocked_asns' => 'nullable|array',
+            'custom_blocked_asns.*' => 'integer',
+            'blocked_message' => 'nullable|string|max:2000',
+            'log_retention_days' => 'nullable|integer|min:1|max:3650',
+        ]);
+
+        foreach ($validated as $key => $val) {
+            $toStore = is_array($val) ? array_map(fn ($c) => is_string($c) ? strtoupper($c) : $c, $val) : $val;
+            SiteSetting::set($key, $toStore, 'geo_access');
+        }
+
+        Cache::forget('geo:settings');
+
+        return ApiResponse::ok($this->getGeoSettings()->getData(true)['data'] ?? null, 'Geo access settings updated');
     }
 }

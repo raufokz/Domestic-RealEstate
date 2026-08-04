@@ -113,6 +113,12 @@ const navSections = [
     { name: "Cache", href: "/admin/cache", icon: "🗑️" },
     { name: "Cron Jobs", href: "/admin/cron-jobs", icon: "⏰" },
   ]},
+  { label: "GEO ACCESS CONTROL", items: [
+    { name: "Settings", href: "/admin/geo-access", icon: "🌍" },
+    { name: "Whitelist", href: "/admin/geo-access/whitelist", icon: "✅" },
+    { name: "Blacklist", href: "/admin/geo-access/blacklist", icon: "🚫" },
+    { name: "Access Logs", href: "/admin/geo-access/logs", icon: "📋" },
+  ]},
   { label: "SETTINGS", items: [
     { name: "General", href: "/admin/settings", icon: "⚙️" },
     { name: "Appearance", href: "/admin/settings/appearance", icon: "🎨" },

@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\FeatureUnavailableException;
+use App\Http\Middleware\EnforceGeoAccess;
 use App\Http\Middleware\TrackPageView;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -22,8 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
             TrackPageView::class,
         ]);
 
+        $middleware->api(append: [
+            EnforceGeoAccess::class,
+        ]);
+
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'geo.access' => EnforceGeoAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

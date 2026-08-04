@@ -41,12 +41,20 @@ use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AiPromptController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\MarketplaceController;
+use App\Http\Controllers\Api\GeoCheckController;
+use App\Http\Controllers\Api\GeoWhitelistController;
+use App\Http\Controllers\Api\GeoBlacklistController;
+use App\Http\Controllers\Api\GeoAccessLogController;
 
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
 */
+
+// Geo Access Control — internal cross-service check used by the Next.js
+// edge middleware, gated by X-Geo-Internal-Secret (not by normal auth).
+Route::post('/geo/check', [GeoCheckController::class, 'check'])->middleware('throttle:120,1');
 
 // Auth
 Route::prefix('auth')->group(function () {
@@ -724,6 +732,26 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::put('/settings/security', [SettingsController::class, 'updateSecuritySettings']);
     Route::get('/settings/notifications', [SettingsController::class, 'getNotificationSettings']);
     Route::put('/settings/notifications', [SettingsController::class, 'updateNotificationSettings']);
+    Route::get('/settings/geo-access', [SettingsController::class, 'getGeoSettings']);
+    Route::put('/settings/geo-access', [SettingsController::class, 'updateGeoSettings']);
+
+    // Geo Access Control
+    Route::get('/geo-whitelist', [GeoWhitelistController::class, 'index']);
+    Route::post('/geo-whitelist', [GeoWhitelistController::class, 'store']);
+    Route::put('/geo-whitelist/{id}', [GeoWhitelistController::class, 'update']);
+    Route::delete('/geo-whitelist/{id}', [GeoWhitelistController::class, 'destroy']);
+    Route::get('/geo-whitelist/export', [GeoWhitelistController::class, 'export']);
+    Route::post('/geo-whitelist/import', [GeoWhitelistController::class, 'import']);
+
+    Route::get('/geo-blacklist', [GeoBlacklistController::class, 'index']);
+    Route::post('/geo-blacklist', [GeoBlacklistController::class, 'store']);
+    Route::put('/geo-blacklist/{id}', [GeoBlacklistController::class, 'update']);
+    Route::delete('/geo-blacklist/{id}', [GeoBlacklistController::class, 'destroy']);
+    Route::get('/geo-blacklist/export', [GeoBlacklistController::class, 'export']);
+    Route::post('/geo-blacklist/import', [GeoBlacklistController::class, 'import']);
+
+    Route::get('/geo-access-logs', [GeoAccessLogController::class, 'index']);
+    Route::get('/geo-access-logs/export', [GeoAccessLogController::class, 'export']);
 
     // AI Chat (admin)
     Route::prefix('ai-chat')->group(function () {

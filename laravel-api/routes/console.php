@@ -105,3 +105,10 @@ Schedule::call(function () {
 })->dailyAt('03:00')->name('prune-old-exports');
 
 Schedule::command('queue:prune-failed --hours=168')->daily();
+
+Schedule::command('geo:refresh-intelligence')->dailyAt('03:15')->withoutOverlapping()->name('refresh-geo-intelligence');
+
+Schedule::call(function () {
+    $days = (int) (\App\Models\SiteSetting::get('log_retention_days', 90) ?: 90);
+    \App\Models\GeoAccessLog::where('created_at', '<', now()->subDays($days))->delete();
+})->dailyAt('03:30')->name('prune-geo-access-logs');
