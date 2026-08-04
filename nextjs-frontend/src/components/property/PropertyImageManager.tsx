@@ -119,6 +119,39 @@ export default function PropertyImageManager({ propertyId, initialImages }: Prop
 
   return (
     <div className="space-y-4">
+      {/* Cover image highlight preview if set */}
+      {images.find((i) => i.is_featured) && (
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
+          <div className="w-24 h-24 rounded-lg overflow-hidden border border-slate-300 relative shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={storageUrl(images.find((i) => i.is_featured)!.path) ?? ""}
+              alt="Cover Image"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute top-1 left-1 bg-[#C9A227] text-[#0A2647] text-[9px] font-bold px-1.5 py-0.5 rounded">
+              Cover
+            </span>
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h4 className="font-heading font-bold text-sm text-[#0A2647]">Primary Cover Image</h4>
+            <p className="text-xs text-slate-500 mt-0.5">
+              This image is displayed on search results, cards, and page header hero banners.
+            </p>
+            <div className="flex gap-2 mt-2 justify-center sm:justify-start">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs font-semibold text-[#0A2647] bg-white border border-slate-200 px-3 py-1 rounded-lg hover:bg-slate-50"
+              >
+                ✎ Change Cover Image
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drag & Drop Upload Zone */}
       <div
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => {
@@ -131,7 +164,7 @@ export default function PropertyImageManager({ propertyId, initialImages }: Prop
           setDragActive(false);
           if (e.dataTransfer.files?.length) void uploadFiles(e.dataTransfer.files);
         }}
-        className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+        className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
           dragActive ? "border-[#C9A227] bg-[#C9A227]/5" : "border-slate-300 hover:border-slate-400"
         }`}
       >
@@ -146,61 +179,76 @@ export default function PropertyImageManager({ propertyId, initialImages }: Prop
             e.target.value = "";
           }}
         />
-        <p className="text-sm font-medium text-slate-600">
-          {uploading ? "Uploading..." : "Drag and drop photos here, or click to browse"}
+        <div className="w-12 h-12 rounded-full bg-[#0A2647]/5 text-[#0A2647] flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+          📸
+        </div>
+        <p className="text-sm font-semibold text-[#0A2647]">
+          {uploading ? "Uploading photos..." : "Drag & Drop cover and gallery photos here"}
         </p>
-        <p className="text-xs text-slate-400 mt-1">JPG, PNG, WEBP up to 5MB each</p>
+        <p className="text-xs text-slate-500 mt-1">
+          Or <span className="text-[#C9A227] font-bold underline">click to choose files</span> from your device
+        </p>
+        <p className="text-[11px] text-slate-400 mt-1">Supports JPG, PNG, WEBP up to 5MB. First photo automatically becomes cover.</p>
       </div>
 
       {images.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-4">No photos yet.</p>
+        <p className="text-sm text-slate-400 text-center py-4">No property photos uploaded yet.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {images.map((img) => (
-            <div
-              key={img.id}
-              draggable
-              onDragStart={() => {
-                draggedId.current = img.id;
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleDropReorder(img.id);
-              }}
-              className="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-50 aspect-square cursor-move"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={storageUrl(img.path) ?? ""}
-                alt={img.original_name ?? "Property photo"}
-                className="w-full h-full object-cover"
-              />
-              {img.is_featured && (
-                <span className="absolute top-2 left-2 bg-[#C9A227] text-[#0A2647] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Cover
-                </span>
-              )}
-              <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 p-1.5 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                {!img.is_featured && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Gallery ({images.length} Photos) — Drag photos to reorder
+            </h4>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {images.map((img) => (
+              <div
+                key={img.id}
+                draggable
+                onDragStart={() => {
+                  draggedId.current = img.id;
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDropReorder(img.id);
+                }}
+                className={`relative group rounded-lg overflow-hidden border bg-slate-50 aspect-square cursor-move transition-all ${
+                  img.is_featured ? "ring-2 ring-[#C9A227] border-[#C9A227]" : "border-slate-200"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={storageUrl(img.path) ?? ""}
+                  alt={img.original_name ?? "Property photo"}
+                  className="w-full h-full object-cover"
+                />
+                {img.is_featured && (
+                  <span className="absolute top-2 left-2 bg-[#C9A227] text-[#0A2647] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    ★ Cover Photo
+                  </span>
+                )}
+                <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  {!img.is_featured && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimary(img.id)}
+                      className="text-[10px] font-semibold text-white bg-black/60 hover:bg-black/90 rounded px-2 py-1"
+                    >
+                      ★ Set as cover
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => handleSetPrimary(img.id)}
-                    className="text-[10px] font-semibold text-white bg-black/50 hover:bg-black/70 rounded px-2 py-1"
+                    onClick={() => handleDelete(img.id)}
+                    className="text-[10px] font-semibold text-white bg-red-600/80 hover:bg-red-600 rounded px-2 py-1 ml-auto"
                   >
-                    ★ Set as cover
+                    Delete
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleDelete(img.id)}
-                  className="text-[10px] font-semibold text-white bg-red-600/80 hover:bg-red-600 rounded px-2 py-1 ml-auto"
-                >
-                  Delete
-                </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
