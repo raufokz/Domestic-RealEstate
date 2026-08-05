@@ -563,7 +563,7 @@ class AdminController extends Controller
                 $converted = $agent->converted_leads ?? 0;
                 return [
                     'id' => $agent->id,
-                    'name' => $agent->first_name . ' ' . $agent->last_name,
+                    'name' => $agent->name,
                     'total_leads' => $total,
                     'converted_leads' => $converted,
                     'conversion_rate' => $total > 0 ? round(($converted / $total) * 100, 1) . '%' : '0%',
