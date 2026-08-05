@@ -207,6 +207,53 @@ class CampaignEmailController extends Controller
         return response()->json(['message' => 'Template deleted']);
     }
 
+    public function previewTemplate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'id' => 'nullable|integer',
+            'html_body' => 'required_without:id|string',
+            'subject' => 'nullable|string|max:255',
+            'variables' => 'nullable|array',
+        ]);
+
+        $template = null;
+        if (!empty($validated['id'])) {
+            $template = EmailTemplate::findOrFail($validated['id']);
+            $html = $template->html_body;
+        } else {
+            $html = $validated['html_body'];
+        }
+
+        $sampleVariables = [
+            'first_name' => 'Alex',
+            'last_name' => 'Morgan',
+            'name' => 'Alex Morgan',
+            'email' => 'alex@example.com',
+            'phone' => '(555) 123-4567',
+            'property_title' => 'Lakeview Modern Home',
+            'property_address' => '124 Lakeview Avenue',
+            'property_price' => '$650,000',
+            'agent_name' => 'Jordan Reed',
+            'agent_email' => 'jordan@domesticrealestate.us',
+            'company_name' => 'Domestic Real Estate',
+            'current_date' => now()->format('F j, Y'),
+        ];
+
+        $variables = array_merge($sampleVariables, $validated['variables'] ?? []);
+        $rendered = $html;
+        foreach ($variables as $key => $value) {
+            $rendered = str_replace('{{'.$key.'}}', (string) $value, $rendered);
+        }
+
+        // The preview must never actually send — it only returns rendered HTML.
+        return response()->json([
+            'data' => [
+                'subject' => $validated['subject'] ?? ($template->subject ?? ''),
+                'html' => $rendered,
+            ],
+        ]);
+    }
+
     public function importRecipients(Request $request, int $id): JsonResponse
     {
         $request->validate(['recipients' => 'required|array|min:1']);
@@ -322,11 +369,61 @@ class CampaignEmailController extends Controller
         ]);
     }
 
-    public function sendTestEmail(Request $request): JsonResponse
+    public function sendDirectEmail(Request $request): JsonResponse
     {
-        IntegrationGate::requireEmail('Test email dispatch');
+        IntegrationGate::requireEmail('Email sending');
 
         $validated = $request->validate([
+            'to_email' => 'required|email',
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $trackingId = (string) Str::uuid();
+
+        try {
+            Mail::to($validated['to_email'])->send(new CampaignMail(
+                emailSubject: $validated['subject'],
+                htmlBody: $validated['body'],
+                textBody: strip_tags($validated['body']),
+                trackingId: $trackingId
+            ));
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send email: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        SentEmail::create([
+            'user_id' => $user->id,
+            'to_email' => $validated['to_email'],
+            'from_email' => $user->email ?: config('mail.from.address'),
+            'subject' => $validated['subject'],
+            'body' => $validated['body'],
+            'status' => 'sent',
+            'tracking_id' => $trackingId,
+            'sent_at' => now(),
+        ]);
+
+        EmailHistory::create([
+            'recipient' => $validated['to_email'],
+            'subject' => $validated['subject'],
+            'body' => $validated['body'],
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sent successfully.',
+        ]);
+    }
+
+    public function sendTestEmail(Request $request): JsonResponse
+    {
+        IntegrationGate::requireEmail('Test email dispatch');        $validated = $request->validate([
             'target_email' => 'required|email',
             'subject' => 'required|string|max:255',
             'body' => 'required|string',

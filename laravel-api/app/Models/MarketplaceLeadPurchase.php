@@ -17,6 +17,7 @@ class MarketplaceLeadPurchase extends Model
         'lead_id', 'user_id', 'amount', 'status',
         'reservation_token', 'reserved_at', 'expires_at',
         'purchased_at', 'refunded_at', 'notes',
+        'payment_gateway', 'gateway_checkout_id', 'gateway_checkout_url',
     ];
 
     protected function casts(): array {

@@ -47,4 +47,8 @@ return [
         'key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'email_bounce_webhook' => [
+        'secret' => env('EMAIL_BOUNCE_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -11,6 +11,15 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
+    /**
+     * Every value users.role has ever been allowed to hold. Also the set of
+     * Spatie roles UserObserver keeps in sync with that column, and the
+     * set RolePermissionSeeder grants permissions to. admin/super_admin are
+     * intentionally NOT reachable from public self-registration — see
+     * AuthController::register.
+     */
+    public const ROLES = ['buyer', 'seller', 'agent', 'broker', 'investor', 'staff', 'admin', 'super_admin'];
+
     protected $fillable = [
         'name', 'email', 'password', 'role', 'status', 'phone',
         'phone_verified', 'normalized_phone', 'avatar', 'timezone',

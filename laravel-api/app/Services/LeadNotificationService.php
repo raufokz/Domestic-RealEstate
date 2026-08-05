@@ -26,7 +26,7 @@ class LeadNotificationService
                 'email' => $lead->email,
                 'name' => $lead->first_name . ' ' . $lead->last_name,
                 'score' => $score,
-            ]);
+            ], 'new_lead');
         } catch (\Exception $e) {
             Log::warning("Failed to create system notifications: " . $e->getMessage());
         }

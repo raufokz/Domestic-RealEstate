@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\AutomationEngine;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\LeadNote;
@@ -470,6 +471,17 @@ class LeadController extends Controller
             'rows_without_email' => $withoutEmail,
             'completed_at' => now(),
         ]);
+
+        if ($imported > 0) {
+            AutomationEngine::trigger('contact_imported', [
+                'batch_id' => $batch->id,
+                'import_type' => $batch->import_type,
+                'count' => $imported,
+                'failed' => $failed,
+                'source' => $ext.'_import',
+                'file_name' => $batch->file_name,
+            ]);
+        }
 
         $message = "Imported {$imported} lead(s).";
         if ($withoutEmail > 0) {

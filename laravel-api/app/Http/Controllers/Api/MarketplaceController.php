@@ -7,8 +7,10 @@ use App\Models\Lead;
 use App\Models\MarketplaceLeadPurchase;
 use App\Models\MarketplacePaymentLog;
 use App\Models\Notification;
+use App\Models\Payout;
 use App\Models\PurchasedLead;
 use App\Models\User;
+use App\Services\Payments\PayoneerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,10 @@ class MarketplaceController extends Controller
     private const STATUS_AVAILABLE = 'available';
     private const STATUS_RESERVED = 'reserved';
     private const STATUS_SOLD = 'sold';
+
+    public function __construct(private PayoneerService $payments)
+    {
+    }
 
     /** Check if admin user. */
     private function checkAdmin(): void
@@ -379,12 +385,15 @@ class MarketplaceController extends Controller
         $this->checkPplPermission($user);
         $request->validate([
             'token' => 'required|string',
-            'payment_method' => 'nullable|string|in:stripe,card,paypal,bank_transfer',
+            'payment_method' => 'nullable|string|in:payoneer,bank_transfer',
         ]);
 
-        $paymentMethod = $request->get('payment_method', 'card');
+        $paymentMethod = $request->get('payment_method', 'payoneer');
 
-        $result = DB::transaction(function () use ($id, $user, $request, $paymentMethod) {
+        // Validate + lock the reservation inside its own short transaction —
+        // the actual Payoneer API call happens OUTSIDE any DB transaction
+        // (never hold a row lock across a network call to a third party).
+        $context = DB::transaction(function () use ($id, $user, $request, $paymentMethod) {
             $lead = Lead::whereKey($id)->lockForUpdate()->first();
             abort_if(!$lead, 404, 'Lead not found.');
 
@@ -424,80 +433,72 @@ class MarketplaceController extends Controller
                 abort(409, 'Your reservation expired. The lead is available again — try reserving it now.');
             }
 
-            // For instant payment methods (card/stripe/paypal), complete payment instantly
-            if (in_array($paymentMethod, ['card', 'stripe', 'paypal'])) {
-                $txnId = 'TXN-' . strtoupper(Str::random(12));
+            return ['lead' => $lead, 'purchase' => $purchase];
+        });
 
-                $purchase->update([
-                    'status' => MarketplaceLeadPurchase::STATUS_PAID,
-                    'purchased_at' => now(),
-                    'notes' => 'Paid via ' . ucfirst($paymentMethod) . ' (' . $txnId . ')',
-                ]);
+        $lead = $context['lead'];
+        $purchase = $context['purchase'];
 
-                $lead->forceFill([
-                    'marketplace_status' => self::STATUS_SOLD,
-                    'sold_to' => $user->id,
-                    'sold_at' => now(),
-                    'reserved_by' => null,
-                    'reservation_expires_at' => null,
-                ])->save();
+        if ($paymentMethod === 'payoneer') {
+            // Real checkout session — nothing is marked paid here. The lead
+            // unlocks only when handleWebhook() receives a SIGNATURE-VERIFIED
+            // payment.succeeded event from Payoneer. Never trust this HTTP
+            // response as proof of payment.
+            $session = $this->payments->createCheckoutSession([
+                'amount' => $lead->marketplace_price,
+                'currency' => 'USD',
+                'description' => 'Lead: ' . ($lead->marketplace_title ?: $lead->lead_number),
+                'reference_id' => (string) $purchase->id,
+                'customer_email' => $user->email,
+                'success_url' => rtrim(config('app.frontend_url'), '/') . '/marketplace/purchased?purchase=' . $purchase->id,
+                'cancel_url' => rtrim(config('app.frontend_url'), '/') . '/marketplace?cancelled=' . $purchase->id,
+            ]);
 
-                PurchasedLead::firstOrCreate(
-                    ['lead_id' => $lead->id, 'user_id' => $user->id],
-                    ['amount' => $purchase->amount, 'purchased_at' => now()]
-                );
-
-                MarketplacePaymentLog::create([
-                    'purchase_id' => $purchase->id,
-                    'lead_id' => $lead->id,
-                    'user_id' => $user->id,
-                    'payment_gateway' => $paymentMethod,
-                    'gateway_transaction_id' => $txnId,
-                    'amount' => $lead->marketplace_price,
-                    'status' => 'successful',
-                    'payload' => ['instant' => true, 'timestamp' => now()->toDateTimeString()],
-                ]);
-
-                $this->notifyUser(
-                    $user,
-                    'Lead unlocked!',
-                    'Payment successful. Full contact details for "' . ($lead->marketplace_title ?: $lead->lead_number) . '" are now unlocked.',
-                    '/marketplace/purchased',
-                    'View my leads',
-                    ['lead_id' => $lead->id]
-                );
-
-                return [
-                    'status' => 'paid',
-                    'message' => 'Payment successful! Lead unlocked.',
-                    'transaction_id' => $txnId,
-                    'lead_id' => $lead->id,
-                ];
-            }
-
-            // Manual bank transfer / awaiting confirmation flow
-            $holdUntil = now()->addHours(self::HOLD_HOURS);
-            $purchase->update(['expires_at' => $holdUntil]);
-            $lead->update(['reservation_expires_at' => $holdUntil]);
+            $purchase->update([
+                'payment_gateway' => 'payoneer',
+                'gateway_checkout_id' => $session['checkout_id'],
+                'gateway_checkout_url' => $session['checkout_url'],
+            ]);
 
             MarketplacePaymentLog::create([
                 'purchase_id' => $purchase->id,
                 'lead_id' => $lead->id,
                 'user_id' => $user->id,
-                'payment_gateway' => 'bank_transfer',
+                'payment_gateway' => 'payoneer',
+                'gateway_transaction_id' => $session['checkout_id'],
                 'amount' => $lead->marketplace_price,
                 'status' => 'pending',
-                'payload' => ['hold_until' => $holdUntil->toDateTimeString()],
+                'payload' => ['checkout_url' => $session['checkout_url']],
             ]);
 
-            return [
-                'status' => 'awaiting_confirmation',
-                'message' => 'Payment submitted for processing. Lead is held for you while payment is confirmed.',
-                'expires_at' => $holdUntil->toISOString(),
-            ];
-        });
+            return response()->json([
+                'status' => 'checkout_created',
+                'message' => 'Redirecting to secure Payoneer checkout to complete payment.',
+                'checkout_url' => $session['checkout_url'],
+                'lead_id' => $lead->id,
+            ]);
+        }
 
-        return response()->json($result);
+        // Manual bank transfer / awaiting confirmation flow
+        $holdUntil = now()->addHours(self::HOLD_HOURS);
+        $purchase->update(['expires_at' => $holdUntil, 'payment_gateway' => 'bank_transfer']);
+        $lead->update(['reservation_expires_at' => $holdUntil]);
+
+        MarketplacePaymentLog::create([
+            'purchase_id' => $purchase->id,
+            'lead_id' => $lead->id,
+            'user_id' => $user->id,
+            'payment_gateway' => 'bank_transfer',
+            'amount' => $lead->marketplace_price,
+            'status' => 'pending',
+            'payload' => ['hold_until' => $holdUntil->toDateTimeString()],
+        ]);
+
+        return response()->json([
+            'status' => 'awaiting_confirmation',
+            'message' => 'Payment submitted for processing. Lead is held for you while payment is confirmed.',
+            'expires_at' => $holdUntil->toISOString(),
+        ]);
     }
 
     /**
@@ -583,17 +584,32 @@ class MarketplaceController extends Controller
     /**
      * Webhook receiver for external payment gateways.
      */
+    /**
+     * Payoneer webhook — the ONLY path that can ever mark a marketplace
+     * purchase paid. Requires a valid signature; anything else is rejected
+     * with 401 and never touches the database. Idempotent: replays of an
+     * already-processed event are safely ignored.
+     */
     public function handleWebhook(Request $request)
     {
+        $signature = $request->header('X-Payoneer-Signature'); // VERIFY exact header name against live Payoneer docs
+        if (!$this->payments->verifyWebhookSignature($request->getContent(), $signature)) {
+            Log::warning('Rejected marketplace webhook with invalid/missing signature', ['ip' => $request->ip()]);
+            return response()->json(['message' => 'Invalid signature.'], 401);
+        }
+
         $payload = $request->all();
         $event = $request->input('event', 'payment.succeeded');
         $txnId = $request->input('transaction_id') ?: $request->input('data.id');
-        $purchaseId = $request->input('purchase_id') ?: $request->input('data.metadata.purchase_id');
+        // reference_id is OUR value, set by createCheckoutSession() — safe
+        // to trust as a purchase lookup key only because the signature
+        // above already proved this payload really came from Payoneer.
+        $purchaseId = $request->input('reference_id') ?: $request->input('data.reference_id');
 
         Log::info('Marketplace payment webhook received', ['event' => $event, 'txn' => $txnId]);
 
         if (!$purchaseId) {
-            return response()->json(['message' => 'Webhook received (no purchase_id matched).'], 200);
+            return response()->json(['message' => 'Webhook received (no reference_id matched).'], 200);
         }
 
         $purchase = MarketplaceLeadPurchase::with('lead')->find($purchaseId);
@@ -606,7 +622,7 @@ class MarketplaceController extends Controller
                 $purchase->update([
                     'status' => MarketplaceLeadPurchase::STATUS_PAID,
                     'purchased_at' => now(),
-                    'notes' => 'Confirmed via Webhook (' . $txnId . ')',
+                    'notes' => 'Confirmed via Payoneer webhook (' . $txnId . ')',
                 ]);
 
                 $lead = Lead::whereKey($purchase->lead_id)->lockForUpdate()->first();
@@ -623,19 +639,42 @@ class MarketplaceController extends Controller
                         ['lead_id' => $lead->id, 'user_id' => $purchase->user_id],
                         ['amount' => $purchase->amount, 'purchased_at' => now()]
                     );
+
+                    if ($user = $purchase->user) {
+                        $this->notifyUser(
+                            $user,
+                            'Lead unlocked!',
+                            'Payment confirmed. Full contact details for "' . ($lead->marketplace_title ?: $lead->lead_number) . '" are now unlocked.',
+                            '/marketplace/purchased',
+                            'View my leads',
+                            ['lead_id' => $lead->id]
+                        );
+                    }
                 }
 
                 MarketplacePaymentLog::create([
                     'purchase_id' => $purchase->id,
                     'lead_id' => $purchase->lead_id,
                     'user_id' => $purchase->user_id,
-                    'payment_gateway' => 'webhook',
+                    'payment_gateway' => 'payoneer',
                     'gateway_transaction_id' => $txnId,
                     'amount' => $purchase->amount,
                     'status' => 'successful',
                     'payload' => $payload,
                 ]);
             });
+        } elseif ($event === 'payment.failed') {
+            MarketplacePaymentLog::create([
+                'purchase_id' => $purchase->id,
+                'lead_id' => $purchase->lead_id,
+                'user_id' => $purchase->user_id,
+                'payment_gateway' => 'payoneer',
+                'gateway_transaction_id' => $txnId,
+                'amount' => $purchase->amount,
+                'status' => 'failed',
+                'payload' => $payload,
+                'error_message' => $request->input('failure_reason'),
+            ]);
         }
 
         return response()->json(['message' => 'Webhook processed successfully.']);
@@ -897,7 +936,14 @@ class MarketplaceController extends Controller
         return response()->json($query->latest('claimed_at')->paginate($request->get('per_page', 25)));
     }
 
-    /** Mark a Pay-at-Closing commission as paid out (Payoneer etc). */
+    /**
+     * Admin approves a Pay-at-Closing commission for payout, or cancels it.
+     * "paid" is no longer set directly here — approving creates a real
+     * Payout row and calls PayoneerService::createPayout(); the recipient
+     * only shows as actually paid once handlePayoutWebhook() below
+     * receives a signature-verified confirmation. "cancelled" involves no
+     * money movement, so that stays a direct admin decision.
+     */
     public function adminMarkPayout(Request $request, $purchasedLeadId)
     {
         $this->checkAdmin();
@@ -908,27 +954,176 @@ class MarketplaceController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $purchased = PurchasedLead::with('lead')->findOrFail($purchasedLeadId);
+        $purchased = PurchasedLead::with(['lead', 'user'])->findOrFail($purchasedLeadId);
 
         abort_if($purchased->payout_method === null, 422, 'This is not a Pay-at-Closing purchase.');
 
+        if ($validated['payout_status'] === 'cancelled') {
+            $purchased->update([
+                'payout_status' => 'cancelled',
+                'closing_date' => $validated['closing_date'] ?? $purchased->closing_date,
+            ]);
+
+            $this->notifyUser(
+                $purchased->user,
+                'Payout cancelled',
+                'Your Pay-at-Closing commission for "' . ($purchased->lead?->marketplace_title ?: 'a lead') . '" was cancelled.',
+                '/agent/dashboard/marketplace/pay-at-closing',
+                'View claims',
+                ['purchase_id' => $purchased->id]
+            );
+
+            return response()->json(['message' => 'Payout cancelled.', 'data' => $purchased->fresh()]);
+        }
+
+        if (!$purchased->payout_email) {
+            return response()->json(['message' => 'This agent has no Payoneer payout email on file yet — ask them to add one before approving payout.'], 422);
+        }
+
+        $payout = Payout::create([
+            'recipient_id' => $purchased->user_id,
+            'purchased_lead_id' => $purchased->id,
+            'amount' => $purchased->commission_amount,
+            'gateway' => $purchased->payout_method ?: 'payoneer',
+            'status' => Payout::STATUS_APPROVED,
+            'requested_by' => $admin->id,
+            'approved_by' => $admin->id,
+            'approved_at' => now(),
+        ]);
+
+        $result = $this->payments->createPayout([
+            'payee_id' => $purchased->payout_email,
+            'amount' => $purchased->commission_amount,
+            'description' => 'Pay-at-Closing commission: ' . ($purchased->lead?->marketplace_title ?: $purchased->lead?->lead_number),
+            'reference_id' => (string) $payout->id,
+        ]);
+
+        $payout->update([
+            'status' => Payout::STATUS_PROCESSING,
+            'gateway_payout_id' => $result['payout_id'],
+        ]);
+
         $purchased->update([
-            'payout_status' => $validated['payout_status'],
+            'payout_status' => 'processing',
             'closing_date' => $validated['closing_date'] ?? $purchased->closing_date,
         ]);
 
         $this->notifyUser(
             $purchased->user,
-            'Payout ' . $validated['payout_status'],
+            'Payout processing',
             'Your Pay-at-Closing commission of $' . number_format((float) $purchased->commission_amount, 2)
-                . ' for "' . ($purchased->lead?->marketplace_title ?: 'a lead') . '" was marked as '
-                . $validated['payout_status'] . '.',
+                . ' for "' . ($purchased->lead?->marketplace_title ?: 'a lead') . '" is now processing via Payoneer.',
             '/agent/dashboard/marketplace/pay-at-closing',
             'View claims',
             ['purchase_id' => $purchased->id]
         );
 
-        return response()->json(['message' => 'Payout status updated.', 'data' => $purchased]);
+        return response()->json(['message' => 'Payout submitted to Payoneer — processing.', 'data' => $purchased->fresh()]);
+    }
+
+    /**
+     * Payoneer payout webhook — signature-verified, the only path that can
+     * ever flip a Payout (and the linked PurchasedLead) to paid/failed.
+     */
+    public function handlePayoutWebhook(Request $request)
+    {
+        $signature = $request->header('X-Payoneer-Signature'); // VERIFY header name against live docs
+        if (!$this->payments->verifyWebhookSignature($request->getContent(), $signature)) {
+            Log::warning('Rejected payout webhook with invalid/missing signature', ['ip' => $request->ip()]);
+            return response()->json(['message' => 'Invalid signature.'], 401);
+        }
+
+        $event = $request->input('event', 'payout.paid');
+        $payoutId = $request->input('reference_id') ?: $request->input('data.reference_id');
+        $gatewayPayoutId = $request->input('payout_id') ?: $request->input('data.id');
+
+        $payout = Payout::with('purchasedLead')->find($payoutId);
+        if (!$payout) {
+            return response()->json(['message' => 'Payout record not found.'], 404);
+        }
+
+        if ($event === 'payout.paid' && $payout->status !== Payout::STATUS_PAID) {
+            $payout->update([
+                'status' => Payout::STATUS_PAID,
+                'gateway_payout_id' => $gatewayPayoutId ?: $payout->gateway_payout_id,
+                'gateway_status_raw' => $request->all(),
+                'paid_at' => now(),
+            ]);
+            $payout->purchasedLead?->update(['payout_status' => 'paid']);
+
+            if ($payout->recipient) {
+                $this->notifyUser(
+                    $payout->recipient,
+                    'Payout completed',
+                    'Your commission payout of $' . number_format((float) $payout->amount, 2) . ' has been paid via Payoneer.',
+                    '/agent/dashboard/marketplace/pay-at-closing',
+                    'View claims',
+                    ['payout_id' => $payout->id]
+                );
+            }
+        } elseif ($event === 'payout.failed') {
+            $payout->update([
+                'status' => Payout::STATUS_FAILED,
+                'gateway_status_raw' => $request->all(),
+                'failure_reason' => $request->input('failure_reason'),
+            ]);
+            $payout->purchasedLead?->update(['payout_status' => 'failed']);
+        }
+
+        return response()->json(['message' => 'Webhook processed successfully.']);
+    }
+
+    /** CSV export of payouts for admin reporting/reconciliation. */
+    public function exportPayouts(Request $request)
+    {
+        $this->checkAdmin();
+
+        $query = Payout::with(['recipient', 'purchasedLead.lead']);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        $payouts = $query->orderByDesc('created_at')->limit(10000)->get();
+
+        return response()->streamDownload(function () use ($payouts) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['id', 'recipient', 'lead', 'amount', 'currency', 'gateway', 'gateway_payout_id', 'status', 'approved_at', 'paid_at']);
+            foreach ($payouts as $p) {
+                fputcsv($out, [
+                    $p->id,
+                    $p->recipient?->name,
+                    $p->purchasedLead?->lead?->marketplace_title,
+                    $p->amount,
+                    $p->currency,
+                    $p->gateway,
+                    $p->gateway_payout_id,
+                    $p->status,
+                    $p->approved_at,
+                    $p->paid_at,
+                ]);
+            }
+            fclose($out);
+        }, 'payouts-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Agent sets/updates the Payoneer email their commission gets paid to.
+     * Required before an admin can approve payout — createPayout() has no
+     * recipient to pay without it.
+     */
+    public function updatePayoutEmail(Request $request, $purchasedLeadId)
+    {
+        $user = $request->user();
+        $validated = $request->validate(['payout_email' => 'required|email']);
+
+        $purchased = PurchasedLead::where('id', $purchasedLeadId)->where('user_id', $user->id)->firstOrFail();
+
+        if ($purchased->payout_status === 'paid') {
+            return response()->json(['message' => 'This commission has already been paid.'], 422);
+        }
+
+        $purchased->update(['payout_email' => $validated['payout_email']]);
+
+        return response()->json(['message' => 'Payout email saved.', 'data' => $purchased->fresh()]);
     }
 
     public function adminPaymentLogs(Request $request)
@@ -1202,17 +1397,34 @@ class MarketplaceController extends Controller
         return response()->json(['message' => 'Lead manually assigned to user successfully.']);
     }
 
+    /**
+     * Admin reconciliation for BANK TRANSFER purchases only — a Payoneer
+     * checkout purchase can never be confirmed here, it must go through
+     * handleWebhook()'s signature-verified event. Requires a real
+     * reference and is audit-logged, matching InvoiceController's
+     * recordManualPayment().
+     */
     public function adminConfirmPayment(Request $request, $purchaseId)
     {
         $this->checkAdmin();
         $admin = $request->user();
+        $validated = $request->validate(['reference' => 'required|string|max:255']);
 
-        DB::transaction(function () use ($purchaseId, $admin) {
+        DB::transaction(function () use ($purchaseId, $admin, $validated) {
             $purchase = MarketplaceLeadPurchase::with('lead')->lockForUpdate()->findOrFail($purchaseId);
 
             if ($purchase->status !== MarketplaceLeadPurchase::STATUS_PENDING) {
                 abort(409, 'This purchase is already ' . $purchase->status . '.');
             }
+
+            if ($purchase->payment_gateway && $purchase->payment_gateway !== 'bank_transfer') {
+                abort(422, 'This purchase used ' . $purchase->payment_gateway . ' checkout — it can only be confirmed by that gateway\'s webhook, not manually.');
+            }
+
+            \App\Models\AuditLog::log('marketplace.manual_payment_confirmed', 'MarketplaceLeadPurchase', $purchase->id, null, [
+                'reference' => $validated['reference'],
+                'confirmed_by' => $admin->id,
+            ]);
 
             $lead = Lead::whereKey($purchase->lead_id)->lockForUpdate()->first();
             if (!$lead) {
@@ -1222,7 +1434,7 @@ class MarketplaceController extends Controller
             $purchase->update([
                 'status' => MarketplaceLeadPurchase::STATUS_PAID,
                 'purchased_at' => now(),
-                'notes' => 'Payment confirmed by ' . $admin->name,
+                'notes' => 'Bank transfer confirmed by ' . $admin->name . ' (ref: ' . $validated['reference'] . ')',
             ]);
 
             $lead->forceFill([

@@ -34,15 +34,65 @@ class CampaignMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            htmlString: $this->htmlBody.$this->trackingPixel(),
-            textString: $this->textBody,
+            htmlString: $this->rewriteLinks($this->htmlBody).$this->trackingPixel(),
+            text: $this->textBody,
         );
     }
 
     protected function trackingPixel(): string
     {
-        $trackingUrl = config('app.url', 'http://localhost:8001')."/api/email/track/{$this->trackingId}/open";
+        $trackingUrl = $this->trackingBase()."/api/email/track/{$this->trackingId}/open";
 
         return "<img src=\"{$trackingUrl}\" width=\"1\" height=\"1\" style=\"display:none\" alt=\"\" />";
+    }
+
+    protected function trackingBase(): string
+    {
+        return rtrim((string) config('app.url', 'http://localhost:8001'), '/');
+    }
+
+    /**
+     * Rewrite absolute http(s) anchors so every click routes through
+     * EmailTrackingController@trackClick, which records the click and then
+     * redirects to the original URL.
+     */
+    protected function rewriteLinks(string $html): string
+    {
+        $base = $this->trackingBase();
+        $index = 0;
+
+        return (string) preg_replace_callback(
+            '~<a\b([^>]*)>~i',
+            function (array $match) use ($base, &$index): string {
+                $attrs = $match[1];
+                if (!preg_match('~href=["\']([^"\']+)["\']~i', $attrs, $href)) {
+                    return $match[0];
+                }
+
+                $url = trim($href[1]);
+                if ($url === ''
+                    || str_starts_with($url, '/api/email/track/')
+                    || str_starts_with($url, 'mailto:')
+                    || str_starts_with($url, 'tel:')
+                    || str_starts_with($url, '#')
+                    || str_starts_with($url, '//')
+                    || !preg_match('~^https?://~i', $url)) {
+                    return $match[0];
+                }
+
+                $index++;
+                $trackingUrl = "{$base}/api/email/track/{$this->trackingId}/click/{$index}?url=".rawurlencode($url);
+
+                $newAttrs = preg_replace(
+                    '~href=["\']([^"\']+)["\']~i',
+                    'href="'.$trackingUrl.'"',
+                    $attrs,
+                    1
+                );
+
+                return '<a'.$newAttrs.'>';
+            },
+            $html
+        );
     }
 }

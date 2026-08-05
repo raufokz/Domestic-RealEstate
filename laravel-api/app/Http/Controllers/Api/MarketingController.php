@@ -15,13 +15,21 @@ class MarketingController extends Controller
             'email' => 'required|email|unique:newsletter_subscribers,email',
             'name' => 'nullable|string',
         ]);
-        NewsletterSubscriber::create([
+        $subscriber = NewsletterSubscriber::create([
             'email' => $request->email,
             'name' => $request->name ?? '',
             'status' => 'active',
             'source' => $request->get('source', 'website'),
             'subscribed_at' => now(),
         ]);
+
+        AutomationEngine::trigger('newsletter_subscribed', [
+            'email' => $subscriber->email,
+            'name' => $subscriber->name,
+            'subscriber_id' => $subscriber->id,
+            'source' => $subscriber->source,
+        ]);
+
         return response()->json(['message' => 'Subscribed successfully'], 201);
     }
 

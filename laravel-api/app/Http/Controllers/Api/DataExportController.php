@@ -26,7 +26,7 @@ class DataExportController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'export_type' => 'required|string|in:leads,properties,users,contacts,blogs',
+            'export_type' => 'required|string|in:leads,properties,users,contacts,blogs,deals,invoices,agent_leads',
             'format' => 'nullable|string|in:csv,xlsx,pdf',
             'filters' => 'nullable|array',
         ]);

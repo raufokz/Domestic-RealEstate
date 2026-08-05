@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\Pipeline;
 use App\Models\PipelineStage;
+use App\Models\RealtorApplication;
 use App\Services\AutomationEngine;
 use App\Services\LeadCaptureService;
 use Illuminate\Http\Request;
@@ -36,6 +37,8 @@ class FormSubmissionController extends Controller
             'resume_url' => 'nullable|string|max:500',
             'profile_photo_url' => 'nullable|string|max:500',
             'agreement_accepted' => 'required|boolean',
+            'id_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'license_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         try {
@@ -76,6 +79,31 @@ class FormSubmissionController extends Controller
             $this->sendNotifications('realtor_application', $lead, $validated);
             \App\Services\LeadNotificationService::dispatch($lead, 'realtor');
 
+            // Real verification queue entry — this is what actually gates
+            // account creation (see AdminRealtorApplicationController).
+            // Previously this endpoint only ever created a CRM Lead, which
+            // no admin approval action could act on.
+            $idDocPath = $request->hasFile('id_document')
+                ? $request->file('id_document')->store('realtor-applications', 'public')
+                : null;
+            $licenseDocPath = $request->hasFile('license_document')
+                ? $request->file('license_document')->store('realtor-applications', 'public')
+                : null;
+
+            $application = RealtorApplication::create([
+                'reference' => 'RA-' . strtoupper(\Illuminate\Support\Str::random(8)),
+                'full_name' => trim($validated['first_name'] . ' ' . $validated['last_name']),
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'license_number' => $validated['license_number'],
+                'license_state' => strtoupper(substr($validated['state'], 0, 2)),
+                'brokerage_name' => $validated['brokerage'],
+                'id_document_path' => $idDocPath,
+                'license_document_path' => $licenseDocPath,
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]);
+
             DB::commit();
 
             return response()->json([
@@ -83,6 +111,7 @@ class FormSubmissionController extends Controller
                 'message' => 'Your realtor application has been submitted successfully. Our team will review and contact you within 24-48 hours.',
                 'lead_id' => $lead->id,
                 'lead_number' => $lead->lead_number,
+                'application_reference' => $application->reference,
             ], 201);
 
         } catch (\Exception $e) {

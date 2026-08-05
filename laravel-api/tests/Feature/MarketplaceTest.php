@@ -90,8 +90,19 @@ class MarketplaceTest extends TestCase
         $this->assertEquals('Austin Starter Home', $res2->json('data.0.title'));
     }
 
-    public function test_user_can_reserve_and_process_instant_payment(): void
+    public function test_user_can_reserve_and_checkout_creates_real_payoneer_session(): void
     {
+        // Partial mock: only stub the outbound checkout-session call; leave
+        // verifyWebhookSignature() as the real implementation so step 4
+        // below genuinely exercises signature verification.
+        $this->partialMock(\App\Services\Payments\PayoneerService::class, function ($mock) {
+            $mock->shouldReceive('createCheckoutSession')->once()->andReturn([
+                'checkout_id' => 'chk_test_123',
+                'checkout_url' => 'https://sandbox.payoneer.com/checkout/chk_test_123',
+                'status' => 'pending',
+            ]);
+        });
+
         $user = User::factory()->create(['ppl_eligible' => true, 'ppl_access_enabled' => true]);
 
         $lead = Lead::create([
@@ -108,28 +119,71 @@ class MarketplaceTest extends TestCase
         // 1. Reserve
         $res = $this->actingAs($user)->postJson("/api/marketplace/leads/{$lead->id}/reserve");
         $res->assertStatus(200)->assertJsonStructure(['token', 'expires_at']);
-
         $token = $res->json('token');
 
-        // 2. Process Payment
+        // 2. Start checkout — this must NEVER mark the lead sold directly.
         $payRes = $this->actingAs($user)->postJson("/api/marketplace/leads/{$lead->id}/process-payment", [
             'token' => $token,
-            'payment_method' => 'card',
+            'payment_method' => 'payoneer',
         ]);
 
-        $payRes->assertStatus(200)->assertJson(['status' => 'paid']);
+        $payRes->assertStatus(200)
+            ->assertJson(['status' => 'checkout_created', 'checkout_url' => 'https://sandbox.payoneer.com/checkout/chk_test_123']);
 
-        // 3. Verify lead status in DB is sold
-        $this->assertDatabaseHas('leads', [
-            'id' => $lead->id,
-            'marketplace_status' => 'sold',
-            'sold_to' => $user->id,
+        $this->assertDatabaseHas('leads', ['id' => $lead->id, 'marketplace_status' => 'reserved']);
+        $this->assertDatabaseHas('marketplace_lead_purchases', [
+            'lead_id' => $lead->id,
+            'status' => 'pending',
+            'gateway_checkout_id' => 'chk_test_123',
         ]);
 
-        // 4. Verify contact details unlocked on details endpoint
+        // 3. Contact details are still locked before payment is confirmed.
         $detailsRes = $this->actingAs($user)->getJson("/api/marketplace/leads/{$lead->id}/details");
-        $detailsRes->assertStatus(200)
+        $detailsRes->assertStatus(403);
+
+        // 4. Simulate Payoneer's signature-verified webhook confirming payment.
+        config(['payments.payoneer.webhook_secret' => 'test-webhook-secret']);
+        $purchase = \App\Models\MarketplaceLeadPurchase::where('lead_id', $lead->id)->first();
+        $body = json_encode(['event' => 'payment.succeeded', 'reference_id' => (string) $purchase->id, 'transaction_id' => 'txn_live_456']);
+        $signature = hash_hmac('sha256', $body, 'test-webhook-secret');
+
+        $webhookRes = $this->call('POST', '/api/marketplace/webhook', [], [], [], [
+            'HTTP_X-Payoneer-Signature' => $signature,
+            'CONTENT_TYPE' => 'application/json',
+        ], $body);
+
+        $webhookRes->assertStatus(200);
+
+        // 5. NOW the lead is sold and details unlock.
+        $this->assertDatabaseHas('leads', ['id' => $lead->id, 'marketplace_status' => 'sold', 'sold_to' => $user->id]);
+        $this->actingAs($user)->getJson("/api/marketplace/leads/{$lead->id}/details")
+            ->assertStatus(200)
             ->assertJson(['email' => 'jane@example.com', 'phone' => '555-9999']);
+    }
+
+    public function test_webhook_with_invalid_signature_is_rejected_and_does_not_unlock_lead(): void
+    {
+        config(['payments.payoneer.webhook_secret' => 'test-webhook-secret']);
+
+        $user = User::factory()->create(['ppl_eligible' => true, 'ppl_access_enabled' => true]);
+        $lead = Lead::create([
+            'first_name' => 'Jane', 'last_name' => 'Smith', 'email' => 'jane2@example.com',
+            'marketplace_status' => 'sold', 'marketplace_price' => 200.00, 'listed_at' => now(),
+        ]);
+        $purchase = \App\Models\MarketplaceLeadPurchase::create([
+            'lead_id' => $lead->id, 'user_id' => $user->id, 'amount' => 200,
+            'status' => \App\Models\MarketplaceLeadPurchase::STATUS_PENDING,
+        ]);
+
+        $body = json_encode(['event' => 'payment.succeeded', 'reference_id' => (string) $purchase->id]);
+
+        $response = $this->call('POST', '/api/marketplace/webhook', [], [], [], [
+            'HTTP_X-Payoneer-Signature' => 'not-the-real-signature',
+            'CONTENT_TYPE' => 'application/json',
+        ], $body);
+
+        $response->assertStatus(401);
+        $this->assertSame(\App\Models\MarketplaceLeadPurchase::STATUS_PENDING, $purchase->fresh()->status);
     }
 
     public function test_user_cannot_reserve_already_reserved_lead(): void

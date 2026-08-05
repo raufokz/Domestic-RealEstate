@@ -33,7 +33,11 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:buyer,seller,agent,broker,investor,admin,super_admin',
+            // Staff/admin roles are never self-service — they can only be
+            // granted by an authenticated admin action. Accepting them here
+            // was a live privilege-escalation hole (anyone could POST
+            // role=super_admin and get one).
+            'role' => 'required|in:buyer,seller,agent,broker,investor',
             'phone' => 'nullable|string',
             'services_needed' => 'nullable|array',
             'services_needed.*' => 'string|in:' . implode(',', \App\Models\AgentProfile::serviceCatalogFlat()),
@@ -76,10 +80,16 @@ class AuthController extends Controller
             'normalized_phone' => !empty($validated['phone']) ? preg_replace('/[^\d]/', '', $validated['phone']) : null,
         ]);
 
-        // If registering as an agent or broker, automatically create an approved AgentProfile
+        // If registering as an agent or broker, create an AgentProfile —
+        // but NOT approved/published, and NEVER with a fabricated license
+        // number. A real license number is only ever set once an admin has
+        // verified it (see RealtorApplicationController / AgentProfile
+        // verification queue) — self-registration alone must never produce
+        // a profile that looks verified.
         if (in_array($validated['role'], ['agent', 'broker'])) {
             $zipRaw = $request->input('zipcodes') ?? $request->input('service_areas_zipcodes') ?? '';
             $zipcodes = array_filter(array_map('trim', explode(',', (string)$zipRaw)));
+            $licenseNumber = $request->input('licenseNumber');
 
             \App\Models\AgentProfile::create([
                 'user_id' => $user->id,
@@ -87,8 +97,8 @@ class AuthController extends Controller
                 'headline' => 'Local Real Estate Specialist',
                 'bio' => 'Dedicated local real estate partner specializing in buyer, seller, and investor client requirements.',
                 'brokerage_name' => $request->input('brokerage') ?? 'Domestic Real Estate Brokerage',
-                'license_number' => $request->input('licenseNumber') ?? 'LIC-' . rand(100000, 999999),
-                'license_status' => 'active',
+                'license_number' => $licenseNumber ? (string) $licenseNumber : null,
+                'license_status' => 'pending',
                 'specialties' => $validated['services_needed'] ?? [],
                 'service_areas' => array_values($zipcodes),
                 'lead_type_preferences' => [
@@ -97,9 +107,8 @@ class AuthController extends Controller
                     'pricing_plan' => $validated['pricing_plan'] ?? 'Solo',
                     'billing_cycle' => $validated['billing_cycle'] ?? 'monthly',
                 ],
-                'status' => 'approved',
-                'is_published' => true,
-                'approved_at' => now(),
+                'status' => 'pending',
+                'is_published' => false,
             ]);
         }
 
@@ -207,6 +216,33 @@ class AuthController extends Controller
         return response()->json(['user' => $user->fresh()]);
     }
 
+    public function changePassword(Request $request) {
+        $user = $request->user();
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Your current password is incorrect.'],
+            ]);
+        }
+
+        $user->forceFill(['password' => Hash::make($validated['password'])])->save();
+
+        AuthLog::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'type' => 'password_change',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent() ?? '',
+            'success' => true,
+        ]);
+
+        return response()->json(['message' => 'Password updated successfully.']);
+    }
+
     public function uploadAvatar(Request $request) {
         $request->validate(['avatar' => 'required|image|max:2048']);
         $path = $request->file('avatar')->store('avatars', 'public');
@@ -221,6 +257,15 @@ class AuthController extends Controller
     }
 
     public function resetPassword(Request $request) {
+        // The reset-password page sends newPassword/confirmPassword — same
+        // alias pattern already used in register() above.
+        if (!$request->has('password') && $request->has('newPassword')) {
+            $request->merge(['password' => $request->input('newPassword')]);
+        }
+        if (!$request->has('password_confirmation') && $request->has('confirmPassword')) {
+            $request->merge(['password_confirmation' => $request->input('confirmPassword')]);
+        }
+
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',

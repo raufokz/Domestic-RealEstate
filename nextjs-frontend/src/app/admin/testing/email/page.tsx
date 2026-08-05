@@ -23,13 +23,25 @@ export default function EmailTestingPage() {
   const [sendResult, setSendResult] = useState<{ loading: boolean; sent: boolean; timestamp: string | null; error: string | null }>({
     loading: false, sent: false, timestamp: null, error: null,
   });
-  const [spamInput, setSpamInput] = useState("");
-  const [spamResult, setSpamResult] = useState<{ loading: boolean; score: number | null; suggestions: string[] }>({
-    loading: false, score: null, suggestions: [],
+  const [spamResult, setSpamResult] = useState<{ loading: boolean; score: number | null; max: number; status: string | null; details: string | null }>({
+    loading: false, score: null, max: 3, status: null, details: null,
   });
   const [dnsResult, setDnsResult] = useState<{ loading: boolean; records: { type: string; status: string; detail: string }[] }>({
     loading: false, records: [],
   });
+
+  type DnsCheck = { status: string; record?: string | null; records?: (string | null)[]; note?: string };
+  type DnsCheckResponse = { domain: string | null; mx: DnsCheck; spf: DnsCheck; dkim: DnsCheck; dmarc: DnsCheck };
+
+  function toDnsRecords(data: DnsCheckResponse) {
+    const passStatus = (s: string) => (s === "configured" ? "pass" : s === "unknown" ? "warn" : "fail");
+    return [
+      { type: "MX", status: passStatus(data.mx.status), detail: data.mx.records?.filter(Boolean).join(", ") || "No MX records found" },
+      { type: "SPF", status: passStatus(data.spf.status), detail: data.spf.record || "No SPF record found" },
+      { type: "DKIM", status: passStatus(data.dkim.status), detail: data.dkim.record || data.dkim.note || "Could not verify default selector" },
+      { type: "DMARC", status: passStatus(data.dmarc.status), detail: data.dmarc.record || "No DMARC record found" },
+    ];
+  }
   const [previewTemplate, setPreviewTemplate] = useState("");
   const [previewHtml, setPreviewHtml] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -59,20 +71,20 @@ export default function EmailTestingPage() {
   }
 
   async function checkSpamScore() {
-    setSpamResult({ loading: true, score: null, suggestions: [] });
+    setSpamResult({ loading: true, score: null, max: 3, status: null, details: null });
     try {
-      const data = await apiPost<{ score: number; suggestions: string[] }>("/admin/testing/email/spam-score", { content: spamInput });
-      setSpamResult({ loading: false, score: data.score, suggestions: data.suggestions || [] });
+      const data = await apiPost<{ score: number; max: number; status: string; details: string }>("/admin/testing/email/spam-score", {});
+      setSpamResult({ loading: false, score: data.score, max: data.max, status: data.status, details: data.details });
     } catch (e: any) {
-      setSpamResult({ loading: false, score: null, suggestions: [] });
+      setSpamResult({ loading: false, score: null, max: 3, status: null, details: e?.message || "Deliverability check failed" });
     }
   }
 
   async function checkDns() {
     setDnsResult({ loading: true, records: [] });
     try {
-      const data = await apiPost<{ records: { type: string; status: string; detail: string }[] }>("/admin/testing/email/dns-check", {});
-      setDnsResult({ loading: false, records: data.records || [] });
+      const data = await apiPost<DnsCheckResponse>("/admin/testing/email/dns-check", {});
+      setDnsResult({ loading: false, records: toDnsRecords(data) });
     } catch (e: any) {
       setDnsResult({ loading: false, records: [] });
     }
@@ -165,46 +177,34 @@ export default function EmailTestingPage() {
           )}
         </div>
 
-        {/* Spam Score Test */}
+        {/* Deliverability Check */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-          <h3 className="font-semibold text-[#0A2647] mb-4">Spam Score Analysis</h3>
-          <textarea
-            placeholder="Paste email content here to analyze spam score..."
-            value={spamInput}
-            onChange={(e) => setSpamInput(e.target.value)}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] text-sm mb-3"
-          />
+          <h3 className="font-semibold text-[#0A2647] mb-1">Deliverability Check</h3>
+          <p className="text-sm text-slate-500 mb-4">
+            SPF/DKIM/DMARC DNS presence for the configured mail-from domain \u2014 not a content-based spam score.
+          </p>
           <button
             onClick={checkSpamScore}
-            disabled={spamResult.loading || !spamInput}
+            disabled={spamResult.loading}
             className="px-4 py-2 text-sm font-semibold text-[#0A2647] bg-[#C9A227] rounded-lg hover:bg-[#b8911f] transition-colors disabled:opacity-50"
           >
-            {spamResult.loading ? "Analyzing..." : "Analyze Spam Score"}
+            {spamResult.loading ? "Checking..." : "Run Deliverability Check"}
           </button>
           {spamResult.score !== null && (
             <div className="mt-4">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-sm font-medium text-slate-600">Spam Score:</span>
-                <span className={`text-lg font-bold ${spamResult.score <= 3 ? "text-green-600" : spamResult.score <= 6 ? "text-amber-600" : "text-red-600"}`}>
-                  {spamResult.score}/10
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-sm font-medium text-slate-600">Checks passed:</span>
+                <span className={`text-lg font-bold ${spamResult.status === "good" ? "text-green-600" : spamResult.status === "fair" ? "text-amber-600" : "text-red-600"}`}>
+                  {spamResult.score}/{spamResult.max}
                 </span>
                 <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${spamResult.score <= 3 ? "bg-green-500" : spamResult.score <= 6 ? "bg-amber-500" : "bg-red-500"}`}
-                    style={{ width: `${spamResult.score * 10}%` }}
+                    className={`h-full rounded-full ${spamResult.status === "good" ? "bg-green-500" : spamResult.status === "fair" ? "bg-amber-500" : "bg-red-500"}`}
+                    style={{ width: `${(spamResult.score / spamResult.max) * 100}%` }}
                   />
                 </div>
               </div>
-              {spamResult.suggestions.length > 0 && (
-                <ul className="space-y-1">
-                  {spamResult.suggestions.map((s, i) => (
-                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                      <span className="text-amber-500 mt-0.5">{"\u26A0"}</span> {s}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {spamResult.details && <p className="text-xs text-slate-500">{spamResult.details}</p>}
             </div>
           )}
         </div>

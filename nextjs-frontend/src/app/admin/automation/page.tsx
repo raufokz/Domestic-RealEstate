@@ -217,6 +217,7 @@ export default function AutomationPage() {
                 <option value="appointment_booked">Appointment Booked</option>
                 <option value="contract_signed">Contract Signed</option>
                 <option value="newsletter_subscribed">Newsletter Subscribed</option>
+                <option value="contact_imported">Contact Imported</option>
                 <option value="scheduled_time">Scheduled Time</option>
               </select>
               <div className="flex justify-end gap-2">

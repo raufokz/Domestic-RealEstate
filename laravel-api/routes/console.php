@@ -108,6 +108,16 @@ Schedule::command('queue:prune-failed --hours=168')->daily();
 
 Schedule::command('geo:refresh-intelligence')->dailyAt('03:15')->withoutOverlapping()->name('refresh-geo-intelligence');
 
+Schedule::command('contracts:send-expiration-reminders')->dailyAt('09:00')->withoutOverlapping()->name('contract-expiration-reminders');
+
+/**
+ * Run automation workflows with the "Scheduled Time" trigger.
+ * An hourly cadence plus a daily pass covers cadence-gated workflows;
+ * workflows without a cadence condition run on both.
+ */
+Schedule::command('automation:run-scheduled --cadence=hourly')->hourly()->withoutOverlapping()->name('run-scheduled-workflows-hourly');
+Schedule::command('automation:run-scheduled --cadence=daily')->dailyAt('08:00')->withoutOverlapping()->name('run-scheduled-workflows-daily');
+
 Schedule::call(function () {
     $days = (int) (\App\Models\SiteSetting::get('log_retention_days', 90) ?: 90);
     \App\Models\GeoAccessLog::where('created_at', '<', now()->subDays($days))->delete();

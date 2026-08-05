@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { apiGet, apiPut } from "@/lib/api";
+import { apiGet, apiPost, API_BASE } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
 interface Invoice {
@@ -43,6 +43,10 @@ export default function AdminInvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [manualPaymentFor, setManualPaymentFor] = useState<Invoice | null>(null);
+  const [manualRef, setManualRef] = useState("");
+  const [manualMethod, setManualMethod] = useState<"bank_transfer" | "check" | "other">("bank_transfer");
+  const [manualNote, setManualNote] = useState("");
 
   useEffect(() => { loadInvoices(); }, []);
 
@@ -59,15 +63,56 @@ export default function AdminInvoicesPage() {
     setLoading(false);
   }
 
-  async function markPaid(id: number) {
+  async function sendInvoice(id: number) {
     setUpdating(id);
     try {
-      await apiPut(`/admin/invoices/${id}`, { status: "paid" });
-      setInvoices((is) => is.map((i) => i.id === id ? { ...i, status: "paid", paid_at: new Date().toISOString() } : i));
-      success("Invoice marked as paid.");
+      const res = await apiPost<{ payoneer_link: string }>(`/admin/invoices/${id}/send`);
+      success(`Invoice sent with a real Payoneer checkout link: ${res.payoneer_link}`);
+      loadInvoices();
     } catch (e) {
-      // Payment status must never be shown as paid unless the server confirmed it.
-      notifyError(e, "Could not mark this invoice as paid. Please try again.");
+      notifyError(e, "Could not send this invoice.");
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  async function downloadPdf(id: number, invoiceNumber: string) {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      const res = await fetch(`${API_BASE}/admin/invoices/${id}/pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) throw new Error("Could not generate PDF.");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${invoiceNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      notifyError(e, "Could not download this invoice.");
+    }
+  }
+
+  async function submitManualPayment() {
+    if (!manualPaymentFor || !manualRef.trim()) return;
+    setUpdating(manualPaymentFor.id);
+    try {
+      await apiPost(`/admin/invoices/${manualPaymentFor.id}/record-manual-payment`, {
+        reference: manualRef,
+        method: manualMethod,
+        note: manualNote || undefined,
+      });
+      success("Payment recorded — invoice marked paid.");
+      setManualPaymentFor(null);
+      setManualRef("");
+      setManualNote("");
+      loadInvoices();
+    } catch (e) {
+      notifyError(e, "Could not record this payment.");
     } finally {
       setUpdating(null);
     }
@@ -129,21 +174,95 @@ export default function AdminInvoicesPage() {
                       {inv.due_at ? new Date(inv.due_at).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-5 py-4 text-slate-500 text-xs">{inv.payoneer_invoice_id || "—"}</td>
-                    <td className="px-5 py-4 text-right">
-                      {inv.status !== "paid" && inv.status !== "cancelled" && (
+                    <td className="px-5 py-4 text-right space-x-3 whitespace-nowrap">
+                      {inv.status === "draft" && (
                         <button
-                          onClick={() => markPaid(inv.id)}
+                          onClick={() => sendInvoice(inv.id)}
+                          disabled={updating === inv.id}
+                          className="text-xs font-semibold text-navy hover:text-gold transition-colors disabled:opacity-50"
+                        >
+                          {updating === inv.id ? "Sending..." : "Send via Payoneer"}
+                        </button>
+                      )}
+                      {inv.status !== "paid" && inv.status !== "voided" && (
+                        <button
+                          onClick={() => setManualPaymentFor(inv)}
                           disabled={updating === inv.id}
                           className="text-xs font-semibold text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
                         >
-                          {updating === inv.id ? "Updating..." : "Mark as Paid"}
+                          Record Manual Payment
                         </button>
                       )}
+                      <button
+                        onClick={() => downloadPdf(inv.id, inv.invoice_number)}
+                        className="text-xs font-semibold text-slate-500 hover:text-navy transition-colors"
+                      >
+                        PDF
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {manualPaymentFor && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-navy">Record Manual Payment</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                For payments received outside Payoneer (wire transfer, check). This is logged to the audit trail.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Method</label>
+              <select
+                value={manualMethod}
+                onChange={(e) => setManualMethod(e.target.value as typeof manualMethod)}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white"
+              >
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="check">Check</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Reference # *</label>
+              <input
+                type="text"
+                value={manualRef}
+                onChange={(e) => setManualRef(e.target.value)}
+                placeholder="e.g. wire confirmation number"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Note (optional)</label>
+              <textarea
+                value={manualNote}
+                onChange={(e) => setManualNote(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setManualPaymentFor(null)}
+                className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitManualPayment}
+                disabled={!manualRef.trim() || updating === manualPaymentFor.id}
+                className="px-4 py-2.5 bg-gold text-navy rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+              >
+                {updating === manualPaymentFor.id ? "Recording..." : "Record Payment"}
+              </button>
+            </div>
           </div>
         </div>
       )}

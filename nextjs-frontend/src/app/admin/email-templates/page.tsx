@@ -34,6 +34,8 @@ export default function EmailTemplatesPage() {
   const [editing, setEditing] = useState<EmailTemplate | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState<{ subject: string; html: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -105,6 +107,18 @@ export default function EmailTemplatesPage() {
     }
   };
 
+  const handlePreview = async (id: number) => {
+    try {
+      setPreviewLoading(true);
+      const data = await apiPost<{ data: { subject: string; html: string } }>("/email-templates/preview", { id });
+      setPreview(data.data);
+    } catch (err) {
+      notifyError(err, "Template could not be previewed.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   return (
     <AdminLayout title="Email Templates">
       <div className="flex justify-between items-center mb-6">
@@ -143,6 +157,9 @@ export default function EmailTemplatesPage() {
                   <td className="px-4 py-3 text-sm truncate max-w-xs">{t.subject}</td>
                   <td className="px-4 py-3 text-sm">{t.is_active ? "Yes" : "No"}</td>
                   <td className="px-4 py-3 space-x-2">
+                    <button onClick={() => handlePreview(t.id)} disabled={previewLoading} className="text-sm text-gold font-medium">
+                      Preview
+                    </button>
                     <button onClick={() => openEdit(t)} className="text-sm text-gold font-medium">
                       Edit
                     </button>
@@ -156,6 +173,23 @@ export default function EmailTemplatesPage() {
           </table>
         )}
       </div>
+
+      {preview && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-bold text-navy">Render Preview</h3>
+                <p className="text-sm text-gray-500">{preview.subject}</p>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
+              <iframe title="Email preview" srcDoc={preview.html} className="w-full h-full min-h-[60vh] bg-white rounded border border-gray-200" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">

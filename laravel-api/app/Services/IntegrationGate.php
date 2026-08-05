@@ -23,15 +23,16 @@ class IntegrationGate
     {
         $gemini = self::credentialOrEnv('google_gemini', 'api_key', ['GEMINI_API_KEY', 'GOOGLE_GEMINI_API_KEY']);
         $openai = self::credentialOrEnv('openai', 'api_key', ['OPENAI_API_KEY']);
+        $claude = self::credentialOrEnv('anthropic', 'api_key', ['ANTHROPIC_API_KEY']);
 
-        if ($gemini || $openai) {
+        if ($gemini || $openai || $claude) {
             return;
         }
 
         throw new FeatureUnavailableException(
             feature: $featureLabel,
             reason: 'no AI provider is connected',
-            fix: 'Go to Admin → Integrations and connect Google Gemini (free) or OpenAI, then click Test.',
+            fix: 'Go to Admin → Integrations and connect Google Gemini (free), OpenAI, or Claude, then click Test.',
             actionUrl: '/admin/integrations',
             codeKey: 'ai_not_connected',
         );

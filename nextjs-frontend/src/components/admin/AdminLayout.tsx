@@ -30,6 +30,7 @@ const navSections = [
   { label: "MARKETPLACE", items: [
     { name: "Marketplace Leads", href: "/admin/marketplace", icon: "💡" },
     { name: "Purchases", href: "/admin/marketplace/purchases", icon: "💳" },
+    { name: "Payouts", href: "/admin/marketplace/payouts", icon: "💸" },
   ]},
   { label: "PROPERTIES", items: [
     { name: "All Properties", href: "/admin/properties", icon: "🏠" },
@@ -125,6 +126,7 @@ const navSections = [
     { name: "Appearance", href: "/admin/settings/appearance", icon: "🎨" },
     { name: "SEO", href: "/admin/settings/seo", icon: "🔍" },
     { name: "Security", href: "/admin/settings/security", icon: "🔒" },
+    { name: "Roles & Permissions", href: "/admin/settings/roles", icon: "🛡️" },
     { name: "Notifications", href: "/admin/settings/notifications", icon: "🔔" },
     { name: "Backup", href: "/admin/settings/backup", icon: "💾" },
     { name: "Logs", href: "/admin/settings/logs", icon: "📋" },

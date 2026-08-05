@@ -1,28 +1,22 @@
 <?php
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
+/**
+ * Named rate limiters only ('api'/'auth'/'otp'). Route registration itself
+ * is handled by bootstrap/app.php's ->withRouting() (Laravel 12 convention)
+ * — this class must NOT also call $this->routes(...)/extend the routing
+ * ServiceProvider, or routes/api.php + routes/web.php get registered twice.
+ */
 class RouteServiceProvider extends ServiceProvider
 {
-    public const HOME = '/';
-
     public function boot(): void
     {
         $this->configureRateLimiting();
-
-        $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
-
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
-        });
     }
 
     protected function configureRateLimiting(): void

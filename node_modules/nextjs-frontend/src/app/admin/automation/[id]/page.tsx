@@ -282,11 +282,15 @@ export default function WorkflowDetailPage() {
                   onChange={(e) => setEditForm((prev) => ({ ...prev, trigger_type: e.target.value }))}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none"
                 >
-                  <option value="lead_created">Lead Created</option>
-                  <option value="lead_updated">Lead Updated</option>
-                  <option value="property_created">Property Created</option>
-                  <option value="schedule">Schedule</option>
-                  <option value="manual">Manual</option>
+                  <option value="new_lead">New Lead</option>
+                  <option value="form_submitted">Form Submitted</option>
+                  <option value="status_changed">Status Changed</option>
+                  <option value="property_approved">Property Approved</option>
+                  <option value="appointment_booked">Appointment Booked</option>
+                  <option value="contract_signed">Contract Signed</option>
+                  <option value="newsletter_subscribed">Newsletter Subscribed</option>
+                  <option value="contact_imported">Contact Imported</option>
+                  <option value="scheduled_time">Scheduled Time</option>
                 </select>
               </div>
               <div className="flex gap-3 pt-4">

@@ -23,6 +23,24 @@ interface Toast {
   type: "success" | "error";
 }
 
+interface AiSettings {
+  provider_priority: string[];
+  disabled_providers: string[];
+}
+
+interface UsageAnalytics {
+  since: string;
+  totals: { calls: number; input_tokens: number; output_tokens: number; cost_estimate: number };
+  by_provider: Array<{ provider: string; calls: number; input_tokens: number; output_tokens: number; cost: number }>;
+  by_day: Array<{ date: string; calls: number; cost: number }>;
+}
+
+const providerLabels: Record<string, string> = {
+  gemini: "Gemini",
+  openai: "OpenAI",
+  claude: "Claude",
+};
+
 const statusLabels: Record<string, { label: string; color: string }> = {
   connected: { label: "Connected", color: "bg-green-100 text-green-800" },
   not_configured: { label: "Not configured", color: "bg-gray-100 text-gray-600" },
@@ -41,6 +59,10 @@ export default function AiSettingsPage() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [apiKeyInputs, setApiKeyInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [aiSettings, setAiSettings] = useState<AiSettings>({ provider_priority: ["gemini", "openai", "claude"], disabled_providers: [] });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [analytics, setAnalytics] = useState<UsageAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   useEffect(() => {
     if (toast) {
@@ -66,9 +88,65 @@ export default function AiSettingsPage() {
     }
   }, []);
 
+  const fetchSettings = useCallback(async () => {
+    try {
+      const settings = await apiGet<AiSettings>("/admin/settings/ai");
+      setAiSettings(settings);
+    } catch {
+      // keep defaults
+    }
+  }, []);
+
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    try {
+      const data = await apiGet<UsageAnalytics>("/admin/ai/usage-analytics?days=30");
+      setAnalytics(data);
+    } catch {
+      setAnalytics(null);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProviders();
-  }, [fetchProviders]);
+    fetchSettings();
+    fetchAnalytics();
+  }, [fetchProviders, fetchSettings, fetchAnalytics]);
+
+  const moveProviderPriority = (key: string, direction: -1 | 1) => {
+    setAiSettings((prev) => {
+      const order = [...prev.provider_priority];
+      const idx = order.indexOf(key);
+      const next = idx + direction;
+      if (idx === -1 || next < 0 || next >= order.length) return prev;
+      [order[idx], order[next]] = [order[next], order[idx]];
+      return { ...prev, provider_priority: order };
+    });
+  };
+
+  const toggleProviderEnabled = (key: string) => {
+    setAiSettings((prev) => {
+      const disabled = prev.disabled_providers.includes(key)
+        ? prev.disabled_providers.filter((p) => p !== key)
+        : [...prev.disabled_providers, key];
+      return { ...prev, disabled_providers: disabled };
+    });
+  };
+
+  const saveAiSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const saved = await apiPut<AiSettings>("/admin/settings/ai", aiSettings);
+      setAiSettings(saved);
+      setToast({ message: "Provider priority saved", type: "success" });
+    } catch {
+      setToast({ message: "Failed to save provider priority", type: "error" });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const toggleKeyVisibility = (key: string) => {
     setShowKeys((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -298,6 +376,129 @@ export default function AiSettingsPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Provider Priority & Fallback Order */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-[var(--color-primary,#0A2647)] mb-1">Provider Priority</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          AiService tries providers in this order and falls back automatically. Disable a provider to skip it even if configured.
+        </p>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <ol className="space-y-2">
+            {aiSettings.provider_priority.map((key, idx) => {
+              const disabled = aiSettings.disabled_providers.includes(key);
+              return (
+                <li
+                  key={key}
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg border ${
+                    disabled ? "border-gray-100 bg-gray-50 opacity-60" : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-[var(--color-primary,#0A2647)] text-white text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    <span className="font-medium text-gray-900">{providerLabels[key] || key}</span>
+                    {disabled && <span className="text-xs text-gray-400">(disabled)</span>}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => moveProviderPriority(key, -1)}
+                      disabled={idx === 0}
+                      className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                    >
+                      Up
+                    </button>
+                    <button
+                      onClick={() => moveProviderPriority(key, 1)}
+                      disabled={idx === aiSettings.provider_priority.length - 1}
+                      className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                    >
+                      Down
+                    </button>
+                    <button
+                      onClick={() => toggleProviderEnabled(key)}
+                      className={`ml-2 px-3 py-1 text-xs rounded-full font-semibold ${
+                        disabled
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-red-100 text-red-700 hover:bg-red-200"
+                      }`}
+                    >
+                      {disabled ? "Enable" : "Disable"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={saveAiSettings}
+              disabled={savingSettings}
+              className="px-6 py-2.5 bg-[var(--color-primary,#0A2647)] text-white rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+            >
+              {savingSettings ? "Saving..." : "Save Priority"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Usage Analytics */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-[var(--color-primary,#0A2647)] mb-4">Usage Analytics (last 30 days)</h2>
+        {analyticsLoading ? (
+          <div className="bg-white rounded-xl shadow-sm p-6 animate-pulse h-40" />
+        ) : !analytics || analytics.totals.calls === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-500">
+            No AI usage recorded yet in this window.
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+              <div>
+                <p className="text-xs text-gray-500">Total calls</p>
+                <p className="text-xl font-bold text-gray-900">{analytics.totals.calls.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Input tokens</p>
+                <p className="text-xl font-bold text-gray-900">{analytics.totals.input_tokens.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Output tokens</p>
+                <p className="text-xl font-bold text-gray-900">{analytics.totals.output_tokens.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Estimated cost</p>
+                <p className="text-xl font-bold text-gray-900">${analytics.totals.cost_estimate.toFixed(4)}</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 border-b border-gray-100">
+                    <th className="py-2 pr-4 font-medium">Provider</th>
+                    <th className="py-2 pr-4 font-medium">Calls</th>
+                    <th className="py-2 pr-4 font-medium">Input tokens</th>
+                    <th className="py-2 pr-4 font-medium">Output tokens</th>
+                    <th className="py-2 pr-4 font-medium">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.by_provider.map((row) => (
+                    <tr key={row.provider} className="border-b border-gray-50">
+                      <td className="py-2 pr-4 font-medium text-gray-900">{providerLabels[row.provider] || row.provider}</td>
+                      <td className="py-2 pr-4">{row.calls.toLocaleString()}</td>
+                      <td className="py-2 pr-4">{row.input_tokens.toLocaleString()}</td>
+                      <td className="py-2 pr-4">{row.output_tokens.toLocaleString()}</td>
+                      <td className="py-2 pr-4">${Number(row.cost).toFixed(4)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { apiPost } from '@/lib/api';
+import { apiPost, API_BASE } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 
@@ -28,6 +28,9 @@ export default function RealtorJoinPage() {
     profile_photo_url: '',
     agreement_accepted: false,
   });
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+  const [licenseDocument, setLicenseDocument] = useState<File | null>(null);
+  const [applicationReference, setApplicationReference] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -47,7 +50,23 @@ export default function RealtorJoinPage() {
 
     setLoading(true);
     try {
-      await apiPost('/forms/realtor-application', formData);
+      let data: { application_reference?: string };
+      if (idDocument || licenseDocument) {
+        const body = new FormData();
+        Object.entries(formData).forEach(([key, value]) => body.append(key, String(value)));
+        if (idDocument) body.append('id_document', idDocument);
+        if (licenseDocument) body.append('license_document', licenseDocument);
+
+        const res = await fetch(`${API_BASE}/forms/realtor-application`, { method: 'POST', body });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.message || 'Failed to submit application.');
+        }
+        data = await res.json();
+      } else {
+        data = await apiPost<{ application_reference?: string }>('/forms/realtor-application', formData);
+      }
+      setApplicationReference(data.application_reference ?? null);
       setSubmitted(true);
       success('Your application has been submitted successfully! Our team will review and contact you within 24-48 hours.');
     } catch (err) {
@@ -85,6 +104,15 @@ export default function RealtorJoinPage() {
                 <li>✓ Once approved, you'll get access to our platform</li>
               </ul>
             </div>
+            {applicationReference && (
+              <p className="text-sm text-slate-500 mb-6">
+                Your application reference is <strong className="text-navy">{applicationReference}</strong> — save it to{' '}
+                <a href={`/realtors/application-status?ref=${applicationReference}`} className="text-gold hover:underline">
+                  check your status
+                </a>{' '}
+                anytime.
+              </p>
+            )}
             <a href="/" className="inline-block bg-navy text-white font-semibold px-8 py-3 rounded-xl hover:bg-navy-600 transition-colors">
               Return to Home
             </a>
@@ -309,8 +337,29 @@ export default function RealtorJoinPage() {
 
             {/* Documents */}
             <div>
-              <h2 className="font-heading text-2xl font-bold text-navy mb-6">Documents (Optional)</h2>
+              <h2 className="font-heading text-2xl font-bold text-navy mb-6">Verification Documents</h2>
+              <p className="text-sm text-slate-500 mb-4">
+                Speeds up review, but not required to submit — our team can request these later if needed.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-navy mb-2">Government ID</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setIdDocument(e.target.files?.[0] ?? null)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-navy mb-2">Real Estate License</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setLicenseDocument(e.target.files?.[0] ?? null)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent text-sm"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-navy mb-2">Resume URL</label>
                   <input

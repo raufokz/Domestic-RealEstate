@@ -40,7 +40,11 @@ class MediaLibraryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'file' => 'required|file|max:10240',
+            // Previously accepted ANY file type up to 10MB — closed to a
+            // whitelist covering this library's real uses (images, docs,
+            // spreadsheets, PDFs, video) so it can't be used to stash
+            // executables/scripts on the server.
+            'file' => 'required|file|max:10240|mimes:jpg,jpeg,png,gif,webp,svg,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,mp4,mov',
             'collection' => 'nullable|string|max:255',
             'meta' => 'nullable|array',
             'meta.alt_text' => 'nullable|string|max:255',

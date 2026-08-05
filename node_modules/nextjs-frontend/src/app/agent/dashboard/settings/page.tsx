@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { apiGet, apiPut, ApiError } from "@/lib/api";
 
 export default function AgentSettingsPage() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState("account");
+  const [name, setName] = useState(user?.name || "");
+  const [savingAccount, setSavingAccount] = useState(false);
+  const [accountMessage, setAccountMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+  }, [user?.name]);
 
   const [passwordForm, setPasswordForm] = useState({
     current: "",
     new_password: "",
     confirm: "",
   });
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState({
     email_leads: true,
@@ -23,6 +33,70 @@ export default function AgentSettingsPage() {
     push_leads: true,
     push_messages: true,
   });
+  const [savingNotifications, setSavingNotifications] = useState(false);
+  const [notificationsMessage, setNotificationsMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiGet<{ data: { notification_preferences?: typeof notifications } }>("/admin/agent-profile/me")
+      .then((res) => {
+        if (res.data?.notification_preferences) {
+          setNotifications((prev) => ({ ...prev, ...res.data.notification_preferences }));
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSaveAccount() {
+    setSavingAccount(true);
+    setAccountMessage(null);
+    try {
+      await apiPut("/auth/profile", { name });
+      setAccountMessage("Account information saved.");
+    } catch (e) {
+      setAccountMessage(e instanceof ApiError ? e.message : "Could not save account information.");
+    } finally {
+      setSavingAccount(false);
+      setTimeout(() => setAccountMessage(null), 4000);
+    }
+  }
+
+  async function handleUpdatePassword() {
+    if (passwordForm.new_password !== passwordForm.confirm) {
+      setPasswordMessage("New password and confirmation do not match.");
+      return;
+    }
+    setSavingPassword(true);
+    setPasswordMessage(null);
+    try {
+      await apiPut("/auth/change-password", {
+        current_password: passwordForm.current,
+        password: passwordForm.new_password,
+        password_confirmation: passwordForm.confirm,
+      });
+      setPasswordMessage("Password updated successfully.");
+      setPasswordForm({ current: "", new_password: "", confirm: "" });
+    } catch (e) {
+      setPasswordMessage(e instanceof ApiError ? e.message : "Could not update password.");
+    } finally {
+      setSavingPassword(false);
+      setTimeout(() => setPasswordMessage(null), 4000);
+    }
+  }
+
+  async function handleSaveNotifications() {
+    setSavingNotifications(true);
+    setNotificationsMessage(null);
+    try {
+      await apiPut("/admin/agent-profile/me", { notification_preferences: notifications });
+      setNotificationsMessage("Notification preferences saved.");
+    } catch (e) {
+      setNotificationsMessage(e instanceof ApiError ? e.message : "Could not save preferences.");
+    } finally {
+      setSavingNotifications(false);
+      setTimeout(() => setNotificationsMessage(null), 4000);
+    }
+  }
 
   return (
     <AgentLayout title="Settings" subtitle="Manage your account settings">
@@ -51,7 +125,7 @@ export default function AgentSettingsPage() {
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Name</label>
-                <input type="text" defaultValue={user?.name || ""} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] outline-none text-sm" />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
@@ -66,7 +140,12 @@ export default function AgentSettingsPage() {
                 <input type="text" value={user?.status || ""} className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 capitalize" disabled />
               </div>
             </div>
-            <button className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">Save Changes</button>
+            <div className="flex items-center gap-3">
+              <button onClick={handleSaveAccount} disabled={savingAccount} className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition disabled:opacity-50">
+                {savingAccount ? "Saving..." : "Save Changes"}
+              </button>
+              {accountMessage && <span className="text-xs font-semibold text-slate-600">{accountMessage}</span>}
+            </div>
           </div>
         )}
 
@@ -86,7 +165,12 @@ export default function AgentSettingsPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
                 <input type="password" value={passwordForm.confirm} onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] outline-none text-sm" />
               </div>
-              <button className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">Update Password</button>
+              <div className="flex items-center gap-3">
+                <button onClick={handleUpdatePassword} disabled={savingPassword || !passwordForm.current || !passwordForm.new_password} className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition disabled:opacity-50">
+                  {savingPassword ? "Updating..." : "Update Password"}
+                </button>
+                {passwordMessage && <span className="text-xs font-semibold text-slate-600">{passwordMessage}</span>}
+              </div>
             </div>
           </div>
         )}
@@ -115,7 +199,12 @@ export default function AgentSettingsPage() {
                 </div>
               ))}
             </div>
-            <button className="mt-6 px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">Save Preferences</button>
+            <div className="mt-6 flex items-center gap-3">
+              <button onClick={handleSaveNotifications} disabled={savingNotifications} className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition disabled:opacity-50">
+                {savingNotifications ? "Saving..." : "Save Preferences"}
+              </button>
+              {notificationsMessage && <span className="text-xs font-semibold text-slate-600">{notificationsMessage}</span>}
+            </div>
           </div>
         )}
 

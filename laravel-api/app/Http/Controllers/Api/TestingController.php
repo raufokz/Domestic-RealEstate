@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Services\IntegrationGate;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,23 +16,118 @@ use Illuminate\Support\Facades\Mail;
 class TestingController extends Controller
 {
     public function smtpTest(Request $request): JsonResponse {
-        return ApiResponse::fail(
-            message: 'SMTP is not fully configured or tested.',
-            code: 'smtp_not_configured',
-            status: 400,
-            feature: 'Email',
-            reason: 'MAIL_PASSWORD in .env is missing or invalid',
-            fix: 'Set a valid MAIL_PASSWORD in laravel-api/.env and run php artisan queue:work.',
-            actionUrl: '/admin/settings'
-        );
+        $host = config('mail.mailers.smtp.host') ?: env('MAIL_HOST');
+        $port = config('mail.mailers.smtp.port') ?: env('MAIL_PORT');
+        $username = config('mail.mailers.smtp.username') ?: env('MAIL_USERNAME');
+        $password = config('mail.mailers.smtp.password') ?: env('MAIL_PASSWORD');
+
+        if (!$host || !$username || !$password || IntegrationGate::isPlaceholder($password)) {
+            return ApiResponse::fail(
+                message: 'SMTP is not fully configured or tested.',
+                code: 'smtp_not_configured',
+                status: 400,
+                feature: 'Email',
+                reason: 'MAIL_PASSWORD in .env is missing or invalid',
+                fix: 'Set a valid MAIL_PASSWORD in laravel-api/.env and run php artisan queue:work.',
+                actionUrl: '/admin/settings'
+            );
+        }
+
+        try {
+            $transport = Mail::mailer('smtp')->getSymfonyTransport();
+            $transport->start();
+            $transport->stop();
+
+            return ApiResponse::ok(['host' => $host, 'port' => $port, 'username' => $username], 'SMTP connection successful');
+        } catch (\Throwable $e) {
+            return ApiResponse::fail(
+                message: 'SMTP connection failed: '.$e->getMessage(),
+                code: 'smtp_connection_failed',
+                status: 502,
+                feature: 'Email',
+                reason: $e->getMessage(),
+                fix: 'Verify MAIL_HOST, MAIL_PORT, MAIL_USERNAME, and MAIL_PASSWORD in laravel-api/.env.',
+                actionUrl: '/admin/settings'
+            );
+        }
     }
 
+    /**
+     * Honest deliverability DNS check (SPF/DKIM-presence/DMARC), not a real
+     * spam score — a true content-based spam score needs a paid third-party
+     * service the user hasn't picked yet.
+     */
     public function spamScore(Request $request): JsonResponse {
-        return response()->json(['score' => 0, 'max' => 10, 'status' => 'N/A', 'details' => 'No email content provided']);
+        $dns = $this->runDnsCheck();
+        $passed = collect([$dns['spf']['status'], $dns['dkim']['status'], $dns['dmarc']['status']])
+            ->filter(fn ($s) => $s === 'configured')
+            ->count();
+
+        return response()->json([
+            'score' => $passed,
+            'max' => 3,
+            'status' => $passed === 3 ? 'good' : ($passed === 0 ? 'poor' : 'fair'),
+            'details' => 'Deliverability DNS check (SPF/DKIM/DMARC presence) for the configured mail-from domain — not a content-based spam score.',
+            'checks' => $dns,
+        ]);
     }
 
     public function dnsCheck(Request $request): JsonResponse {
-        return response()->json(['spf' => 'not_configured', 'dkim' => 'not_configured', 'dmarc' => 'not_configured', 'mx' => ['status' => 'ok', 'records' => []]]);
+        return response()->json($this->runDnsCheck());
+    }
+
+    private function runDnsCheck(): array
+    {
+        $fromAddress = config('mail.from.address') ?: env('MAIL_FROM_ADDRESS', '');
+        $domain = str_contains($fromAddress, '@') ? substr(strrchr($fromAddress, '@'), 1) : null;
+
+        if (!$domain) {
+            return [
+                'domain' => null,
+                'mx' => ['status' => 'unknown', 'records' => []],
+                'spf' => ['status' => 'unknown', 'record' => null],
+                'dkim' => ['status' => 'unknown', 'record' => null],
+                'dmarc' => ['status' => 'unknown', 'record' => null],
+            ];
+        }
+
+        $mxRecords = @dns_get_record($domain, DNS_MX) ?: [];
+        $txtRecords = @dns_get_record($domain, DNS_TXT) ?: [];
+        $dmarcRecords = @dns_get_record('_dmarc.'.$domain, DNS_TXT) ?: [];
+
+        $spfRecord = collect($txtRecords)
+            ->pluck('txt')
+            ->first(fn ($txt) => is_string($txt) && str_starts_with($txt, 'v=spf1'));
+
+        $dmarcRecord = collect($dmarcRecords)
+            ->pluck('txt')
+            ->first(fn ($txt) => is_string($txt) && str_starts_with($txt, 'v=DMARC1'));
+
+        // DKIM has no fixed selector to probe blind — we report presence of any
+        // "*_domainkey" TXT record we can find via the default selector convention.
+        $dkimRecords = @dns_get_record('default._domainkey.'.$domain, DNS_TXT) ?: [];
+        $dkimRecord = collect($dkimRecords)->pluck('txt')->first();
+
+        return [
+            'domain' => $domain,
+            'mx' => [
+                'status' => count($mxRecords) > 0 ? 'configured' : 'missing',
+                'records' => array_map(fn ($r) => $r['target'] ?? null, $mxRecords),
+            ],
+            'spf' => [
+                'status' => $spfRecord ? 'configured' : 'missing',
+                'record' => $spfRecord,
+            ],
+            'dkim' => [
+                'status' => $dkimRecord ? 'configured' : 'unknown',
+                'record' => $dkimRecord,
+                'note' => 'Checked default._domainkey only — DKIM selectors vary by ESP, so "unknown" does not necessarily mean DKIM is unset.',
+            ],
+            'dmarc' => [
+                'status' => $dmarcRecord ? 'configured' : 'missing',
+                'record' => $dmarcRecord,
+            ],
+        ];
     }
 
     public function sendTestEmail(Request $request): JsonResponse {

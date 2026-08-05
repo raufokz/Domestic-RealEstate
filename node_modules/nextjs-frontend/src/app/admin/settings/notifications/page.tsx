@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet, apiPut } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface NotificationSettings {
   email_enabled: boolean;
@@ -35,34 +36,36 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: b
 );
 
 export default function NotificationSettingsPage() {
+  const { success, notifyError } = useToast();
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { fetchSettings(); }, []);
-
-  async function fetchSettings() {
-    try {
-      setLoading(true);
-      const data = await apiGet<{ data: NotificationSettings }>("/admin/settings/notifications");
-      if (data.data) setSettings(data.data);
-    } catch {
-      setSettings(DEFAULT_SETTINGS);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await apiGet<{ data: NotificationSettings }>("/admin/settings/notifications");
+        if (!cancelled && data.data) setSettings(data.data);
+      } catch (e) {
+        if (!cancelled) notifyError(e, "Could not load notification settings. Showing defaults.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [notifyError]);
 
   async function handleSave() {
     try {
       setSaving(true);
       await apiPut("/admin/settings/notifications", settings);
       setSaved(true);
+      success("Notification settings saved.");
       setTimeout(() => setSaved(false), 3000);
-    } catch {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      notifyError(e, "Could not save notification settings. Please try again.");
     } finally {
       setSaving(false);
     }

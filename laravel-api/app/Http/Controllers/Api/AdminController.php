@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\AutomationEngine;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\Lead;
@@ -10,6 +11,7 @@ use App\Models\SiteSetting;
 use App\Models\AgentProfile;
 use App\Models\ServiceRequest;
 use App\Models\Contract;
+use App\Models\ContractActivityLog;
 use App\Models\Invoice;
 use App\Models\NewsletterSubscriber;
 use App\Models\Blog;
@@ -222,21 +224,158 @@ class AdminController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'template_name' => 'required|string',
-            'template_html' => 'required|string',
+            'template_html' => 'nullable|required_without:contract_template_id|string',
+            'contract_template_id' => 'nullable|exists:contract_templates,id',
             'client_details' => 'nullable|array',
+            'expires_at' => 'nullable|date',
+            'signers' => 'nullable|array',
+            'signers.*.name' => 'required_with:signers|string',
+            'signers.*.email' => 'required_with:signers|email',
+            'signers.*.role' => 'nullable|in:signer,witness',
         ]);
+
+        $html = $request->template_html;
+        if ($request->contract_template_id) {
+            $template = \App\Models\ContractTemplate::findOrFail($request->contract_template_id);
+            $html = $template->render((array) ($request->client_details ?? []));
+        }
+
         $contract = Contract::create([
             'contract_number' => Contract::generateNumber(),
             'service_request_id' => $request->service_request_id,
             'user_id' => $request->user_id,
             'template_name' => $request->template_name,
-            'template_html' => $request->template_html,
+            'contract_template_id' => $request->contract_template_id,
+            'template_html' => $html,
             'client_details' => $request->client_details,
             'status' => 'draft',
+            'current_version' => 1,
             'created_by' => Auth::id(),
         ]);
+
+        \App\Models\ContractVersion::create([
+            'contract_id' => $contract->id,
+            'version_number' => 1,
+            'template_html' => $html,
+            'changed_by' => Auth::id(),
+            'change_note' => 'Initial version',
+        ]);
+
+        foreach ((array) $request->input('signers', []) as $i => $signer) {
+            \App\Models\ContractSigner::create([
+                'contract_id' => $contract->id,
+                'name' => $signer['name'],
+                'email' => $signer['email'],
+                'role' => $signer['role'] ?? 'signer',
+                'sort_order' => $i,
+            ]);
+        }
+
         $this->logActivity('contract_created', $contract);
-        return response()->json($contract, 201);
+        return response()->json($contract->fresh(['signers']), 201);
+    }
+
+    public function updateContract(Request $request, $id) {
+        $this->checkAdmin();
+        $contract = Contract::findOrFail($id);
+        $validated = $request->validate([
+            'template_name' => 'sometimes|string',
+            'template_html' => 'sometimes|string',
+            'client_details' => 'nullable|array',
+            'expires_at' => 'nullable|date',
+            'change_note' => 'nullable|string',
+        ]);
+
+        if (array_key_exists('template_html', $validated) && $validated['template_html'] !== $contract->template_html) {
+            $nextVersion = $contract->current_version + 1;
+            \App\Models\ContractVersion::create([
+                'contract_id' => $contract->id,
+                'version_number' => $nextVersion,
+                'template_html' => $validated['template_html'],
+                'changed_by' => Auth::id(),
+                'change_note' => $validated['change_note'] ?? null,
+            ]);
+            $validated['current_version'] = $nextVersion;
+            ContractActivityLog::log($contract->id, 'version_created');
+        }
+
+        unset($validated['change_note']);
+        $contract->update($validated);
+        $this->logActivity('contract_updated', $contract);
+
+        return response()->json($contract->fresh());
+    }
+
+    public function contractVersions($id) {
+        $this->checkAdmin();
+        $contract = Contract::findOrFail($id);
+        $versions = $contract->versions()->with('changer')->get();
+
+        $diff = null;
+        if ($versions->count() >= 2) {
+            $diff = \App\Models\ContractVersion::diffLines(
+                $versions[1]->template_html ?? '',
+                $versions[0]->template_html ?? ''
+            );
+        }
+
+        return response()->json(['versions' => $versions, 'latest_diff' => $diff]);
+    }
+
+    public function addContractSigners(Request $request, $id) {
+        $this->checkAdmin();
+        $contract = Contract::findOrFail($id);
+        $validated = $request->validate([
+            'signers' => 'required|array|min:1',
+            'signers.*.name' => 'required|string',
+            'signers.*.email' => 'required|email',
+            'signers.*.role' => 'nullable|in:signer,witness',
+        ]);
+
+        $startOrder = $contract->signers()->count();
+        foreach ($validated['signers'] as $i => $signer) {
+            \App\Models\ContractSigner::create([
+                'contract_id' => $contract->id,
+                'name' => $signer['name'],
+                'email' => $signer['email'],
+                'role' => $signer['role'] ?? 'signer',
+                'sort_order' => $startOrder + $i,
+            ]);
+        }
+
+        return response()->json($contract->fresh(['signers']));
+    }
+
+    public function renewContract($id) {
+        $this->checkAdmin();
+        $original = Contract::findOrFail($id);
+
+        $renewed = Contract::create([
+            'contract_number' => Contract::generateNumber(),
+            'service_request_id' => $original->service_request_id,
+            'user_id' => $original->user_id,
+            'template_name' => $original->template_name,
+            'contract_template_id' => $original->contract_template_id,
+            'template_html' => $original->template_html,
+            'client_details' => $original->client_details,
+            'status' => 'draft',
+            'current_version' => 1,
+            'created_by' => Auth::id(),
+            'renewed_from_contract_id' => $original->id,
+        ]);
+
+        \App\Models\ContractVersion::create([
+            'contract_id' => $renewed->id,
+            'version_number' => 1,
+            'template_html' => $renewed->template_html,
+            'changed_by' => Auth::id(),
+            'change_note' => "Renewed from {$original->contract_number}",
+        ]);
+
+        ContractActivityLog::log($original->id, 'renewed');
+        $this->logActivity('contract_renewed', $renewed);
+
+        return response()->json($renewed, 201);
     }
 
     public function sendContract($id) {
@@ -244,7 +383,57 @@ class AdminController extends Controller
         $contract = Contract::findOrFail($id);
         $contract->update(['status' => 'sent', 'sent_at' => now(), 'expires_at' => now()->addDays(7)]);
         $this->logActivity('contract_sent', $contract);
+        ContractActivityLog::log($contract->id, 'sent');
         return response()->json($contract);
+    }
+
+    /**
+     * Admin detail view for one contract — the admin has no client-scoped
+     * contract_number, so this resolves by internal id and loads everything
+     * the admin contracts detail page renders (signers, versions, timeline).
+     */
+    public function contract($id) {
+        $this->checkAdmin();
+        $contract = Contract::with(['user', 'signers', 'versions.changer', 'activityLogs.user', 'serviceRequest'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'data' => $contract->toArray(),
+            'timeline' => $contract->activityLogs->map(fn ($log) => [
+                'action' => $log->action,
+                'user' => $log->user?->name,
+                'ip_address' => $log->ip_address,
+                'created_at' => $log->created_at->toIso8601String(),
+            ]),
+        ]);
+    }
+
+    /** Options for the admin "Create Contract" form — real records, no mocks. */
+    public function contractsAvailable() {
+        $this->checkAdmin();
+
+        return response()->json([
+            'properties' => Property::where('approval_status', 'approved')
+                ->where('status', 'active')
+                ->orderBy('title')
+                ->get(['id', 'title as name']),
+            'agents' => User::whereIn('role', ['agent', 'broker'])
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'clients' => User::whereIn('role', ['buyer', 'seller', 'investor'])
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]);
+    }
+
+    public function contractPdf($id, \App\Services\ContractPdfService $pdf) {
+        $this->checkAdmin();
+        $contract = Contract::findOrFail($id);
+        ContractActivityLog::log($contract->id, 'downloaded');
+
+        return $pdf->download($contract);
     }
 
     public function invoices(Request $request) {
@@ -598,6 +787,18 @@ class AdminController extends Controller
             'status' => $request->approval_status === 'approved' ? 'active' : $property->status,
         ]);
         $this->logActivity('property_approval_'.$request->approval_status, $property);
+
+        if ($request->approval_status === 'approved') {
+            AutomationEngine::trigger('property_approved', [
+                'property_id' => $property->id,
+                'title' => $property->title,
+                'slug' => $property->slug,
+                'email' => $property->owner_email ?? null,
+                'realtor_id' => $property->realtor_id ?? null,
+                'listed_by_type' => $property->listed_by_type ?? null,
+            ]);
+        }
+
         return response()->json(['data' => $property->fresh(), 'message' => 'Property '.$request->approval_status]);
     }
 

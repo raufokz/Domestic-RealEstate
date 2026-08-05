@@ -13,6 +13,8 @@ interface PurchaseRecord {
   user_id: number;
   amount: string;
   status: string;
+  payment_gateway: string | null;
+  gateway_checkout_id: string | null;
   reserved_at: string | null;
   expires_at: string | null;
   purchased_at: string | null;
@@ -60,18 +62,36 @@ export default function AdminMarketplacePurchasesPage() {
     "/admin/marketplace/purchases?per_page=50"
   );
   const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState<PurchaseRecord | null>(null);
+  const [reference, setReference] = useState("");
 
   const purchases = data?.data || [];
 
-  async function act(path: string, message: string) {
+  async function act(path: string, message: string, body?: Record<string, unknown>) {
     if (busy) return;
     setBusy(true);
     try {
-      await apiPost(path);
+      await apiPost(path, body);
       success(message);
       refetch();
     } catch (e) {
       notifyError(e, "Action failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmBankTransfer() {
+    if (!confirming || !reference.trim()) return;
+    setBusy(true);
+    try {
+      await apiPost(`/admin/marketplace/purchases/${confirming.id}/confirm`, { reference });
+      success("Bank transfer confirmed. Lead sold.");
+      setConfirming(null);
+      setReference("");
+      refetch();
+    } catch (e) {
+      notifyError(e, "Could not confirm this payment.");
     } finally {
       setBusy(false);
     }
@@ -140,6 +160,9 @@ export default function AdminMarketplacePurchasesPage() {
                           <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold border ${meta.classes}`}>
                             {meta.label}
                           </span>
+                          {p.payment_gateway === "payoneer" && p.status === "pending" && (
+                            <span className="block text-[11px] text-slate-400 mt-1">Awaiting Payoneer webhook</span>
+                          )}
                           {p.expires_at && p.status === "pending" && new Date(p.expires_at) < new Date() && (
                             <span className="block text-[11px] text-red-500 font-semibold mt-1">Expired</span>
                           )}
@@ -148,13 +171,13 @@ export default function AdminMarketplacePurchasesPage() {
                         <td className="px-4 py-3 text-xs text-slate-400">{fmt(p.expires_at)}</td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <div className="inline-flex gap-2">
-                            {p.status === "pending" && (
+                            {p.status === "pending" && p.payment_gateway !== "payoneer" && (
                               <button
-                                onClick={() => act(`/admin/marketplace/purchases/${p.id}/confirm`, "Payment confirmed. Lead sold.")}
+                                onClick={() => setConfirming(p)}
                                 disabled={busy}
                                 className="text-xs font-bold text-white bg-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
                               >
-                                Confirm
+                                Confirm Bank Transfer
                               </button>
                             )}
                             {p.status === "pending" && (
@@ -189,6 +212,41 @@ export default function AdminMarketplacePurchasesPage() {
           )}
         </div>
       </div>
+
+      {confirming && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-[#0A2647]">Confirm Bank Transfer</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Enter the wire/transfer reference you verified. This is logged to the audit trail.
+              </p>
+            </div>
+            <input
+              type="text"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="e.g. wire confirmation number"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setConfirming(null); setReference(""); }}
+                className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBankTransfer}
+                disabled={!reference.trim() || busy}
+                className="px-4 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] disabled:opacity-50"
+              >
+                {busy ? "Confirming..." : "Confirm Payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

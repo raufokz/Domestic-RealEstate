@@ -121,6 +121,7 @@ class IntegrationController extends Controller
             'sendgrid' => $this->testSendgrid($creds),
             'google_gemini' => $this->testGemini($creds),
             'openai' => $this->testOpenAi($creds),
+            'anthropic' => $this->testAnthropic($creds),
             'google_maps' => $this->testGoogleMaps($creds),
             'cloudinary' => $this->testCloudinary($creds),
             default => $this->testGenericConnected($integration, $creds),
@@ -241,6 +242,41 @@ class IntegrationController extends Controller
         }
 
         return ['ok' => true, 'message' => 'OpenAI connected', 'reason' => '', 'fix' => ''];
+    }
+
+    protected function testAnthropic(array $creds): array
+    {
+        $key = $creds['api_key'] ?? $creds['key'] ?? IntegrationGate::credentialOrEnv('anthropic', 'api_key', ['ANTHROPIC_API_KEY']);
+        if (! $key) {
+            return [
+                'ok' => false,
+                'message' => 'Anthropic API key missing',
+                'reason' => 'no Claude API key is saved',
+                'fix' => 'Add an Anthropic API key, Connect, then Test.',
+            ];
+        }
+
+        // Cheapest possible real call to confirm the key works — 1 max token.
+        $res = Http::withHeaders([
+            'x-api-key' => $key,
+            'anthropic-version' => '2023-06-01',
+            'content-type' => 'application/json',
+        ])->timeout(20)->post('https://api.anthropic.com/v1/messages', [
+            'model' => 'claude-3-5-haiku-latest',
+            'max_tokens' => 1,
+            'messages' => [['role' => 'user', 'content' => 'hi']],
+        ]);
+
+        if (! $res->successful()) {
+            return [
+                'ok' => false,
+                'message' => 'Anthropic API test failed',
+                'reason' => 'Claude rejected the API key',
+                'fix' => 'Create a new key at console.anthropic.com and reconnect.',
+            ];
+        }
+
+        return ['ok' => true, 'message' => 'Claude connected', 'reason' => '', 'fix' => ''];
     }
 
     protected function testGoogleMaps(array $creds): array
@@ -364,6 +400,7 @@ class IntegrationController extends Controller
             ['integration_key' => 'sendgrid', 'name' => 'SendGrid', 'category' => 'email', 'docs_url' => 'https://docs.sendgrid.com'],
             ['integration_key' => 'google_gemini', 'name' => 'Google Gemini', 'category' => 'ai', 'is_free_tier' => true, 'docs_url' => 'https://ai.google.dev'],
             ['integration_key' => 'openai', 'name' => 'OpenAI', 'category' => 'ai', 'docs_url' => 'https://platform.openai.com'],
+            ['integration_key' => 'anthropic', 'name' => 'Anthropic Claude', 'category' => 'ai', 'docs_url' => 'https://console.anthropic.com'],
             ['integration_key' => 'google_maps', 'name' => 'Google Maps', 'category' => 'maps', 'docs_url' => 'https://developers.google.com/maps'],
             ['integration_key' => 'google_calendar', 'name' => 'Google Calendar', 'category' => 'calendar', 'docs_url' => 'https://developers.google.com/calendar'],
             ['integration_key' => 'calendly', 'name' => 'Calendly', 'category' => 'calendar', 'docs_url' => 'https://developer.calendly.com'],

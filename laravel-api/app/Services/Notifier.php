@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -26,6 +27,10 @@ class Notifier
      * Raise an alert for every admin / super_admin.
      *
      * @param  array<string,mixed>|null  $data  Related record ids, provider names, etc.
+     * @param  string|null  $event  Business event key (new_lead, contract_signed, ...).
+     *                              When set, the Admin → Notification Settings toggle for
+     *                              that event is honoured: if the admin turned it off, no
+     *                              notification row is created.
      */
     public static function alert(
         string $title,
@@ -37,8 +42,13 @@ class Notifier
         ?string $actionLabel = null,
         ?array $data = null,
         ?string $dedupeKey = null,
+        ?string $event = null,
     ): void {
         try {
+            if ($event !== null && ! self::eventEnabled($event)) {
+                return;
+            }
+
             $admins = User::whereIn('role', ['admin', 'super_admin'])->get(['id']);
             if ($admins->isEmpty()) {
                 Log::warning('Notifier: no admin users to alert', ['title' => $title]);
@@ -87,6 +97,28 @@ class Notifier
                 'title' => $title,
                 'module' => $module,
             ]);
+        }
+    }
+
+    /**
+     * Whether an event toggle is enabled in Admin → Notification Settings.
+     * Missing rows and any storage failure default to "enabled" so a broken
+     * settings row can never silence real alerts.
+     */
+    public static function eventEnabled(?string $event): bool
+    {
+        if ($event === null || $event === '') {
+            return true;
+        }
+
+        try {
+            $setting = SiteSetting::where('group_name', 'notifications')
+                ->where('key_name', $event)
+                ->first();
+
+            return $setting === null || $setting->value !== 'false';
+        } catch (\Throwable) {
+            return true;
         }
     }
 

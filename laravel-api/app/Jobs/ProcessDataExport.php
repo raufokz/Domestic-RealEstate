@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Models\Blog;
 use App\Models\Contact;
 use App\Models\DataExport;
+use App\Models\Deal;
+use App\Models\Invoice;
 use App\Models\Lead;
 use App\Models\Property;
 use App\Models\User;
@@ -123,6 +125,15 @@ class ProcessDataExport implements ShouldQueue
                 $this->applyFilters(Blog::query(), $filters)->get(),
                 ['id', 'title', 'slug', 'status', 'word_count', 'reading_time', 'view_count', 'like_count', 'published_at', 'created_at']
             ),
+            'deals' => $this->mapRows(
+                $this->applyFilters(Deal::query(), $filters)->get(),
+                ['deal_number', 'title', 'value', 'currency', 'status', 'pipeline_id', 'stage_id', 'assigned_to', 'lead_id', 'expected_close_date', 'closed_at', 'created_at']
+            ),
+            'invoices' => $this->mapRows(
+                $this->applyFilters(Invoice::query(), $filters)->get(),
+                ['invoice_number', 'user_id', 'description', 'amount', 'currency', 'status', 'paid_at', 'due_at', 'created_at']
+            ),
+            'agent_leads' => $this->mapAgentLeads($filters),
             default => throw new \RuntimeException('Unsupported export type: '.$export->export_type),
         };
     }
@@ -136,6 +147,16 @@ class ProcessDataExport implements ShouldQueue
             if ($value === '' || $value === null) {
                 continue;
             }
+
+            if (str_ends_with($key, '_after') && Schema::hasColumn($table, substr($key, 0, -6))) {
+                $query->where(substr($key, 0, -6), '>=', $value);
+                continue;
+            }
+            if (str_ends_with($key, '_before') && Schema::hasColumn($table, substr($key, 0, -7))) {
+                $query->where(substr($key, 0, -7), '<=', $value);
+                continue;
+            }
+
             if (Schema::hasColumn($table, $key)) {
                 $query->where($key, $value);
             }
@@ -160,6 +181,40 @@ class ProcessDataExport implements ShouldQueue
         })->all();
 
         return [$columns, $rows];
+    }
+
+    /**
+     * @return array{0: array<int,string>, 1: array<int, array<int, mixed>>}
+     */
+    private function mapAgentLeads(array $filters): array
+    {
+        $query = Lead::query()
+            ->selectRaw('COALESCE(assigned_to, 0) as agent_id')
+            ->selectRaw('COUNT(*) as lead_count')
+            ->selectRaw('SUM(CASE WHEN status = "converted" THEN 1 ELSE 0 END) as converted_count');
+
+        $this->applyFilters($query, $filters);
+
+        $grouped = $query->groupBy('agent_id')->get();
+
+        $agentNames = User::whereIn('id', $grouped->pluck('agent_id')->filter())
+            ->pluck('name', 'id');
+
+        $rows = $grouped->map(function ($row) use ($agentNames) {
+            $agentId = (int) $row->agent_id;
+            $agentName = $agentId === 0
+                ? 'Unassigned'
+                : ($agentNames[$agentId] ?? "User #{$agentId}");
+
+            return [
+                $agentName,
+                $agentId,
+                (int) $row->lead_count,
+                (int) $row->converted_count,
+            ];
+        })->all();
+
+        return [['agent_name', 'agent_id', 'lead_count', 'converted_count'], $rows];
     }
 
     private function writeCsv(string $path, array $headers, array $rows): void

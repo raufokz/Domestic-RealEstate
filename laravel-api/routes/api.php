@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\AiAgentController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ServiceRequestController;
 use App\Http\Controllers\Api\ContractController;
+use App\Http\Controllers\Api\ContractTemplateController;
+use App\Http\Controllers\Api\EmailWebhookController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AffiliateController;
 use App\Http\Controllers\Api\SocialController;
@@ -47,6 +49,8 @@ use App\Http\Controllers\Api\GeoCheckController;
 use App\Http\Controllers\Api\GeoWhitelistController;
 use App\Http\Controllers\Api\GeoBlacklistController;
 use App\Http\Controllers\Api\GeoAccessLogController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\RealtorApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,12 +64,16 @@ Route::post('/geo/check', [GeoCheckController::class, 'check'])->middleware('thr
 
 // Auth
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-    Route::post('/send-otp', [AuthController::class, 'sendOtp']);
-    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::middleware('throttle:auth')->group(function () {
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    });
+    Route::middleware('throttle:otp')->group(function () {
+        Route::post('/send-otp', [AuthController::class, 'sendOtp']);
+        Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    });
 });
 
 // Properties (public)
@@ -111,6 +119,12 @@ Route::prefix('marketing')->group(function () {
     Route::post('/appointments', [MarketingController::class, 'appointment']);
 });
 
+// Realtor application status/resubmission (public — no login exists at this stage)
+Route::prefix('realtor-applications')->group(function () {
+    Route::get('/{reference}/status', [RealtorApplicationController::class, 'status']);
+    Route::post('/{reference}/resubmit', [RealtorApplicationController::class, 'resubmit']);
+});
+
 // Universal Form Submissions (public)
 Route::prefix('forms')->group(function () {
     Route::post('/realtor-application', [FormSubmissionController::class, 'submitRealtorApplication']);
@@ -154,7 +168,10 @@ Route::get('/email/unsubscribe/{token}', [EmailTrackingController::class, 'unsub
 Route::post('/email/unsubscribe', [EmailTrackingController::class, 'processUnsubscribe']);
 
 // Payment Webhooks (Public)
-Route::post('/marketplace/webhook', [MarketplaceController::class, 'handleWebhook']);
+Route::post('/marketplace/webhook', [MarketplaceController::class, 'handleWebhook'])->middleware('throttle:120,1');
+Route::post('/marketplace/payouts/webhook', [MarketplaceController::class, 'handlePayoutWebhook'])->middleware('throttle:120,1');
+Route::post('/invoices/webhook', [InvoiceController::class, 'handlePayoneerWebhook'])->middleware('throttle:120,1');
+Route::post('/webhooks/email/bounce', [EmailWebhookController::class, 'bounce'])->middleware('throttle:120,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -169,6 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::get('/me', [AuthController::class, 'me']);
         Route::put('/profile', [AuthController::class, 'updateProfile']);
+        Route::put('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/avatar-upload', [AuthController::class, 'uploadAvatar']);
     });
 
@@ -265,6 +283,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/my', [ContractController::class, 'myContracts']);
         Route::get('/{contractNumber}', [ContractController::class, 'show']);
         Route::post('/{contractNumber}/sign', [ContractController::class, 'sign']);
+        Route::post('/{contractNumber}/signers/{signerId}/sign', [ContractController::class, 'signAsParty']);
+        Route::get('/{contractNumber}/timeline', [ContractController::class, 'timeline']);
+        Route::get('/{contractNumber}/download', [ContractController::class, 'downloadPdf']);
     });
 
     // Invoices
@@ -334,6 +355,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Email Templates
     Route::get('/email-templates', [CampaignEmailController::class, 'templates']);
     Route::post('/email-templates', [CampaignEmailController::class, 'storeTemplate']);
+    Route::post('/email-templates/preview', [CampaignEmailController::class, 'previewTemplate']);
     Route::put('/email-templates/{id}', [CampaignEmailController::class, 'updateTemplate']);
     Route::delete('/email-templates/{id}', [CampaignEmailController::class, 'destroyTemplate']);
 
@@ -367,10 +389,13 @@ Route::post('/leads', [LeadController::class, 'capture']);
 | Every endpoint is additionally scoped to the signed-in user's own data.
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum', 'role:agent,admin,super_admin'])->prefix('agent')->group(function () {
+    Route::middleware(['auth:sanctum', 'role:agent,admin,super_admin'])->prefix('agent')->group(function () {
     Route::get('/dashboard', [AgentPortalController::class, 'dashboard']);
     Route::get('/stats', [AgentController::class, 'stats']);
     Route::get('/enquiries', [AgentController::class, 'enquiries']);
+
+    // Compose & send a one-off email to a client/contact
+    Route::post('/emails/send', [CampaignEmailController::class, 'sendDirectEmail']);
 
     // Properties (own listings only)
     Route::get('/properties', [AgentPortalController::class, 'properties']);
@@ -395,6 +420,7 @@ Route::middleware(['auth:sanctum', 'role:agent,admin,super_admin'])->prefix('age
     Route::get('/messages', [AgentPortalController::class, 'messages']);
     Route::get('/analytics', [AgentPortalController::class, 'analytics']);
     Route::get('/pay-at-closing', [AgentPortalController::class, 'payAtClosingLeads']);
+    Route::put('/leads/{purchasedLeadId}/payout-email', [MarketplaceController::class, 'updatePayoutEmail']);
 
     // Documents (own profile only)
     Route::get('/documents', [AgentController::class, 'myDocuments']);
@@ -465,6 +491,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('/purchases/{purchaseId}/refund', [MarketplaceController::class, 'adminRefund']);
         Route::get('/payouts', [MarketplaceController::class, 'adminPayouts']);
         Route::post('/payouts/{purchasedLeadId}/status', [MarketplaceController::class, 'adminMarkPayout']);
+        Route::get('/payouts/export', [MarketplaceController::class, 'exportPayouts']);
     });
     Route::get('/settings', [AdminController::class, 'settings']);
     Route::put('/settings', [AdminController::class, 'updateSettings']);
@@ -475,8 +502,22 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
     // Contracts (admin)
     Route::get('/contracts', [AdminController::class, 'contracts']);
+    Route::get('/contracts/available', [AdminController::class, 'contractsAvailable']);
     Route::post('/contracts', [AdminController::class, 'storeContract']);
+    Route::get('/contracts/{id}', [AdminController::class, 'contract']);
+    Route::get('/contracts/{id}/pdf', [AdminController::class, 'contractPdf']);
+    Route::put('/contracts/{id}', [AdminController::class, 'updateContract']);
     Route::post('/contracts/{id}/send', [AdminController::class, 'sendContract']);
+    Route::get('/contracts/{id}/versions', [AdminController::class, 'contractVersions']);
+    Route::post('/contracts/{id}/signers', [AdminController::class, 'addContractSigners']);
+    Route::post('/contracts/{id}/renew', [AdminController::class, 'renewContract']);
+
+    // Contract Templates (admin)
+    Route::get('/contract-templates', [ContractTemplateController::class, 'index']);
+    Route::post('/contract-templates', [ContractTemplateController::class, 'store']);
+    Route::get('/contract-templates/{id}', [ContractTemplateController::class, 'show']);
+    Route::put('/contract-templates/{id}', [ContractTemplateController::class, 'update']);
+    Route::delete('/contract-templates/{id}', [ContractTemplateController::class, 'destroy']);
 
     // Invoices (Admin)
     Route::prefix('invoices')->group(function () {
@@ -485,7 +526,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/stats', [InvoiceController::class, 'getInvoiceStats']);
         Route::put('/{id}', [InvoiceController::class, 'updateInvoice']);
         Route::post('/{id}/send', [InvoiceController::class, 'sendInvoice']);
-        Route::post('/{id}/pay', [InvoiceController::class, 'markPaid']);
+        Route::post('/{id}/record-manual-payment', [InvoiceController::class, 'recordManualPayment']);
+        Route::get('/{id}/pdf', [InvoiceController::class, 'downloadPdf']);
         Route::post('/{id}/void', [InvoiceController::class, 'voidInvoice']);
     });
 
@@ -671,7 +713,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
     // Agent Email Routes
     Route::prefix('agent')->group(function () {
-        Route::post('/emails/send', [CampaignEmailController::class, 'send']);
+        Route::post('/emails/send', [CampaignEmailController::class, 'sendDirectEmail']);
         Route::get('/sent-emails', [CampaignEmailController::class, 'indexSentEmails']);
     });
 
@@ -759,6 +801,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
     // Page Builder
     Route::get('/pages', [PageBuilderController::class, 'pages']);
+    Route::post('/pages', [PageBuilderController::class, 'storePage']);
+    Route::put('/pages/{id}', [PageBuilderController::class, 'updatePage']);
+    Route::delete('/pages/{id}', [PageBuilderController::class, 'destroyPage']);
     Route::get('/pages/{id}/sections', [PageBuilderController::class, 'pageSections']);
     Route::post('/pages/{id}/sections', [PageBuilderController::class, 'storePageSection']);
     Route::put('/pages/{id}/sections/reorder', [PageBuilderController::class, 'reorderPageSections']);
@@ -783,6 +828,27 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::put('/settings/notifications', [SettingsController::class, 'updateNotificationSettings']);
     Route::get('/settings/geo-access', [SettingsController::class, 'getGeoSettings']);
     Route::put('/settings/geo-access', [SettingsController::class, 'updateGeoSettings']);
+    Route::get('/settings/ai', [SettingsController::class, 'getAiSettings']);
+    Route::put('/settings/ai', [SettingsController::class, 'updateAiSettings']);
+    Route::get('/ai/usage-analytics', [SettingsController::class, 'getAiUsageAnalytics']);
+
+    // Realtor Application Verification Queue
+    Route::middleware('permission:realtors.verify')->group(function () {
+        Route::get('/realtor-applications', [RealtorApplicationController::class, 'index']);
+        Route::get('/realtor-applications/{id}', [RealtorApplicationController::class, 'show']);
+        Route::get('/realtor-applications/{id}/documents/{type}', [RealtorApplicationController::class, 'downloadDocument']);
+        Route::post('/realtor-applications/{id}/approve', [RealtorApplicationController::class, 'approve']);
+        Route::post('/realtor-applications/{id}/reject', [RealtorApplicationController::class, 'reject']);
+        Route::post('/realtor-applications/{id}/request-more-info', [RealtorApplicationController::class, 'requestMoreInfo']);
+    });
+
+    // Roles & Permissions (real spatie/laravel-permission-backed RBAC)
+    Route::middleware('permission:roles.manage')->group(function () {
+        Route::get('/roles', [RoleController::class, 'index']);
+        Route::get('/roles/permissions', [RoleController::class, 'permissions']);
+        Route::put('/roles/{id}', [RoleController::class, 'updateRolePermissions']);
+        Route::get('/roles/{roleName}/users', [RoleController::class, 'usersByRole']);
+    });
 
     // Geo Access Control
     Route::get('/geo-whitelist', [GeoWhitelistController::class, 'index']);

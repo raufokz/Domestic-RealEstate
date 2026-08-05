@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
+import { apiGet, apiPut, apiPost, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/realtor/dashboard", active: false, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
@@ -24,116 +26,75 @@ const CERTIFICATIONS_LIST = [
   "CRS (Certified Residential Specialist)", "ABR (Accredited Buyer's Representative)", "GRI (Graduate, REALTOR® Institute)", "SRES (Seniors Real Estate Specialist)", "CCIM (Certified Commercial Investment Member)", "SIOR (Society of Industrial and Office Realtors)", "e-PRO® Certified"
 ];
 
+// Fields AgentController::updateMe actually accepts — anything else (status,
+// license_status, rating, etc.) is server-controlled and stripped there too,
+// but keeping this list here means we never even try to send it.
+const EDITABLE_FIELDS = [
+  "middle_name", "preferred_name", "dob", "gender", "ethnicity", "nationality", "timezone",
+  "headline", "bio", "years_experience", "secondary_email", "mobile_number", "office_number",
+  "whatsapp_number", "fax", "website", "office_address", "office_city", "office_state", "office_zip",
+  "office_country", "office_phone", "office_email", "license_number", "license_state", "license_expiry_date",
+  "mls_board", "mls_number", "nar_membership", "realtor_membership", "brokerage_name", "broker_name",
+  "brokerage_address", "brokerage_website", "brokerage_contact", "certifications", "awards", "designations",
+  "specialties", "property_types", "languages", "service_areas", "social_links", "business_name",
+  "business_email", "business_phone", "office_hours", "team_name", "team_members", "assistant_info",
+  "notification_preferences", "privacy_settings", "intro_video_url",
+] as const;
+
+interface AgentDocument {
+  id: number;
+  document_type: string;
+  original_name: string;
+  uploaded_at: string;
+  status: string;
+}
+
+function readAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
+
 export default function ProfilePage() {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
-  const [cropperType, setCropperType] = useState<"profile_photo" | "cover_photo" | "company_logo" | "office_photos">("profile_photo");
+  const [cropperType, setCropperType] = useState<"profile_photo" | "cover_photo" | "company_logo">("profile_photo");
+  const [fullName, setFullName] = useState("");
+  const [languageDraft, setLanguageDraft] = useState("");
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
-  const [profile, setProfile] = useState<any>({
-    first_name: "Sarah",
-    middle_name: "M.",
-    last_name: "Johnson",
-    preferred_name: "Sarah",
-    dob: "1988-04-12",
-    gender: "Female",
-    ethnicity: "Caucasian",
-    nationality: "American",
-    languages: ["English", "Spanish"],
-    timezone: "America/New_York",
-    headline: "Luxury Real Estate Specialist | Top 1% Producer",
-    bio: "Over 12 years of experience in luxury residential real estate and investment properties.",
-    years_experience: 12,
-    office_email: "sarah.johnson@domesticrealestate.us",
-    secondary_email: "sarah.personal@example.com",
-    mobile_number: "(555) 987-6543",
-    office_number: "(555) 987-6000",
-    whatsapp_number: "+1 555 987 6543",
-    fax: "(555) 987-6001",
-    website: "https://sarahjohnson.domesticrealestate.us",
-    office_address: "1200 Brickell Ave, Suite 800",
-    office_city: "Miami",
-    office_state: "FL",
-    office_zip: "33131",
-    office_country: "US",
-    license_number: "RE-2847561",
-    license_state: "FL",
-    license_expiry_date: "2027-12-31",
-    license_status: "active",
-    brokerage_name: "Domestic Real Estate Group",
-    brokerage_address: "1000 Brickell Ave, Miami, FL",
-    brokerage_website: "https://domesticrealestate.us",
-    brokerage_contact: "(555) 100-2000",
-    mls_board: "MIAMI Association of REALTORS®",
-    mls_number: "MLS-998822",
-    nar_membership: true,
-    realtor_membership: true,
-    certifications: ["CRS", "ABR", "e-PRO"],
-    awards: ["Top Producer 2024", "President Circle 2025"],
-    designations: ["Luxury Specialist", "Buyer Agent"],
-    property_types: ["Residential", "Luxury", "Investment"],
-    specialties: ["Buyers", "Sellers", "Luxury Homes"],
-    service_areas: [
-      { state: "FL", county: "Miami-Dade", city: "Miami", zip: "33131" },
-      { state: "FL", county: "Miami-Dade", city: "Miami Beach", zip: "33139" },
-    ],
-    social_links: {
-      facebook: "https://facebook.com/sarahjohnsonre",
-      instagram: "https://instagram.com/sarahjohnsonre",
-      linkedin: "https://linkedin.com/in/sarahjohnsonre",
-      twitter: "https://x.com/sarahjohnsonre",
-      youtube: "https://youtube.com/@sarahjohnsonre",
-      tiktok: "https://tiktok.com/@sarahjohnsonre",
-      pinterest: "https://pinterest.com/sarahjohnsonre",
-      threads: "https://threads.net/@sarahjohnsonre",
-    },
-    business_name: "Sarah Johnson Real Estate Team",
-    business_email: "team@sarahjohnsonre.com",
-    business_phone: "(555) 987-6543",
-    office_hours: { monday: "9AM - 6PM", tuesday: "9AM - 6PM", wednesday: "9AM - 6PM", thursday: "9AM - 6PM", friday: "9AM - 5PM", saturday: "10AM - 4PM", sunday: "By Appointment" },
-    team_name: "The Johnson Luxury Group",
-    team_members: ["Michael Chen", "Lisa Anderson"],
-    assistant_info: { name: "Emily Davis", email: "emily@sarahjohnsonre.com", phone: "(555) 987-6544" },
-    documents: [
-      { id: 1, document_type: "license", original_name: "FL_Real_Estate_License_2026.pdf", uploaded_at: "2026-01-15", status: "approved" },
-      { id: 2, document_type: "insurance", original_name: "EO_Insurance_Policy.pdf", uploaded_at: "2026-02-01", status: "approved" },
-    ],
-    privacy_settings: {
-      show_phone: true,
-      show_email: true,
-      show_address: true,
-      show_whatsapp: true,
-      show_social_links: true,
-      show_license_number: true,
-    },
-    notification_preferences: {
-      email: true,
-      sms: true,
-      marketplace: true,
-      leads: true,
-      appointments: true,
-      marketing: false,
-    },
-    dashboard_stats: {
-      active_listings: 14,
-      pending_listings: 5,
-      sold_listings: 28,
-      total_leads: 142,
-      assigned_leads: 88,
-      purchased_leads: 34,
-      pay_at_closing_leads: 20,
-      profile_views: 1240,
-    },
-    status: "verified",
-    profile_photo: null,
-    cover_photo: null,
-    company_logo: null,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [profile, setProfile] = useState<any>({});
 
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await apiGet<{ data: any }>("/admin/agent-profile/me"); // eslint-disable-line @typescript-eslint/no-explicit-any
+      setProfile(res.data || {});
+    } catch (e) {
+      setLoadError(e instanceof ApiError ? e.message : "Could not load your profile.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    if (user?.name) setFullName(user.name);
+  }, [user?.name]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (path: string, value: any) => {
-    setProfile((prev: any) => {
+    setProfile((prev: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
       const keys = path.split(".");
       if (keys.length === 1) return { ...prev, [keys[0]]: value };
       if (keys.length === 2) return { ...prev, [keys[0]]: { ...prev[keys[0]], [keys[1]]: value } };
@@ -142,34 +103,120 @@ export default function ProfilePage() {
   };
 
   const toggleArrayItem = (field: string, item: string) => {
-    setProfile((prev: any) => {
-      const current = prev[field] || [];
+    setProfile((prev: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+      const current: string[] = prev[field] || [];
       const updated = current.includes(item) ? current.filter((i: string) => i !== item) : [...current, item];
       return { ...prev, [field]: updated };
     });
   };
 
+  const addLanguage = () => {
+    const lang = languageDraft.trim();
+    if (!lang) return;
+    const current: string[] = profile.languages || [];
+    if (!current.includes(lang)) updateField("languages", [...current, lang]);
+    setLanguageDraft("");
+  };
+
+  const removeLanguage = (lang: string) => {
+    updateField("languages", (profile.languages || []).filter((l: string) => l !== lang));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 800));
+      if (fullName && fullName !== user?.name) {
+        await apiPut("/auth/profile", { name: fullName });
+      }
+      const payload: Record<string, unknown> = {};
+      for (const field of EDITABLE_FIELDS) {
+        if (field in profile) payload[field] = profile[field];
+      }
+      await apiPut("/admin/agent-profile/me", payload);
       setSavedMessage("Profile updated & saved successfully!");
-      setTimeout(() => setSavedMessage(null), 4000);
+      fetchProfile();
     } catch (e) {
-      setSavedMessage("Failed to save changes.");
+      setSavedMessage(e instanceof ApiError ? e.message : "Failed to save changes.");
     } finally {
       setSaving(false);
+      setTimeout(() => setSavedMessage(null), 4000);
     }
   };
 
-  const handleCroppedMediaUpload = (file: File) => {
-    const objectUrl = URL.createObjectURL(file);
-    if (cropperType === "profile_photo") updateField("profile_photo", objectUrl);
-    if (cropperType === "cover_photo") updateField("cover_photo", objectUrl);
-    if (cropperType === "company_logo") updateField("company_logo", objectUrl);
-    setSavedMessage("Image cropped & ready to save!");
-    setTimeout(() => setSavedMessage(null), 4000);
+  const handleCroppedMediaUpload = async (file: File) => {
+    try {
+      const token = readAuthToken();
+      const body = new FormData();
+      body.append("media_type", cropperType);
+      body.append("file", file);
+      const res = await fetch(`${API_BASE}/admin/agent-profile/me/media`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      });
+      if (!res.ok) throw new Error("Upload failed.");
+      setSavedMessage("Image uploaded & saved!");
+      fetchProfile();
+    } catch {
+      setSavedMessage("Failed to upload image.");
+    } finally {
+      setTimeout(() => setSavedMessage(null), 4000);
+    }
   };
+
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    try {
+      await apiPost("/admin/agent-profile/me/documents", (() => {
+        const body = new FormData();
+        body.append("document", file);
+        body.append("document_type", "license");
+        return body;
+      })());
+      setSavedMessage("Document uploaded.");
+      fetchProfile();
+    } catch (err) {
+      setSavedMessage(err instanceof ApiError ? err.message : "Could not upload document.");
+    } finally {
+      setUploadingDoc(false);
+      e.target.value = "";
+      setTimeout(() => setSavedMessage(null), 4000);
+    }
+  };
+
+  const handleDocumentDelete = async (id: number) => {
+    if (!confirm("Remove this document?")) return;
+    try {
+      await apiDelete(`/admin/agent-profile/me/documents/${id}`);
+      fetchProfile();
+    } catch (err) {
+      setSavedMessage(err instanceof ApiError ? err.message : "Could not remove document.");
+      setTimeout(() => setSavedMessage(null), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-md">
+          <p className="text-red-700 mb-3">{loadError}</p>
+          <button onClick={fetchProfile} className="px-4 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f]">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans">
@@ -203,8 +250,8 @@ export default function ProfilePage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold text-[#0A2647]">Realtor Profile Management</h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${profile.status === "verified" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                  {profile.status}
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${profile.status === "approved" ? "bg-emerald-100 text-emerald-800" : profile.status === "rejected" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"}`}>
+                  {profile.status || "pending"}
                 </span>
               </div>
               <p className="text-slate-500 text-xs mt-0.5">Manage your professional branding, MLS details, media, and security preferences</p>
@@ -220,34 +267,6 @@ export default function ProfilePage() {
         </header>
 
         <div className="flex-1 p-6 space-y-6 max-w-7xl w-full mx-auto">
-          {/* Dashboard Quick Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">Active Listings</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.active_listings ?? 0}</p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">Properties Sold</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.sold_listings ?? 0}</p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">Total Leads</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.total_leads ?? 0}</p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">PPL Leads</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.purchased_leads ?? 0}</p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">Pay-at-Closing</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.pay_at_closing_leads ?? 0}</p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-              <p className="text-xs text-slate-500 font-medium">Profile Views</p>
-              <p className="text-xl font-extrabold text-[#0A2647] mt-1">{profile.dashboard_stats?.profile_views ?? 0}</p>
-            </div>
-          </div>
-
           {/* Tab Navigation */}
           <div className="bg-white border border-slate-200 rounded-xl p-1.5 flex gap-1 overflow-x-auto shadow-sm">
             {[
@@ -275,16 +294,12 @@ export default function ProfilePage() {
                 <h3 className="text-base font-bold text-[#0A2647] border-b pb-3">Personal Details & Professional Bio</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">First Name *</label>
-                    <input type="text" value={profile.first_name || ""} onChange={(e) => updateField("first_name", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
+                    <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Middle Name</label>
                     <input type="text" value={profile.middle_name || ""} onChange={(e) => updateField("middle_name", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name *</label>
-                    <input type="text" value={profile.last_name || ""} onChange={(e) => updateField("last_name", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Name</label>
@@ -305,8 +320,16 @@ export default function ProfilePage() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Ethnicity</label>
+                    <input type="text" value={profile.ethnicity || ""} onChange={(e) => updateField("ethnicity", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Nationality</label>
+                    <input type="text" value={profile.nationality || ""} onChange={(e) => updateField("nationality", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Years of Experience</label>
-                    <input type="number" value={profile.years_experience || 0} onChange={(e) => updateField("years_experience", parseInt(e.target.value))} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
+                    <input type="number" value={profile.years_experience || 0} onChange={(e) => updateField("years_experience", parseInt(e.target.value) || 0)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Time Zone</label>
@@ -332,14 +355,14 @@ export default function ProfilePage() {
                 <h3 className="text-base font-bold text-[#0A2647] border-b pb-3">Branding & Media Assets</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Profile Photo */}
                   <div className="border border-slate-200 rounded-xl p-4 text-center bg-slate-50">
                     <p className="text-xs font-bold text-slate-800 mb-3">Profile Photo (Avatar)</p>
                     <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-slate-200 border-2 border-[#0A2647] flex items-center justify-center mb-3">
                       {profile.profile_photo ? (
-                        <img src={profile.profile_photo} alt="Avatar" className="w-full h-full object-cover" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.profile_photo}`} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xl font-bold text-slate-500">{profile.first_name?.[0]}{profile.last_name?.[0]}</span>
+                        <span className="text-xl font-bold text-slate-500">{(fullName || "?").slice(0, 2).toUpperCase()}</span>
                       )}
                     </div>
                     <button onClick={() => { setCropperType("profile_photo"); setCropperOpen(true); }} className="bg-[#0A2647] text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-[#0d3366] transition">
@@ -347,12 +370,12 @@ export default function ProfilePage() {
                     </button>
                   </div>
 
-                  {/* Cover Photo */}
                   <div className="border border-slate-200 rounded-xl p-4 text-center bg-slate-50">
                     <p className="text-xs font-bold text-slate-800 mb-3">Cover Banner Photo</p>
                     <div className="w-full h-24 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 flex items-center justify-center mb-3">
                       {profile.cover_photo ? (
-                        <img src={profile.cover_photo} alt="Cover" className="w-full h-full object-cover" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.cover_photo}`} alt="Cover" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-xs text-slate-400 font-medium">No Banner Uploaded</span>
                       )}
@@ -362,12 +385,12 @@ export default function ProfilePage() {
                     </button>
                   </div>
 
-                  {/* Company Logo */}
                   <div className="border border-slate-200 rounded-xl p-4 text-center bg-slate-50">
                     <p className="text-xs font-bold text-slate-800 mb-3">Company / Team Logo</p>
                     <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-white border border-slate-300 flex items-center justify-center mb-3 p-2">
                       {profile.company_logo ? (
-                        <img src={profile.company_logo} alt="Logo" className="max-h-full max-w-full object-contain" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.company_logo}`} alt="Logo" className="max-h-full max-w-full object-contain" />
                       ) : (
                         <span className="text-xs text-slate-400 font-medium">No Logo</span>
                       )}
@@ -391,7 +414,7 @@ export default function ProfilePage() {
                 <h3 className="text-base font-bold text-[#0A2647] border-b pb-3">Contact & Office Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Primary Email (Office) *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Primary Email (Office)</label>
                     <input type="email" value={profile.office_email || ""} onChange={(e) => updateField("office_email", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
@@ -399,7 +422,7 @@ export default function ProfilePage() {
                     <input type="email" value={profile.secondary_email || ""} onChange={(e) => updateField("secondary_email", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone Number *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone Number</label>
                     <input type="text" value={profile.mobile_number || ""} onChange={(e) => updateField("mobile_number", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
@@ -440,11 +463,11 @@ export default function ProfilePage() {
                 <h3 className="text-base font-bold text-[#0A2647] border-b pb-3">Real Estate License & Brokerage Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">License Number *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">License Number</label>
                     <input type="text" value={profile.license_number || ""} onChange={(e) => updateField("license_number", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Licensing State *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Licensing State</label>
                     <input type="text" value={profile.license_state || ""} onChange={(e) => updateField("license_state", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
@@ -452,7 +475,7 @@ export default function ProfilePage() {
                     <input type="date" value={profile.license_expiry_date || ""} onChange={(e) => updateField("license_expiry_date", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Brokerage Name *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Brokerage Name</label>
                     <input type="text" value={profile.brokerage_name || ""} onChange={(e) => updateField("brokerage_name", e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:outline-none" />
                   </div>
                   <div>
@@ -481,7 +504,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-[#0A2647] mb-2">Professional Certifications & Designations</p>
+                  <p className="text-xs font-bold text-[#0A2647] mb-2">Professional Certifications &amp; Designations</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {CERTIFICATIONS_LIST.map((cert) => {
                       const code = cert.split(" ")[0];
@@ -527,6 +550,32 @@ export default function ProfilePage() {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold text-[#0A2647] mb-2">Languages Spoken</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(profile.languages || []).map((lang: string) => (
+                      <span key={lang} className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0A2647]/5 text-[#0A2647] rounded-full text-xs font-semibold">
+                        {lang}
+                        <button type="button" onClick={() => removeLanguage(lang)} className="text-[#0A2647]/50 hover:text-red-600">✕</button>
+                      </span>
+                    ))}
+                    {(!profile.languages || profile.languages.length === 0) && <span className="text-xs text-slate-400">None added</span>}
+                  </div>
+                  <div className="flex gap-2 max-w-xs">
+                    <input
+                      type="text"
+                      value={languageDraft}
+                      onChange={(e) => setLanguageDraft(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLanguage(); } }}
+                      placeholder="e.g. Spanish"
+                      className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                    />
+                    <button type="button" onClick={addLanguage} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-[#0A2647]">
+                      Add
+                    </button>
                   </div>
                 </div>
               </div>
@@ -576,23 +625,32 @@ export default function ProfilePage() {
                     <h3 className="text-base font-bold text-[#0A2647]">Private Verification Document Vault</h3>
                     <p className="text-xs text-slate-500">Only Admin and you can access or download these verification documents</p>
                   </div>
-                  <button className="bg-[#0A2647] text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-[#0d3366] transition">
-                    + Upload New Document
-                  </button>
+                  <label className="bg-[#0A2647] text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-[#0d3366] transition cursor-pointer">
+                    {uploadingDoc ? "Uploading..." : "+ Upload New Document"}
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" disabled={uploadingDoc} onChange={handleDocumentUpload} />
+                  </label>
                 </div>
 
                 <div className="divide-y divide-slate-100">
-                  {profile.documents?.map((doc: any) => (
+                  {(profile.documents || []).map((doc: AgentDocument) => (
                     <div key={doc.id} className="py-3 flex items-center justify-between">
                       <div>
                         <p className="text-xs font-bold text-slate-800">{doc.original_name}</p>
-                        <p className="text-[11px] text-slate-500 capitalize">Type: {doc.document_type} | Uploaded: {doc.uploaded_at}</p>
+                        <p className="text-[11px] text-slate-500 capitalize">Type: {doc.document_type} | Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}</p>
                       </div>
-                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                        {doc.status}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          {doc.status}
+                        </span>
+                        <button onClick={() => handleDocumentDelete(doc.id)} className="text-xs font-bold text-red-500 hover:text-red-700">
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
+                  {(!profile.documents || profile.documents.length === 0) && (
+                    <p className="text-xs text-slate-400 py-4 text-center">No documents uploaded yet.</p>
+                  )}
                 </div>
               </div>
             )}
@@ -605,6 +663,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <p className="text-xs font-bold text-[#0A2647] mb-2">Public Profile Visibility Toggles</p>
+                    {Object.keys(profile.privacy_settings || {}).length === 0 && <p className="text-xs text-slate-400">No settings yet — saving will initialize defaults.</p>}
                     {Object.keys(profile.privacy_settings || {}).map((setting) => (
                       <label key={setting} className="flex items-center justify-between text-xs font-medium text-slate-700 cursor-pointer">
                         <span className="capitalize">{setting.replace("show_", "Display ").replace("_", " ")}</span>
@@ -615,6 +674,7 @@ export default function ProfilePage() {
 
                   <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <p className="text-xs font-bold text-[#0A2647] mb-2">Notification Preferences</p>
+                    {Object.keys(profile.notification_preferences || {}).length === 0 && <p className="text-xs text-slate-400">No preferences yet — saving will initialize defaults.</p>}
                     {Object.keys(profile.notification_preferences || {}).map((pref) => (
                       <label key={pref} className="flex items-center justify-between text-xs font-medium text-slate-700 cursor-pointer">
                         <span className="capitalize">{pref} Alerts</span>

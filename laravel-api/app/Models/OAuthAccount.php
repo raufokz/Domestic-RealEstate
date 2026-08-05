@@ -8,6 +8,8 @@ class OAuthAccount extends Model
 {
     use HasFactory;
 
+    protected $table = 'oauth_accounts';
+
     protected $fillable = ['user_id', 'provider', 'provider_id', 'access_token'];
 
     protected $casts = [

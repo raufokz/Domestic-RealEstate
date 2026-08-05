@@ -7,6 +7,7 @@ use App\Models\CampaignRecipient;
 use App\Models\EmailCampaign;
 use App\Models\EmailHistory;
 use App\Models\SentEmail;
+use App\Services\MergeTagService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,7 +28,7 @@ class ProcessEmailCampaign implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;
+    public int $tries = 3;
     public int $timeout = 900;
 
     /** Recipients handled per chunk, to keep memory flat on large lists. */
@@ -35,6 +36,16 @@ class ProcessEmailCampaign implements ShouldQueue
 
     public function __construct(public int $campaignId)
     {
+    }
+
+    /**
+     * Retries only cover job-level failures (DB errors, uncaught exceptions) —
+     * per-recipient send failures are caught in sendOne() and recorded on the
+     * CampaignRecipient row instead of throwing, so they never trigger a retry.
+     */
+    public function backoff(): array
+    {
+        return [60, 300, 900];
     }
 
     public function handle(): void
@@ -115,10 +126,15 @@ class ProcessEmailCampaign implements ShouldQueue
 
         $trackingId = Str::uuid()->toString();
 
+        $mergeContext = ['name' => $recipient->name, 'email' => $recipient->email];
+        $personalizedSubject = MergeTagService::apply($subject, $mergeContext);
+        $personalizedHtml = MergeTagService::apply($htmlBody, $mergeContext);
+        $personalizedText = MergeTagService::apply($textBody, $mergeContext);
+
         $emailHistory = EmailHistory::create([
             'recipient' => $recipient->email,
-            'subject' => $subject,
-            'body' => $htmlBody,
+            'subject' => $personalizedSubject,
+            'body' => $personalizedHtml,
             'status' => 'pending',
             'opens' => 0,
             'clicks' => 0,
@@ -130,8 +146,8 @@ class ProcessEmailCampaign implements ShouldQueue
             'campaign_id' => $campaign->id,
             'to_email' => $recipient->email,
             'from_email' => $fromEmail,
-            'subject' => $subject,
-            'body' => $htmlBody,
+            'subject' => $personalizedSubject,
+            'body' => $personalizedHtml,
             'status' => 'pending',
             'tracking_id' => $trackingId,
             'sent_at' => now(),
@@ -140,9 +156,9 @@ class ProcessEmailCampaign implements ShouldQueue
 
         try {
             Mail::to($recipient->email)->send(new CampaignMail(
-                emailSubject: $subject,
-                htmlBody: $htmlBody,
-                textBody: $textBody,
+                emailSubject: $personalizedSubject,
+                htmlBody: $personalizedHtml,
+                textBody: $personalizedText,
                 trackingId: $trackingId,
             ));
 

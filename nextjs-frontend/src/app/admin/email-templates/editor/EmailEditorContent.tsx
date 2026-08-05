@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
 interface TemplateBlock {
@@ -9,6 +10,18 @@ interface TemplateBlock {
   type: "header" | "text" | "image" | "button" | "divider" | "footer";
   content: string;
   styles?: Record<string, string>;
+}
+
+interface EmailTemplate {
+  id: number;
+  name: string;
+  slug: string;
+  type: string;
+  subject: string;
+  html_body: string;
+  text_body?: string | null;
+  variables?: { blocks?: TemplateBlock[] } | TemplateBlock[] | null;
+  is_active: boolean;
 }
 
 const defaultBlocks: TemplateBlock[] = [
@@ -34,18 +47,47 @@ const VARIABLES = [
   "{{agent_name}}", "{{agent_email}}", "{{company_name}}", "{{current_date}}",
 ];
 
+function blocksFromTemplate(template?: EmailTemplate | null): TemplateBlock[] | null {
+  const variables = template?.variables;
+  if (variables && !Array.isArray(variables) && Array.isArray(variables.blocks) && variables.blocks.length > 0) {
+    return variables.blocks;
+  }
+  return null;
+}
+
 export default function EmailEditorContent() {
-  const { success } = useToast();
+  const { success, notifyError } = useToast();
   const [templateName, setTemplateName] = useState("New Template");
   const [subject, setSubject] = useState("");
   const [blocks, setBlocks] = useState<TemplateBlock[]>(defaultBlocks);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [saving, setSaving] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [savedTemplates, setSavedTemplates] = useState<EmailTemplate[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
+  const blockIdRef = useRef(100);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const data = await apiGet<EmailTemplate[]>("/email-templates");
+      setSavedTemplates(Array.isArray(data) ? data : []);
+    } catch (err) {
+      notifyError(err, "Email templates could not be loaded.");
+      setSavedTemplates([]);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, [notifyError]);
+
+  useEffect(() => {
+    void fetchTemplates();
+  }, [fetchTemplates]);
 
   const addBlock = (type: TemplateBlock["type"]) => {
     const newBlock: TemplateBlock = {
-      id: Date.now().toString(),
+      id: String(blockIdRef.current++),
       type,
       content: type === "header" ? "New Header" : type === "text" ? "Enter your text here..." : type === "button" ? "Click Here|https://example.com" : type === "footer" ? "Company Name | info@company.com" : "",
     };
@@ -76,6 +118,23 @@ export default function EmailEditorContent() {
         updateBlock(selectedBlock, block.content + " " + variable);
       }
     }
+  };
+
+  const resetEditor = () => {
+    setEditingId(null);
+    setTemplateName("New Template");
+    setSubject("");
+    setBlocks(defaultBlocks);
+    setSelectedBlock(null);
+  };
+
+  const loadTemplate = (template: EmailTemplate) => {
+    const stored = blocksFromTemplate(template);
+    setEditingId(template.id);
+    setTemplateName(template.name);
+    setSubject(template.subject);
+    setBlocks(stored && stored.length > 0 ? stored : defaultBlocks);
+    setSelectedBlock(null);
   };
 
   const generateHtml = (): string => {
@@ -123,43 +182,39 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5
     return html;
   };
 
-  const saveTemplate = () => {
-    const templates = JSON.parse(localStorage.getItem("email_templates") || "[]");
-    const existing = templates.findIndex((t: { id: string }) => t.id === templateName.replace(/\s+/g, "_").toLowerCase());
-    const templateData = {
-      id: templateName.replace(/\s+/g, "_").toLowerCase(),
-      name: templateName,
-      subject,
-      blocks,
-      html: generateHtml(),
-      updatedAt: new Date().toISOString(),
-    };
-    if (existing >= 0) {
-      templates[existing] = templateData;
-    } else {
-      templates.push(templateData);
+  const saveTemplate = async () => {
+    if (!templateName.trim()) {
+      notifyError(new Error("Template name is required."));
+      return;
     }
-    localStorage.setItem("email_templates", JSON.stringify(templates));
-    success("Email template saved.", "Email Builder");
-  };
-
-  const loadTemplates = () => {
-    const templates = JSON.parse(localStorage.getItem("email_templates") || "[]");
-    return templates;
-  };
-
-  const loadTemplate = (templateId: string) => {
-    const templates = loadTemplates();
-    const template = templates.find((t: { id: string }) => t.id === templateId);
-    if (template) {
-      setTemplateName(template.name);
-      setSubject(template.subject);
-      setBlocks(template.blocks);
+    try {
+      setSaving(true);
+      const payload = {
+        name: templateName.trim(),
+        type: "marketing",
+        subject,
+        html_body: generateHtml(),
+        text_body: "",
+        is_active: true,
+        variables: { blocks },
+      };
+      if (editingId) {
+        await apiPut(`/email-templates/${editingId}`, payload);
+        success("Email template updated.", "Email Builder");
+      } else {
+        const created = await apiPost<{ data?: EmailTemplate }>("/email-templates", payload);
+        if (created?.data?.id) setEditingId(created.data.id);
+        success("Email template saved.", "Email Builder");
+      }
+      await fetchTemplates();
+    } catch (err) {
+      notifyError(err, "Email template could not be saved.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const selectedBlockData = blocks.find(b => b.id === selectedBlock);
-  const savedTemplates = loadTemplates();
 
   return (
     <AdminLayout title="Email Template Editor">
@@ -283,10 +338,17 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Actions</h3>
             <div className="space-y-2">
               <button
-                onClick={saveTemplate}
-                className="w-full px-4 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-medium hover:bg-[#0c2f57] transition-colors"
+                onClick={() => void saveTemplate()}
+                disabled={saving}
+                className="w-full px-4 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-medium hover:bg-[#0c2f57] transition-colors disabled:opacity-50"
               >
-                Save Template
+                {saving ? "Saving..." : editingId ? "Update Template" : "Save Template"}
+              </button>
+              <button
+                onClick={resetEditor}
+                className="w-full px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+              >
+                New Template
               </button>
               <button
                 onClick={() => {
@@ -314,26 +376,30 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5
             </div>
           </div>
 
-          {savedTemplates.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Saved Templates</h3>
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Saved Templates</h3>
+            {loadingTemplates ? (
+              <p className="text-sm text-gray-400">Loading...</p>
+            ) : savedTemplates.length === 0 ? (
+              <p className="text-sm text-gray-400">No templates saved yet.</p>
+            ) : (
               <div className="space-y-2">
-                {savedTemplates.map((t: { id: string; name: string; updatedAt: string }) => (
+                {savedTemplates.map((t) => (
                   <div
                     key={t.id}
-                    onClick={() => loadTemplate(t.id)}
+                    onClick={() => loadTemplate(t)}
                     className="flex items-center justify-between p-2 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <div>
                       <p className="text-sm font-medium text-gray-700">{t.name}</p>
-                      <p className="text-xs text-gray-400">{new Date(t.updatedAt).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400">{t.subject || "No subject"}</p>
                     </div>
                     <button className="text-xs text-[#C9A227] hover:underline">Load</button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="bg-white rounded-xl shadow-sm p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">HTML Output</h3>

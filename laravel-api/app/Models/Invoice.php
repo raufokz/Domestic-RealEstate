@@ -12,12 +12,14 @@ class Invoice extends Model
         'invoice_number', 'user_id', 'service_request_id', 'payoneer_invoice_id',
         'description', 'amount', 'currency', 'status', 'notes', 'items',
         'sent_at', 'paid_at', 'due_at', 'due_date', 'created_by',
+        'payment_gateway', 'gateway_transaction_id', 'gateway_status_raw',
     ];
 
     protected function casts(): array {
         return [
             'amount' => 'decimal:2',
             'items' => 'array',
+            'gateway_status_raw' => 'array',
             'sent_at' => 'datetime', 'paid_at' => 'datetime', 'due_at' => 'datetime', 'due_date' => 'date',
         ];
     }

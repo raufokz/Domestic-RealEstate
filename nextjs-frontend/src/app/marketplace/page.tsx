@@ -45,7 +45,10 @@ interface ReservationState {
   lead: MarketplaceLead;
   token: string;
   expiresAt: string;
-  paid: boolean;
+  /** "unpaid" = show the payment form; "awaiting" = bank transfer submitted,
+   * pending admin/webhook confirmation. Payoneer checkout never reaches
+   * either "paid" state here — the browser redirects to Payoneer instead. */
+  paymentState: "unpaid" | "awaiting";
 }
 
 const CATEGORIES = ["Pay Per Close", "Exclusive Buyer", "Exclusive Seller", "Residential", "Commercial", "Luxury", "Investment", "Land", "Rental"];
@@ -116,8 +119,7 @@ export default function MarketplacePage() {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
   const [busy, setBusy] = useState(false);
   const [dismissed, setDismissed] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
-  const [cardDetails, setCardDetails] = useState({ name: "", number: "", expiry: "", cvc: "" });
+  const [paymentMethod, setPaymentMethod] = useState<"payoneer" | "bank_transfer">("payoneer");
 
   const leads = data?.data || [];
   const meta = data?.meta;
@@ -144,7 +146,7 @@ export default function MarketplacePage() {
       setBusy(true);
       try {
         const res = await apiPost<{ token: string; expires_at: string }>(`/marketplace/leads/${lead.id}/reserve`);
-        setReservation({ lead, token: res.token, expiresAt: res.expires_at, paid: false });
+        setReservation({ lead, token: res.token, expiresAt: res.expires_at, paymentState: "unpaid" });
         refetch();
       } catch (e) {
         notifyError(e, "Could not reserve this lead. It may have just been taken.");
@@ -160,21 +162,30 @@ export default function MarketplacePage() {
     if (!reservation || busy) return;
     setBusy(true);
     try {
-      const res = await apiPost<{ status: string; message: string; expires_at?: string }>(
+      const res = await apiPost<{ status: string; message: string; expires_at?: string; checkout_url?: string }>(
         `/marketplace/leads/${reservation.lead.id}/process-payment`,
-        { token: reservation.token, payment_method: paymentMethod, card_details: cardDetails }
+        { token: reservation.token, payment_method: paymentMethod }
       );
-      setReservation({ ...reservation, paid: true, expiresAt: res.expires_at || reservation.expiresAt });
+
+      if (res.status === "checkout_created" && res.checkout_url) {
+        // Real Payoneer-hosted checkout — the lead only unlocks after
+        // Payoneer's signature-verified webhook confirms payment, never
+        // from this response alone.
+        window.location.href = res.checkout_url;
+        return;
+      }
+
       success(res.message);
+      setReservation({ ...reservation, paymentState: "awaiting", expiresAt: res.expires_at || reservation.expiresAt });
       refetch();
     } catch (e) {
-      notifyError(e, "Payment could not be processed. Your reservation may have expired.");
+      notifyError(e, "Payment could not be started. Your reservation may have expired.");
       setReservation(null);
       refetch();
     } finally {
       setBusy(false);
     }
-  }, [reservation, busy, paymentMethod, cardDetails, success, notifyError, refetch]);
+  }, [reservation, busy, paymentMethod, success, notifyError, refetch]);
 
   const release = useCallback(async () => {
     if (!reservation || busy) return;
@@ -531,7 +542,7 @@ export default function MarketplacePage() {
               </button>
             </div>
 
-            {!reservation.paid ? (
+            {reservation.paymentState === "unpaid" ? (
               <>
                 {/* Hold Banner */}
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
@@ -563,15 +574,15 @@ export default function MarketplacePage() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod("card")}
+                      onClick={() => setPaymentMethod("payoneer")}
                       className={`p-3 rounded-xl border text-left font-bold text-xs flex flex-col gap-1 transition ${
-                        paymentMethod === "card"
+                        paymentMethod === "payoneer"
                           ? "border-[#0A2647] bg-[#0A2647]/5 text-[#0A2647]"
                           : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       }`}
                     >
-                      <span>💳 Credit / Debit Card</span>
-                      <span className="text-[10px] text-slate-400 font-normal">Instant unlock</span>
+                      <span>💳 Card via Payoneer</span>
+                      <span className="text-[10px] text-slate-400 font-normal">Secure checkout</span>
                     </button>
                     <button
                       type="button"
@@ -588,51 +599,13 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                {/* Card Fields Mock */}
-                {paymentMethod === "card" && (
-                  <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Cardholder Name</label>
-                      <input
-                        type="text"
-                        placeholder="John Doe"
-                        value={cardDetails.name}
-                        onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Card Number</label>
-                      <input
-                        type="text"
-                        placeholder="•••• •••• •••• 4242"
-                        value={cardDetails.number}
-                        onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1">Expiry Date</label>
-                        <input
-                          type="text"
-                          placeholder="MM/YY"
-                          value={cardDetails.expiry}
-                          onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1">CVC Code</label>
-                        <input
-                          type="text"
-                          placeholder="123"
-                          value={cardDetails.cvc}
-                          onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                        />
-                      </div>
-                    </div>
+                {paymentMethod === "payoneer" && (
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 text-xs text-slate-600">
+                    <p className="font-bold text-[#0A2647] mb-1">🔒 Secure Payoneer Checkout</p>
+                    <p>
+                      You&apos;ll be redirected to Payoneer&apos;s secure hosted checkout to enter your card details.
+                      We never see or store your card information. The lead unlocks automatically once payment is confirmed.
+                    </p>
                   </div>
                 )}
 
@@ -655,7 +628,11 @@ export default function MarketplacePage() {
                     disabled={busy}
                     className="w-full bg-[#C9A227] text-[#0A2647] font-extrabold py-3.5 rounded-xl hover:bg-[#b8911f] transition disabled:opacity-50 text-base shadow-md"
                   >
-                    {busy ? "Processing Secure Payment..." : `Pay $${reservation.lead.price} & Unlock Lead`}
+                    {busy
+                      ? "Redirecting to secure checkout..."
+                      : paymentMethod === "payoneer"
+                        ? `Pay $${reservation.lead.price} via Payoneer`
+                        : `Submit $${reservation.lead.price} Bank Transfer`}
                   </button>
                   <button
                     onClick={release}
@@ -667,11 +644,12 @@ export default function MarketplacePage() {
                 </div>
               </>
             ) : (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
-                <div className="text-4xl mb-2">🎉</div>
-                <h4 className="font-extrabold text-[#0A2647] text-lg">Lead Unlocked Successfully!</h4>
-                <p className="text-sm text-emerald-800 mt-2">
-                  Full lead contact details have been decrypted and attached to your account.
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+                <div className="text-4xl mb-2">⏳</div>
+                <h4 className="font-extrabold text-[#0A2647] text-lg">Payment Awaiting Confirmation</h4>
+                <p className="text-sm text-amber-900 mt-2">
+                  Your bank transfer was submitted. This lead is held for you while our team verifies receipt — it
+                  unlocks automatically as soon as payment is confirmed.
                 </p>
                 <div className="mt-5 flex gap-3 justify-center">
                   <Link

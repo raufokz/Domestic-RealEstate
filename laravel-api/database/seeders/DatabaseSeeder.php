@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(NavigationFooterSeeder::class);
+        $this->call(RolePermissionSeeder::class);
         // ─── Users ───
         $admin = User::create([
             'name' => 'Admin',

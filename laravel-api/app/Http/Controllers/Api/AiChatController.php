@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AiConversation;
+use App\Models\AiUsageLog;
 use App\Models\User;
 use App\Models\Lead;
 use App\Services\LeadCaptureService;
@@ -239,6 +240,60 @@ class AiChatController extends Controller
             'success' => true,
             'message' => 'Conversation deleted successfully'
         ]);
+    }
+
+    public function logs(Request $request): JsonResponse {
+        $user = $request->user();
+        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            abort(403, 'Unauthorized. Admin access required.');
+        }
+
+        $query = AiUsageLog::with('user')->latest('created_at');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('prompt_preview', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('agent') && $request->input('agent') !== 'all') {
+            $agent = $request->input('agent');
+            $query->where(function ($q) use ($agent) {
+                $q->where('agent_key', $agent)
+                  ->orWhere('model', $agent)
+                  ->orWhere('provider', $agent);
+            });
+        }
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
+        $data = $query->take(500)->get()->map(function (AiUsageLog $log) {
+            return [
+                'id' => $log->id,
+                'timestamp' => $log->created_at->toIso8601String(),
+                'user' => $log->user?->name ?: 'System',
+                'agent' => $log->agent_key && !in_array($log->agent_key, ['fallback', 'error'], true)
+                    ? Str::headline($log->agent_key)
+                    : ($log->model ?: ucfirst($log->provider)),
+                'message' => $log->prompt_preview ?: '(no prompt recorded)',
+                'tokens_used' => ($log->input_tokens ?? 0) + ($log->output_tokens ?? 0),
+                'status' => $log->status,
+            ];
+        });
+
+        return response()->json(['data' => $data]);
     }
 
     public function analytics(): JsonResponse {

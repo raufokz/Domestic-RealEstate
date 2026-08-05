@@ -200,13 +200,26 @@ class AutomationEngine
 
     protected static function actionNotification(array $params, array $data): array
     {
-        Log::info('Automation notification', [
-            'title' => $params['title'] ?? 'Automation',
-            'message' => $params['message'] ?? '',
-            'lead_id' => $data['lead_id'] ?? null,
-        ]);
+        $title = $params['title'] ?? $params['message'] ?? 'Automation notification';
+        $message = $params['message'] ?? $params['body'] ?? '';
 
-        return ['status' => 'logged', 'type' => 'notification'];
+        $severity = $params['severity'] ?? 'info';
+        if (! in_array($severity, ['critical', 'warning', 'info', 'success'], true)) {
+            $severity = 'info';
+        }
+
+        $leadId = $data['lead_id'] ?? null;
+
+        Notifier::alert(
+            title: (string) $title,
+            message: $message ?: (string) $title,
+            severity: $severity,
+            module: 'automation',
+            actionUrl: $leadId ? '/admin/leads/'.$leadId : ($params['action_url'] ?? null),
+            data: ['lead_id' => $leadId],
+        );
+
+        return ['status' => 'created', 'type' => 'notification', 'title' => (string) $title];
     }
 
     protected static function actionCreateTask(array $params, array $data): array

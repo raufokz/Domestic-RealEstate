@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('payouts', function (Blueprint $table) {
+            $table->foreignId('purchased_lead_id')->nullable()->after('recipient_id')
+                ->constrained('purchased_leads')->nullOnDelete();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('payouts', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('purchased_lead_id');
+        });
+    }
+};

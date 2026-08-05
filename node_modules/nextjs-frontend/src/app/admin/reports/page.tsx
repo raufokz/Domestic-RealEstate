@@ -1,7 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { apiGet, apiPost, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+
+interface ReportExport {
+  id: number;
+  export_type: string;
+  format: string;
+  row_count: number;
+  status: "pending" | "processing" | "completed" | "failed";
+  created_at: string;
+  error_message?: string | null;
+}
 
 const reportTypes = [
   { id: "leads", label: "Leads", description: "Lead pipeline, sources, and conversion metrics", icon: "🎯" },
@@ -11,58 +23,139 @@ const reportTypes = [
   { id: "property-analytics", label: "Property Analytics", description: "Listings, views, inquiries, and market trends", icon: "🏠" },
 ];
 
+const typeToExport: Record<string, string> = {
+  leads: "leads",
+  sales: "deals",
+  revenue: "invoices",
+  "agent-performance": "agent_leads",
+  "property-analytics": "properties",
+};
+
 const formatOptions = [
   { id: "pdf", label: "PDF", extension: ".pdf", icon: "📄" },
-  { id: "excel", label: "Excel", extension: ".xlsx", icon: "📊" },
+  { id: "xlsx", label: "Excel", extension: ".xlsx", icon: "📊" },
   { id: "csv", label: "CSV", extension: ".csv", icon: "📋" },
 ];
 
-const recentReports = [
-  { id: 1, name: "Lead Pipeline Summary", type: "Leads", generated: "2026-07-10 14:32", size: "245 KB", status: "completed" },
-  { id: 2, name: "Monthly Revenue Report", type: "Revenue", generated: "2026-07-09 09:15", size: "1.2 MB", status: "completed" },
-  { id: 3, name: "Agent Performance - Q2 2026", type: "Agent Performance", generated: "2026-07-08 16:45", size: "890 KB", status: "completed" },
-  { id: 4, name: "Property Analytics July", type: "Property Analytics", generated: "2026-07-07 11:20", size: "1.8 MB", status: "completed" },
-  { id: 5, name: "Sales Funnel Report", type: "Sales", generated: "2026-07-06 13:50", size: "320 KB", status: "completed" },
-  { id: 6, name: "Weekly Leads Summary", type: "Leads", generated: "2026-07-05 08:00", size: "156 KB", status: "completed" },
-  { id: 7, name: "Revenue by Source - June", type: "Revenue", generated: "2026-07-04 10:30", size: "780 KB", status: "completed" },
-  { id: 8, name: "Property Listings Report", type: "Property Analytics", generated: "2026-07-03 15:10", size: "2.1 MB", status: "completed" },
-];
-
 const typeColors: Record<string, string> = {
-  Leads: "bg-blue-100 text-blue-800",
-  Sales: "bg-emerald-100 text-emerald-800",
-  Revenue: "bg-purple-100 text-purple-800",
-  "Agent Performance": "bg-amber-100 text-amber-800",
-  "Property Analytics": "bg-rose-100 text-rose-800",
+  leads: "bg-blue-100 text-blue-800",
+  deals: "bg-emerald-100 text-emerald-800",
+  invoices: "bg-purple-100 text-purple-800",
+  agent_leads: "bg-amber-100 text-amber-800",
+  properties: "bg-rose-100 text-rose-800",
 };
 
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  processing: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
+  failed: "bg-red-100 text-red-700",
+};
+
+function reportLabel(exportType: string): string {
+  return reportTypes.find((rt) => typeToExport[rt.id] === exportType)?.label ?? exportType;
+}
+
 export default function ReportsPage() {
+  const { success, notifyError } = useToast();
   const [selectedType, setSelectedType] = useState("leads");
   const [format, setFormat] = useState("pdf");
-  const [dateFrom, setDateFrom] = useState("2026-06-01");
-  const [dateTo, setDateTo] = useState("2026-07-11");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [reports, setReports] = useState(recentReports);
+  const [reports, setReports] = useState<ReportExport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  function handleGenerate() {
-    setGenerating(true);
-    setTimeout(() => {
-      const typeLabel = reportTypes.find((t) => t.id === selectedType)?.label || "";
-      const newReport = {
-        id: Date.now(),
-        name: `${typeLabel} Report - ${new Date().toLocaleDateString()}`,
-        type: typeLabel,
-        generated: new Date().toLocaleString("sv-SE", { hour: "2-digit", minute: "2-digit" }).replace(" ", " "),
-        size: `${Math.floor(Math.random() * 2000 + 100)} KB`,
-        status: "completed" as const,
-      };
-      setReports((prev) => [newReport, ...prev]);
-      setGenerating(false);
-    }, 2000);
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  async function fetchReports() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await apiGet<{ data: ReportExport[] }>("/admin/exports");
+      const all = Array.isArray(res.data) ? res.data : [];
+      const ours = all.filter((e) => Object.values(typeToExport).includes(e.export_type));
+      setReports(ours);
+    } catch (e) {
+      setError(
+        e instanceof ApiError
+          ? e.message
+          : "Could not load reports. Please check the API connection and try again."
+      );
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleDelete(id: number) {
-    setReports((prev) => prev.filter((r) => r.id !== id));
+  async function handleGenerate() {
+    setGenerating(true);
+    try {
+      const filters: Record<string, string> = {};
+      if (dateFrom) filters.created_after = dateFrom;
+      if (dateTo) filters.created_before = dateTo;
+      await apiPost("/admin/exports", {
+        export_type: typeToExport[selectedType],
+        format,
+        filters: Object.keys(filters).length ? filters : undefined,
+      });
+      success("Report queued. It will appear below once processing finishes.");
+      await fetchReports();
+    } catch (e) {
+      notifyError(e, "Could not generate this report. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function downloadReport(exp: ReportExport) {
+    setActionLoading(exp.id);
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      const res = await fetch(`${API_BASE}/admin/exports/${exp.id}/download`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        let msg = "Report is not ready for download yet.";
+        try {
+          const body = await res.json();
+          if (body?.message) msg = body.message;
+        } catch {
+          /* keep default */
+        }
+        throw new ApiError(msg, res.status);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report-${exp.id}-${exp.export_type}.${exp.format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      notifyError(e, "Could not download this report.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function deleteReport(id: number) {
+    setActionLoading(id);
+    try {
+      await apiDelete(`/admin/exports/${id}`);
+      setReports((prev) => prev.filter((r) => r.id !== id));
+      success("Report deleted.");
+    } catch (e) {
+      notifyError(e, "Could not delete this report.");
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   return (
@@ -155,6 +248,9 @@ export default function ReportsPage() {
               </button>
             </div>
           </div>
+          <p className="text-xs text-slate-400">
+            Reports are processed in the background by the queue worker. PDF and Excel formats produce formatted files; CSV is plain tabular data.
+          </p>
         </div>
 
         {/* Recent Reports Table */}
@@ -162,64 +258,102 @@ export default function ReportsPage() {
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-[#0A2647]">Recent Reports</h3>
-              <p className="text-sm text-slate-500 mt-0.5">{reports.length} reports generated</p>
+              <p className="text-sm text-slate-500 mt-0.5">{reports.length} report{reports.length !== 1 ? "s" : ""} generated</p>
             </div>
-            <button className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-              Export All
+            <button onClick={fetchReports} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+              Refresh
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Report Name</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Type</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Generated</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Size</th>
-                  <th className="text-right text-xs font-semibold text-slate-500 uppercase px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {reports.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-[#0A2647]/10 rounded-lg flex items-center justify-center">
-                          <svg className="w-4 h-4 text-[#0A2647]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-[#0A2647]">{r.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${typeColors[r.type] || "bg-slate-100 text-slate-700"}`}>
-                        {r.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{r.generated}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{r.size}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="px-3 py-1.5 text-xs font-semibold text-[#0A2647] bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
-                          Download
-                        </button>
-                        <button
-                          onClick={() => handleDelete(r.id)}
-                          className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
+              <span className="ml-3 text-gray-500">Loading reports...</span>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 m-6 text-center">
+              <p className="text-red-700">{error}</p>
+              <button
+                onClick={fetchReports}
+                className="mt-3 px-4 py-2 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f]"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Report Name</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Type</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Format</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Rows</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Status</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">Generated</th>
+                    <th className="text-right text-xs font-semibold text-slate-500 uppercase px-6 py-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {reports.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-slate-400 text-sm">No reports generated yet. Create your first report above.</p>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {reports.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-[#0A2647]/10 rounded-lg flex items-center justify-center">
+                            <svg className="w-4 h-4 text-[#0A2647]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-[#0A2647]">
+                            {reportLabel(r.export_type)} Report #{r.id}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${typeColors[r.export_type] || "bg-slate-100 text-slate-700"}`}>
+                          {reportLabel(r.export_type)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 uppercase">{r.format}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{(r.row_count ?? 0).toLocaleString()}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${statusColors[r.status]}`}>{r.status}</span>
+                        {r.status === "failed" && r.error_message && (
+                          <span className="block text-xs text-red-500 mt-1 max-w-[220px] truncate" title={r.error_message}>
+                            {r.error_message}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{new Date(r.created_at).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {r.status === "completed" && (
+                            <button
+                              onClick={() => downloadReport(r)}
+                              disabled={actionLoading === r.id}
+                              className="px-3 py-1.5 text-xs font-semibold text-[#0A2647] bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                            >
+                              Download
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteReport(r.id)}
+                            disabled={actionLoading === r.id}
+                            className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {reports.length === 0 && (
+                <div className="py-12 text-center">
+                  <p className="text-slate-400 text-sm">No reports generated yet. Create your first report above.</p>
+                </div>
+              )}
             </div>
           )}
         </div>

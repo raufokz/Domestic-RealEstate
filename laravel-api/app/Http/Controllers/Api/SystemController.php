@@ -9,12 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
 class SystemController extends Controller
 {
+    private function checkAdmin(): void
+    {
+        $user = Auth::user();
+        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            abort(403, 'Unauthorized. Admin access required.');
+        }
+    }
+
     private function backupDir(): string
     {
         return storage_path('app/backups');
@@ -343,6 +352,7 @@ class SystemController extends Controller
 
     /** Real import history, newest first, with a failure count per batch. */
     public function imports(Request $request): JsonResponse {
+        $this->checkAdmin();
         $batches = \App\Models\ImportBatch::withCount('errors')
             ->latest()
             ->paginate((int) $request->input('per_page', 15));
@@ -352,6 +362,7 @@ class SystemController extends Controller
 
     /** Per-row failure detail for one import batch. */
     public function importErrors($id): JsonResponse {
+        $this->checkAdmin();
         $batch = \App\Models\ImportBatch::with(['errors' => fn ($q) => $q->orderBy('row_number')])
             ->findOrFail($id);
 
@@ -369,6 +380,7 @@ class SystemController extends Controller
 
     /** Download the failed rows as CSV so they can be corrected and re-uploaded. */
     public function downloadImportErrors($id) {
+        $this->checkAdmin();
         $batch = \App\Models\ImportBatch::with('errors')->findOrFail($id);
 
         if ($batch->errors->isEmpty()) {
@@ -406,6 +418,7 @@ class SystemController extends Controller
      * Say so plainly instead of pretending a retry was queued.
      */
     public function retryImport($id): JsonResponse {
+        $this->checkAdmin();
         $batch = \App\Models\ImportBatch::findOrFail($id);
 
         return ApiResponse::fail(

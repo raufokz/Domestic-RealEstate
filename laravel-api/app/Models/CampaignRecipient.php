@@ -8,7 +8,7 @@ class CampaignRecipient extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['campaign_id', 'contact_id', 'email', 'status', 'sent_at', 'opened_at', 'clicked_at'];
+    protected $fillable = ['campaign_id', 'contact_id', 'email', 'name', 'status', 'sent_at', 'opened_at', 'clicked_at'];
     protected function casts(): array {
         return ['sent_at' => 'datetime', 'opened_at' => 'datetime', 'clicked_at' => 'datetime'];
     }

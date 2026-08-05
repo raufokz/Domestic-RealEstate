@@ -10,13 +10,69 @@ use App\Models\PageTemplate;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PageBuilderController extends Controller
 {
+    private function checkAdmin(): void
+    {
+        $user = Auth::user();
+        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            abort(403, 'Unauthorized. Admin access required.');
+        }
+    }
+
     public function pages(): JsonResponse {
+        $this->checkAdmin();
         $pages = Page::select('id', 'title', 'slug', 'status')->orderBy('title')->get();
         return response()->json(['data' => $pages]);
+    }
+
+    public function storePage(Request $request): JsonResponse {
+        $this->checkAdmin();
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:pages,slug',
+            'status' => 'sometimes|in:draft,published',
+            'content' => 'nullable|string',
+        ]);
+
+        $page = Page::create([
+            ...$validated,
+            'status' => $validated['status'] ?? 'draft',
+        ]);
+
+        return response()->json([
+            'message' => 'Page created',
+            'data' => $page->only('id', 'title', 'slug', 'status'),
+        ], 201);
+    }
+
+    public function updatePage(Request $request, $id): JsonResponse {
+        $this->checkAdmin();
+        $page = Page::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|max:255|unique:pages,slug,' . $page->id,
+            'status' => 'sometimes|in:draft,published',
+            'content' => 'nullable|string',
+        ]);
+
+        $page->update($validated);
+
+        return response()->json([
+            'message' => 'Page updated',
+            'data' => $page->only('id', 'title', 'slug', 'status'),
+        ]);
+    }
+
+    public function destroyPage($id): JsonResponse {
+        $this->checkAdmin();
+        $page = Page::findOrFail($id);
+        $page->delete();
+        return response()->json(['message' => 'Page deleted']);
     }
 
     public function pageSections($pageId): JsonResponse {

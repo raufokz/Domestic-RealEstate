@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { apiGet, apiPost } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
@@ -36,14 +37,17 @@ export default function AdminContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
 
-  useEffect(() => { loadContracts(); }, []);
+  useEffect(() => { loadContracts(); }, [page]);
 
   async function loadContracts() {
     setLoading(true);
     try {
-      const data = await apiGet<Contract[]>("/admin/contracts");
-      setContracts(Array.isArray(data) ? data : []);
+      const data = await apiGet<{ data: Contract[]; current_page: number; last_page: number }>(`/admin/contracts?page=${page}`);
+      setContracts(Array.isArray(data) ? data : data.data || []);
+      setLastPage(typeof data.last_page === "number" ? data.last_page : 1);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load contracts. Please try again.");
@@ -59,7 +63,6 @@ export default function AdminContractsPage() {
       setContracts((cs) => cs.map((c) => c.id === id ? { ...c, status: "sent" } : c));
       success("Contract sent.");
     } catch (e) {
-      // Do not mark the contract as sent when the request failed.
       notifyError(e, "Could not send this contract. Please try again.");
     } finally {
       setSending(null);
@@ -73,9 +76,14 @@ export default function AdminContractsPage() {
           <h1 className="font-heading text-2xl font-bold text-navy">Contracts</h1>
           <p className="text-slate-500 text-sm mt-1">Manage contracts and e-signature requests.</p>
         </div>
-        <button onClick={loadContracts} className="px-4 py-2 text-sm font-medium text-navy border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-          Refresh
-        </button>
+        <div className="flex gap-3">
+          <button onClick={loadContracts} className="px-4 py-2 text-sm font-medium text-navy border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            Refresh
+          </button>
+          <Link href="/admin/contracts/create" className="px-4 py-2 text-sm font-semibold bg-gold text-navy rounded-lg hover:opacity-90">
+            + New Contract
+          </Link>
+        </div>
       </div>
 
       {loading ? (
@@ -122,7 +130,10 @@ export default function AdminContractsPage() {
                     <td className="px-5 py-4 text-slate-500 text-xs">
                       {c.signed_at ? new Date(c.signed_at).toLocaleDateString() : "—"}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right space-x-3">
+                      <Link href={`/admin/contracts/${c.id}`} className="text-xs font-semibold text-navy hover:text-gold transition-colors">
+                        View
+                      </Link>
                       {c.status === "draft" && (
                         <button
                           onClick={() => sendContract(c.id)}
@@ -137,6 +148,28 @@ export default function AdminContractsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {lastPage > 1 && (
+        <div className="flex items-center justify-between bg-white rounded-xl shadow-sm p-4 mt-4">
+          <p className="text-sm text-gray-500">Page {page} of {lastPage}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+              disabled={page === lastPage}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

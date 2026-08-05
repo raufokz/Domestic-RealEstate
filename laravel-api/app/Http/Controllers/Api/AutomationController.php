@@ -89,7 +89,26 @@ class AutomationController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $workflow = AutomationWorkflow::findOrFail($id);
-        $workflow->update($request->only(['name', 'description', 'trigger_type', 'trigger_conditions', 'actions', 'is_active']));
+
+        $data = $request->only(['name', 'description', 'trigger_type', 'trigger_conditions', 'actions', 'is_active']);
+
+        // Keep aliases in sync with store(): a workflow saved from the admin
+        // detail page used to persist e.g. "lead_updated" verbatim, which the
+        // engine's canonicalize() never matched — so edited triggers silently died.
+        if (isset($data['trigger_type'])) {
+            $triggerMap = [
+                'lead_created' => 'new_lead',
+                'lead_updated' => 'status_changed',
+                'property_created' => 'property_approved',
+                'schedule' => 'scheduled_time',
+                'manual' => 'form_submitted',
+            ];
+            if (isset($triggerMap[$data['trigger_type']])) {
+                $data['trigger_type'] = $triggerMap[$data['trigger_type']];
+            }
+        }
+
+        $workflow->update($data);
         return response()->json($workflow);
     }
 

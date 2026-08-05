@@ -300,7 +300,9 @@ class AgentController extends Controller
         $profile = AgentProfile::where('user_id', $user->id)->firstOrFail();
 
         $request->validate([
-            'document' => 'required|file|max:15360',
+            // Verification documents (license, ID, insurance) — restricted
+            // to real document/image formats, was previously any file type.
+            'document' => 'required|file|max:15360|mimes:pdf,jpg,jpeg,png,doc,docx',
             'document_type' => 'required|string',
         ]);
 

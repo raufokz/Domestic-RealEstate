@@ -40,8 +40,11 @@ class Notification extends Model
      * Back-compat entry point: existing callers pass (type, title, message, data)
      * and keep working. New callers should use Notifier::alert() directly so they
      * can supply severity, module, fix guidance, and an action link.
+     *
+     * @param  string|null  $event  Business event key honoured against Admin →
+     *                              Notification Settings toggles (e.g. new_lead).
      */
-    public static function notifyAdmins(string $type, string $title, string $message, ?array $data = null)
+    public static function notifyAdmins(string $type, string $title, string $message, ?array $data = null, ?string $event = null)
     {
         $severity = in_array($type, ['error', 'failure'], true)
             ? self::SEVERITY_CRITICAL
@@ -53,6 +56,7 @@ class Notification extends Model
             severity: $severity,
             module: $type,
             data: $data,
+            event: $event,
         );
     }
 }

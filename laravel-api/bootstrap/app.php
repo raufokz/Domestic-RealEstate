@@ -31,7 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'geo.access' => EnforceGeoAccess::class,
+            // 'role' stays on the existing EnsureRole (checks users.role +
+            // account-active status) — routes/api.php:374 already depends
+            // on that exact behavior. 'permission' is new, backed by real
+            // Spatie roles/permissions (see RolePermissionSeeder).
             'role' => EnsureRole::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
