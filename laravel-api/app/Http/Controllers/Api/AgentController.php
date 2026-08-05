@@ -19,7 +19,7 @@ class AgentController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = AgentProfile::where('is_published', true)
-            ->where('status', 'verified')
+            ->whereIn('status', ['approved', 'verified'])
             ->with('user');
 
         if ($request->filled('city')) $query->where('office_city', $request->city);
@@ -36,7 +36,7 @@ class AgentController extends Controller
     {
         return response()->json(
             AgentProfile::where('is_featured', true)
-                ->where('status', 'verified')
+                ->whereIn('status', ['approved', 'verified'])
                 ->with('user')
                 ->limit(6)
                 ->get()
