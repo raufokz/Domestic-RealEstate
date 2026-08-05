@@ -1,24 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { apiPost, ApiError } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
-const roles = ["agent", "buyer", "seller", "investor", "broker", "staff", "admin"];
+const roles = ["admin", "super_admin", "agent", "broker", "buyer", "seller", "investor", "staff", "lender", "title"];
 
 export default function CreateUserPage() {
+  const { success, notifyError } = useToast();
   const [form, setForm] = useState({
     name: "",
     email: "",
     role: "",
     phone: "",
     password: "",
-    sendWelcomeEmail: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [createdId, setCreatedId] = useState<number | null>(null);
 
-  const update = (key: string, value: string | boolean) => {
+  const update = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
@@ -39,10 +42,34 @@ export default function CreateUserPage() {
     e.preventDefault();
     if (!validate()) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setCreatedId(null);
+    try {
+      const res = await apiPost<{ data: { id: number } }>("/admin/users", {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: form.role,
+        phone: form.phone.trim() || undefined,
+        password: form.password,
+        status: "active",
+      });
+      setCreatedId(res?.data?.id ?? null);
+      setForm({ name: "", email: "", role: "", phone: "", password: "" });
+      success("User created successfully.", "Create User");
+    } catch (err) {
+      if (err instanceof ApiError && err.data && typeof err.data === "object") {
+        const body = err.data as { errors?: Record<string, string[]> };
+        if (body.errors) {
+          const next: Record<string, string> = {};
+          for (const [key, msgs] of Object.entries(body.errors)) {
+            next[key] = Array.isArray(msgs) ? msgs[0] : String(msgs);
+          }
+          setErrors(next);
+        }
+      }
+      notifyError(err, "User could not be created.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -119,21 +146,6 @@ export default function CreateUserPage() {
                 />
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
-
-              <div className="sm:col-span-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.sendWelcomeEmail}
-                    onChange={(e) => update("sendWelcomeEmail", e.target.checked)}
-                    className="w-4 h-4 text-[#C9A227] border-gray-300 rounded focus:ring-[#C9A227]"
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Send Welcome Email</span>
-                    <p className="text-xs text-gray-500">User will receive an email with login credentials and onboarding instructions.</p>
-                  </div>
-                </label>
-              </div>
             </div>
 
             <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
@@ -161,13 +173,13 @@ export default function CreateUserPage() {
               >
                 Cancel
               </button>
-              {saved && (
-                <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  User created successfully!
-                </span>
+              {createdId !== null && (
+                <Link
+                  href={`/admin/users/${createdId}`}
+                  className="text-sm font-medium text-[#0A2647] hover:text-[#C9A227]"
+                >
+                  View new user →
+                </Link>
               )}
             </div>
           </form>
