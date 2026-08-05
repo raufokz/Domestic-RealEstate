@@ -70,15 +70,24 @@ export default function RealtorDashboard() {
               <p className="text-slate-500 text-sm">Overview of your real estate business</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/realtors/join"
+              className="bg-white hover:bg-slate-100 text-[#0A2647] font-bold text-xs px-3 py-2 rounded-xl shadow-sm border border-slate-200 transition flex items-center gap-1.5"
+            >
+              <span>Create Free Profile</span>
+            </Link>
+            <Link
+              href="/register?role=agent"
+              className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 border border-[#C9A227]/30"
+            >
+              <span>Purchase Plan</span>
+            </Link>
             <Link
               href="/realtor/dashboard/profile"
-              className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 border border-[#C9A227]/30"
+              className="bg-[#0A2647] hover:bg-[#0d3366] text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span>Setup / Edit Profile</span>
+              <span>Edit Profile</span>
             </Link>
             <button className="relative p-2 text-slate-400 hover:text-slate-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,16 +117,18 @@ export default function RealtorDashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 z-10 w-full md:w-auto justify-between md:justify-end">
-              <div className="w-32 bg-white/10 p-3 rounded-xl border border-white/10 text-center">
-                <p className="text-[10px] text-slate-300 uppercase font-semibold">Verification</p>
-                <p className="text-xs font-bold text-emerald-400 mt-0.5">✓ Verified Agent</p>
-              </div>
+            <div className="flex items-center gap-3 z-10 w-full md:w-auto flex-wrap md:flex-nowrap justify-end">
               <Link
-                href="/realtor/dashboard/profile"
-                className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-5 py-3 rounded-xl shadow-lg transition whitespace-nowrap"
+                href="/realtors/join"
+                className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/20 transition whitespace-nowrap"
               >
-                + Complete Profile Details →
+                Join Network Free
+              </Link>
+              <Link
+                href="/register?role=agent"
+                className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition whitespace-nowrap"
+              >
+                Purchase Plan & Upgrade →
               </Link>
             </div>
           </div>

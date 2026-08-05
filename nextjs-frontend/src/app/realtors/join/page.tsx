@@ -98,12 +98,38 @@ export default function RealtorJoinPage() {
     <div className="min-h-screen bg-slate-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-3 bg-white border border-slate-200 shadow-sm px-5 py-2.5 rounded-full mb-6 text-xs font-semibold text-slate-700">
+            <span>Already registered?</span>
+            <a href="/login" className="text-[#0A2647] font-bold hover:underline">
+              Sign In to Your Portal →
+            </a>
+            <span className="text-slate-300">|</span>
+            <a href="/register?role=agent" className="text-[#C9A227] font-bold hover:underline">
+              Purchase Membership Plan →
+            </a>
+          </div>
+
           <h1 className="font-heading text-4xl md:text-5xl font-bold text-navy mb-4">
             Join Our <span className="text-gold">Realtor Network</span>
           </h1>
           <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-            Partner with Domestic Real Estate and grow your business with AI-powered tools, qualified leads, and premium support.
+            Partner with Domestic Real Estate and grow your business with AI-powered tools, qualified leads, and premium support. Create your free profile or choose a membership plan.
           </p>
+
+          <div className="flex justify-center gap-4 mt-6">
+            <a
+              href="/register?role=agent"
+              className="bg-[#C9A227] hover:bg-[#b8911f] text-[#0A2647] font-bold text-sm px-6 py-3 rounded-xl shadow-lg transition"
+            >
+              Sign Up & Purchase Plan
+            </a>
+            <a
+              href="/login"
+              className="bg-[#0A2647] hover:bg-[#0d3366] text-white font-bold text-sm px-6 py-3 rounded-xl shadow-md transition"
+            >
+              Log In to My Account
+            </a>
+          </div>
         </div>
 
         <div className="bg-white rounded-3xl shadow-card p-8 md:p-12">
