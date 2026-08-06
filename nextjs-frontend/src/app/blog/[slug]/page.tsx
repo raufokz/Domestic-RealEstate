@@ -15,6 +15,7 @@ import {
 } from "@/lib/blog";
 import BlogShareButtons from "@/components/blog/BlogShareButtons";
 import BlogLeadForm from "@/components/blog/BlogLeadForm";
+import HtmlBlogViewer from "@/components/blog/HtmlBlogViewer";
 import NewsletterForm from "@/components/NewsletterForm";
 import ViewTracker from "@/components/blog/ViewTracker";
 
@@ -227,20 +228,7 @@ export default async function BlogPostPage({
 
             {/* Post HTML Body */}
             {contentHtml ? (
-              <div
-                className="font-body text-stone-700 text-base sm:text-lg mb-12
-                  [&_p]:leading-relaxed [&_p]:mb-6 [&_p]:text-stone-700
-                  [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:sm:text-3xl [&_h2]:font-bold [&_h2]:text-[#0A2647] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-[#EBE6DD] [&_h2]:scroll-mt-24
-                  [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-[#0A2647] [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:scroll-mt-24
-                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-6 [&_ul]:space-y-2
-                  [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-6 [&_ol]:space-y-2
-                  [&_li]:text-stone-700
-                  [&_a]:text-[#8C6D27] [&_a]:underline font-medium hover:[&_a]:text-[#0A2647]
-                  [&_blockquote]:border-l-4 [&_blockquote]:border-[#C9A227] [&_blockquote]:bg-[#FDFBF7] [&_blockquote]:p-5 [&_blockquote]:rounded-r-2xl [&_blockquote]:italic [&_blockquote]:text-stone-800 [&_blockquote]:my-8 [&_blockquote]:border-y [&_blockquote]:border-r [&_blockquote]:border-[#EBE6DD]
-                  [&_img]:rounded-2xl [&_img]:my-8 [&_img]:max-w-full [&_img]:h-auto [&_img]:border [&_img]:border-[#EBE6DD]
-                  [&_strong]:text-[#0A2647] [&_strong]:font-semibold"
-                dangerouslySetInnerHTML={{ __html: contentHtml }}
-              />
+              <HtmlBlogViewer content={contentHtml} enableLightbox className="mb-12" />
             ) : (
               <p className="font-body text-stone-500 italic mb-10">
                 This research publication has no main body text.

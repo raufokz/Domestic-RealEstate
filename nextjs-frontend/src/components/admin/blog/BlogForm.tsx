@@ -6,6 +6,7 @@ import Link from "next/link";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError, API_BASE } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import HtmlBlogViewer from "@/components/blog/HtmlBlogViewer";
 import SeoFieldsPanel, { SeoFieldsValue } from "@/components/admin/SeoFieldsPanel";
 import ImageUploader, { UploadedImage } from "@/components/admin/ImageUploader";
 import MediaPicker from "@/components/admin/MediaPicker";
@@ -152,6 +153,8 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
   const [featuredPickerOpen, setFeaturedPickerOpen] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editorTab, setEditorTab] = useState<"edit" | "preview">("edit");
+  const [fullPreviewOpen, setFullPreviewOpen] = useState(false);
 
   useEffect(() => {
     apiGet<{ data: Category[] }>("/admin/blog-categories")
@@ -357,13 +360,52 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
             />
           </div>
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Content</label>
-              <span className="text-xs text-slate-400">
-                {wc} words · {readingTime} min read
-              </span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Content</label>
+                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 ml-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditorTab("edit")}
+                    className={`px-3 py-1 text-xs font-bold rounded-md transition ${editorTab === "edit" ? "bg-white text-[#0A2647] shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditorTab("preview")}
+                    className={`px-3 py-1 text-xs font-bold rounded-md transition ${editorTab === "preview" ? "bg-white text-[#0A2647] shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
+                  >
+                    👁️ Live Preview
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">
+                  {wc} words · {readingTime} min read
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFullPreviewOpen(true)}
+                  className="px-2.5 py-1 text-xs font-bold text-[#8C6D27] bg-[#F5F0E6] border border-[#E3DAC9] rounded-lg hover:bg-[#EBE3D3] transition"
+                >
+                  ↗ Full Screen Preview
+                </button>
+              </div>
             </div>
-            <RichTextEditor value={form.content} onChange={(content) => patch({ content })} placeholder="Write your article…" />
+
+            {editorTab === "edit" ? (
+              <RichTextEditor value={form.content} onChange={(content) => patch({ content })} placeholder="Write your article…" />
+            ) : (
+              <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-6 sm:p-8 min-h-[350px]">
+                <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#8C6D27] mb-4 pb-2 border-b border-[#EBE6DD] flex items-center justify-between">
+                  <span>Sanitized Live HTML Renderer</span>
+                  <span className="text-slate-400 font-normal">Matches live site 1:1</span>
+                </div>
+                <HtmlBlogViewer content={form.content} enableLightbox />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Tags (comma-separated)</label>
@@ -586,6 +628,73 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
           <MediaPicker open={featuredPickerOpen} onClose={() => setFeaturedPickerOpen(false)} onSelect={(file) => patch({ featured_image: file.url })} />
         </div>
       </div>
+
+      {/* Full-Screen Live Article Preview Modal */}
+      {fullPreviewOpen && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] overflow-y-auto flex flex-col items-center p-4 sm:p-6 lg:p-8">
+          <div className="w-full max-w-5xl bg-[#FDFBF7] rounded-3xl border border-[#EBE6DD] shadow-2xl overflow-hidden my-auto flex flex-col">
+            {/* Modal Top Bar */}
+            <div className="bg-[#0A2647] text-white px-6 py-4 flex items-center justify-between border-b border-white/10 sticky top-0 z-20">
+              <div className="flex items-center gap-3">
+                <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md">
+                  Live CMS Preview
+                </span>
+                <span className="text-xs text-slate-300 hidden sm:inline">
+                  Exact visual parity with live frontend
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFullPreviewOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Article Simulation Container */}
+            <div className="p-6 sm:p-10 lg:p-12 space-y-8">
+              {/* Header */}
+              <div>
+                {categories.find((c) => String(c.id) === form.category_id)?.name && (
+                  <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-4">
+                    {categories.find((c) => String(c.id) === form.category_id)?.name}
+                  </span>
+                )}
+                <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0A2647] leading-tight mb-4">
+                  {form.title || "Untitled Article"}
+                </h1>
+                {form.excerpt && (
+                  <p className="font-serif italic text-stone-600 text-lg sm:text-xl leading-relaxed border-l-2 border-[#C9A227] pl-4 mb-6">
+                    {form.excerpt}
+                  </p>
+                )}
+                <div className="text-xs text-stone-500 font-medium">
+                  {readingTime} min read · {wc} words
+                </div>
+              </div>
+
+              {/* Featured Image */}
+              {form.featured_image && (
+                <div className="rounded-2xl overflow-hidden border border-[#EBE6DD] max-h-[400px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.featured_image} alt={form.featured_image_alt || ""} className="w-full h-full object-cover" />
+                  {form.featured_image_caption && (
+                    <p className="text-xs text-stone-500 italic p-3 text-center bg-white border-t border-[#EBE6DD]">
+                      {form.featured_image_caption} {form.featured_image_credit && `(${form.featured_image_credit})`}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Sanitized Main Content */}
+              <div className="bg-white rounded-2xl border border-[#EBE6DD] p-6 sm:p-10 shadow-xs">
+                <HtmlBlogViewer content={form.content} enableLightbox />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
