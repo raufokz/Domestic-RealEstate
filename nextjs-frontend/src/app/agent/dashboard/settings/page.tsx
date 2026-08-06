@@ -37,10 +37,11 @@ export default function AgentSettingsPage() {
   const [notificationsMessage, setNotificationsMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    apiGet<{ data: { notification_preferences?: typeof notifications } }>("/admin/agent-profile/me")
+    // AgentController::me() returns the profile as a bare object, not {data: ...}.
+    apiGet<{ notification_preferences?: typeof notifications }>("/admin/agent-profile/me")
       .then((res) => {
-        if (res.data?.notification_preferences) {
-          setNotifications((prev) => ({ ...prev, ...res.data.notification_preferences }));
+        if (res.notification_preferences) {
+          setNotifications((prev) => ({ ...prev, ...res.notification_preferences }));
         }
       })
       .catch(() => {});

@@ -12,7 +12,7 @@ class RealtorApplication extends Model
     protected $fillable = [
         'reference', 'full_name', 'email', 'phone', 'license_number', 'license_state',
         'brokerage_name', 'brokerage_license_number', 'id_document_path', 'license_document_path',
-        'status', 'reviewer_id', 'review_notes', 'created_user_id', 'submitted_at', 'reviewed_at',
+        'profile_photo_path', 'status', 'reviewer_id', 'review_notes', 'created_user_id', 'submitted_at', 'reviewed_at',
     ];
 
     protected function casts(): array

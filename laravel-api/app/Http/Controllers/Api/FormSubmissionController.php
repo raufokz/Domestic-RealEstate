@@ -35,10 +35,10 @@ class FormSubmissionController extends Controller
             'referral_areas' => 'nullable|string|max:500',
             'message' => 'nullable|string',
             'resume_url' => 'nullable|string|max:500',
-            'profile_photo_url' => 'nullable|string|max:500',
             'agreement_accepted' => 'required|boolean',
             'id_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'license_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'profile_photo' => 'nullable|file|image|max:5120',
         ]);
 
         try {
@@ -68,7 +68,6 @@ class FormSubmissionController extends Controller
                     'specialization' => $validated['specialization'] ?? null,
                     'referral_areas' => $validated['referral_areas'] ?? null,
                     'resume_url' => $validated['resume_url'] ?? null,
-                    'profile_photo_url' => $validated['profile_photo_url'] ?? null,
                     'agreement_accepted' => $validated['agreement_accepted'],
                 ]),
             ]);
@@ -89,6 +88,9 @@ class FormSubmissionController extends Controller
             $licenseDocPath = $request->hasFile('license_document')
                 ? $request->file('license_document')->store('realtor-applications', 'public')
                 : null;
+            $profilePhotoPath = $request->hasFile('profile_photo')
+                ? $request->file('profile_photo')->store('realtor-applications', 'public')
+                : null;
 
             $application = RealtorApplication::create([
                 'reference' => 'RA-' . strtoupper(\Illuminate\Support\Str::random(8)),
@@ -100,6 +102,7 @@ class FormSubmissionController extends Controller
                 'brokerage_name' => $validated['brokerage'],
                 'id_document_path' => $idDocPath,
                 'license_document_path' => $licenseDocPath,
+                'profile_photo_path' => $profilePhotoPath,
                 'status' => 'pending',
                 'submitted_at' => now(),
             ]);

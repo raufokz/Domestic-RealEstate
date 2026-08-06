@@ -166,6 +166,7 @@ class RealtorApplicationController extends Controller
                 'status' => 'active',
                 'phone' => $application->phone,
                 'email_verified_at' => now(),
+                'avatar' => $application->profile_photo_path,
             ]);
 
             AgentProfile::create([
@@ -176,6 +177,7 @@ class RealtorApplicationController extends Controller
                 'license_number' => $application->license_number,
                 'license_state' => $application->license_state,
                 'license_status' => 'active',
+                'profile_photo' => $application->profile_photo_path,
                 'status' => 'approved',
                 'is_published' => true,
                 'approved_at' => now(),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/Toast";
@@ -59,7 +60,6 @@ export default function AgentsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<Agent | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [paymentAgent, setPaymentAgent] = useState<Agent | null>(null);
@@ -97,25 +97,7 @@ export default function AgentsPage() {
   });
 
   const openCreate = () => {
-    setEditing(null);
     setForm(emptyForm);
-    setShowModal(true);
-  };
-
-  const openEdit = (a: Agent) => {
-    setEditing(a);
-    setForm({
-      name: a.user?.name || "",
-      email: a.user?.email || "",
-      phone: a.user?.phone || "",
-      license_number: a.license_number || "",
-      brokerage_name: a.brokerage_name || "",
-      headline: a.headline || "",
-      bio: a.bio || "",
-      status: a.status || "approved",
-      is_featured: !!a.is_featured,
-      is_published: !!a.is_published,
-    });
     setShowModal(true);
   };
 
@@ -126,13 +108,8 @@ export default function AgentsPage() {
     }
     try {
       setSaving(true);
-      if (editing) {
-        await apiPut(`/admin/agents/${editing.id}`, form);
-        success("Agent updated.", "Agents");
-      } else {
-        await apiPost("/admin/agents", form);
-        success("Agent created.", "Agents");
-      }
+      await apiPost("/admin/agents", form);
+      success("Agent created.", "Agents");
       setShowModal(false);
       await fetchAgents();
     } catch (err) {
@@ -301,9 +278,9 @@ export default function AgentsPage() {
                           Send Payoneer Link
                         </button>
                       )}
-                      <button onClick={() => openEdit(a)} className="px-2 py-1 border text-xs rounded">
+                      <Link href={`/admin/agents/${a.id}/edit`} className="px-2 py-1 border text-xs rounded inline-block">
                         Edit
-                      </button>
+                      </Link>
                       <button onClick={() => handleDelete(a.id)} className="px-2 py-1 border border-red-200 text-red-600 text-xs rounded">
                         Delete
                       </button>
@@ -319,7 +296,7 @@ export default function AgentsPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-lg p-6 space-y-3 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-navy">{editing ? "Edit Agent" : "Add Agent"}</h3>
+            <h3 className="text-lg font-bold text-navy">Add Agent</h3>
             {(["name", "email", "phone", "license_number", "brokerage_name", "headline"] as const).map((f) => (
               <div key={f}>
                 <label className="block text-sm mb-1 capitalize">{f.replace("_", " ")}</label>

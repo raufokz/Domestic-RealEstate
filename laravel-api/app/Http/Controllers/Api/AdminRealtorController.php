@@ -163,6 +163,13 @@ class AdminRealtorController extends Controller
             'fax' => 'nullable|string|max:50',
             'website' => 'nullable|url|max:255',
             'social_links' => 'nullable|array',
+            'intro_video_url' => 'nullable|string|max:255',
+            'office_photos' => 'nullable|array',
+            'team_photos' => 'nullable|array',
+            'property_portfolio_images' => 'nullable|array',
+            'lead_type_preferences' => 'nullable|array',
+            'partnership_type' => 'nullable|string|max:100',
+            'e_signature' => 'nullable|string',
             'business_name' => 'nullable|string|max:255',
             'business_email' => 'nullable|email|max:255',
             'business_phone' => 'nullable|string|max:50',
@@ -203,6 +210,44 @@ class AdminRealtorController extends Controller
         return response()->json([
             'message' => 'Realtor profile updated successfully by Admin',
             'data' => $profile->fresh(['user', 'documents', 'audits']),
+        ]);
+    }
+
+    /** Admin-scoped mirror of AgentController::uploadMediaMe — same media
+     * pipeline, but any agent's profile (by id) rather than the caller's own. */
+    public function uploadMedia(Request $request, int $id): JsonResponse
+    {
+        $this->checkAdmin();
+
+        $profile = AgentProfile::with('user')->findOrFail($id);
+
+        $request->validate([
+            'media_type' => 'required|in:profile_photo,cover_photo,company_logo,office_photos,team_photos,property_portfolio_images',
+            'file' => 'required|file|image|max:10240',
+        ]);
+
+        $mediaType = $request->media_type;
+        $path = $request->file('file')->store('agent-media/'.$mediaType, 'public');
+
+        if (in_array($mediaType, ['profile_photo', 'cover_photo', 'company_logo'])) {
+            $profile->update([$mediaType => $path]);
+            if ($mediaType === 'profile_photo' && $profile->user) {
+                $profile->user->update(['avatar' => $path]);
+            }
+        } else {
+            $current = $profile->$mediaType ?? [];
+            $current[] = $path;
+            $profile->update([$mediaType => array_values($current)]);
+        }
+
+        $profile->logAudit('admin_media_upload', $mediaType, null, $path, [
+            'admin_user_id' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'message' => 'Media uploaded successfully',
+            'file_url' => $path,
+            'data' => $profile->fresh(),
         ]);
     }
 

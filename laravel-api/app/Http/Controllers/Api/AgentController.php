@@ -141,8 +141,8 @@ class AgentController extends Controller
         $soldListings = Property::where('realtor_id', $user->id)->where('status', 'sold')->count();
         $totalLeads = Lead::where('assigned_to', $user->id)->count();
         $assignedLeads = Lead::where('assigned_to', $user->id)->where('source', 'assignment')->count();
-        $purchasedLeads = Lead::where('assigned_to', $user->id)->where('lead_type', 'pay_per_lead')->count();
-        $payAtClosingLeads = Lead::where('assigned_to', $user->id)->where('lead_type', 'pay_at_closing')->count();
+        $purchasedLeads = Lead::where('assigned_to', $user->id)->where('pricing_model', 'pay_per_lead')->count();
+        $payAtClosingLeads = Lead::where('assigned_to', $user->id)->where('pricing_model', 'pay_at_closing')->count();
         $totalInquiries = Enquiry::where('agent_id', $user->id)->count();
 
         $data = $profile->toArray();

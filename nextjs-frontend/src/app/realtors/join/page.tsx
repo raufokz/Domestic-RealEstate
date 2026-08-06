@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { apiPost, API_BASE } from '@/lib/api';
+import { API_BASE } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 
@@ -25,11 +25,11 @@ export default function RealtorJoinPage() {
     referral_areas: '',
     message: '',
     resume_url: '',
-    profile_photo_url: '',
     agreement_accepted: false,
   });
   const [idDocument, setIdDocument] = useState<File | null>(null);
   const [licenseDocument, setLicenseDocument] = useState<File | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [applicationReference, setApplicationReference] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -50,22 +50,18 @@ export default function RealtorJoinPage() {
 
     setLoading(true);
     try {
-      let data: { application_reference?: string };
-      if (idDocument || licenseDocument) {
-        const body = new FormData();
-        Object.entries(formData).forEach(([key, value]) => body.append(key, String(value)));
-        if (idDocument) body.append('id_document', idDocument);
-        if (licenseDocument) body.append('license_document', licenseDocument);
+      const body = new FormData();
+      Object.entries(formData).forEach(([key, value]) => body.append(key, String(value)));
+      if (idDocument) body.append('id_document', idDocument);
+      if (licenseDocument) body.append('license_document', licenseDocument);
+      if (profilePhoto) body.append('profile_photo', profilePhoto);
 
-        const res = await fetch(`${API_BASE}/forms/realtor-application`, { method: 'POST', body });
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.message || 'Failed to submit application.');
-        }
-        data = await res.json();
-      } else {
-        data = await apiPost<{ application_reference?: string }>('/forms/realtor-application', formData);
+      const res = await fetch(`${API_BASE}/forms/realtor-application`, { method: 'POST', body });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || 'Failed to submit application.');
       }
+      const data: { application_reference?: string } = await res.json();
       setApplicationReference(data.application_reference ?? null);
       setSubmitted(true);
       success('Your application has been submitted successfully! Our team will review and contact you within 24-48 hours.');
@@ -372,14 +368,12 @@ export default function RealtorJoinPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-navy mb-2">Profile Photo URL</label>
+                  <label className="block text-sm font-semibold text-navy mb-2">Profile Photo</label>
                   <input
-                    type="url"
-                    name="profile_photo_url"
-                    value={formData.profile_photo_url}
-                    onChange={handleChange}
-                    placeholder="https://..."
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setProfilePhoto(e.target.files?.[0] ?? null)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent text-sm"
                   />
                 </div>
               </div>

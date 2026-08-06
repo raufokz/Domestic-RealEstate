@@ -79,8 +79,9 @@ export default function ProfilePage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await apiGet<{ data: any }>("/admin/agent-profile/me"); // eslint-disable-line @typescript-eslint/no-explicit-any
-      setProfile(res.data || {});
+      // AgentController::me() returns the profile as a bare object, not {data: ...}.
+      const res = await apiGet<any>("/admin/agent-profile/me"); // eslint-disable-line @typescript-eslint/no-explicit-any
+      setProfile(res || {});
     } catch (e) {
       setLoadError(e instanceof ApiError ? e.message : "Could not load your profile.");
     } finally {
