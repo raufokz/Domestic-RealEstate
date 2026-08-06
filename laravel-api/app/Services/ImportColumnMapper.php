@@ -28,6 +28,25 @@ class ImportColumnMapper
         'budget' => ['budget', 'price', 'pricerange', 'price_range', 'maxbudget'],
     ];
 
+    /** Header aliases for property imports — passed explicitly to detect() since it
+     * differs entirely from the lead field set above (see PropertyController::import). */
+    public const PROPERTY_ALIASES = [
+        'title' => ['title', 'propertytitle', 'listingtitle', 'name', 'propertyname'],
+        'description' => ['description', 'desc', 'details', 'summary', 'propertydescription'],
+        'price' => ['price', 'listprice', 'askingprice', 'amount', 'cost'],
+        'address' => ['address', 'streetaddress', 'street', 'addressline1', 'address1'],
+        'city' => ['city', 'town'],
+        'state' => ['state', 'province', 'region'],
+        'zip' => ['zip', 'zipcode', 'zip_code', 'postalcode', 'postcode'],
+        'bedrooms' => ['bedrooms', 'beds', 'bed', 'br'],
+        'bathrooms' => ['bathrooms', 'baths', 'bath', 'ba'],
+        'sqft' => ['sqft', 'squarefeet', 'squarefootage', 'area', 'livingarea', 'floorarea'],
+        'property_type' => ['propertytype', 'type', 'category', 'hometype'],
+        // Reused generically as "whichever email column this import cares about" —
+        // for properties that's the listing realtor/agent's email.
+        'email' => ['email', 'realtoremail', 'agentemail', 'listingagentemail', 'contactemail'],
+    ];
+
     /** Max rows sampled when scoring a column's contents. */
     private const SAMPLE_SIZE = 200;
 
@@ -36,23 +55,25 @@ class ImportColumnMapper
      *
      * @param  array<int, string>          $headers
      * @param  array<int, array<int, mixed>> $rows  Raw positional rows (no header row).
+     * @param  array<string, array<int, string>>|null $aliases  Defaults to the lead field set.
      * @return array<string, string>       e.g. ['email' => 'Email Address', 'first_name' => 'First']
      */
-    public static function detect(array $headers, array $rows): array
+    public static function detect(array $headers, array $rows, ?array $aliases = null): array
     {
+        $aliases ??= self::ALIASES;
         $map = [];
 
-        $emailHeader = self::detectEmailColumn($headers, $rows);
+        $emailHeader = self::detectEmailColumn($headers, $rows, $aliases);
         if ($emailHeader !== null) {
             $map['email'] = $emailHeader;
         }
 
-        foreach (self::ALIASES as $field => $aliases) {
+        foreach ($aliases as $field => $fieldAliases) {
             if ($field === 'email' || isset($map[$field])) {
                 continue;
             }
             foreach ($headers as $header) {
-                if (in_array(self::normalize($header), $aliases, true)) {
+                if (in_array(self::normalize($header), $fieldAliases, true)) {
                     // Never let another field claim the column already used for email.
                     if (($map['email'] ?? null) === $header) {
                         continue;
@@ -75,9 +96,11 @@ class ImportColumnMapper
      *
      * @param  array<int, string>          $headers
      * @param  array<int, array<int, mixed>> $rows
+     * @param  array<string, array<int, string>>|null $aliases
      */
-    public static function detectEmailColumn(array $headers, array $rows): ?string
+    public static function detectEmailColumn(array $headers, array $rows, ?array $aliases = null): ?string
     {
+        $aliases ??= self::ALIASES;
         $sample = array_slice($rows, 0, self::SAMPLE_SIZE);
         $best = null;
         $bestRatio = 0.0;
@@ -104,7 +127,7 @@ class ImportColumnMapper
             $ratio = $valid / $nonEmpty;
 
             // Header name acts only as a tie-breaker between genuine candidates.
-            if (in_array(self::normalize($header), self::ALIASES['email'], true)) {
+            if (in_array(self::normalize($header), $aliases['email'] ?? [], true)) {
                 $ratio += 0.05;
             }
 

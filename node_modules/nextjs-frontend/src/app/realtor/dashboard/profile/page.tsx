@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
-import { apiGet, apiPut, apiPost, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { apiGet, apiPut, apiPost, apiPatch, apiDelete, ApiError, API_BASE } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { SITE_URL } from "@/lib/seo";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/realtor/dashboard", active: false, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
@@ -67,6 +68,9 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState("");
   const [languageDraft, setLanguageDraft] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishMessage, setPublishMessage] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>({});
@@ -140,6 +144,35 @@ export default function ProfilePage() {
     } finally {
       setSaving(false);
       setTimeout(() => setSavedMessage(null), 4000);
+    }
+  };
+
+  const handleTogglePublish = async () => {
+    setPublishing(true);
+    setPublishMessage(null);
+    try {
+      const nextValue = !profile.is_published;
+      const res = await apiPatch<{ message: string }>("/admin/agent-profile/me/publish", { is_published: nextValue });
+      setPublishMessage(res.message);
+      fetchProfile();
+    } catch (e) {
+      setPublishMessage(e instanceof ApiError ? e.message : "Could not update your profile's visibility.");
+    } finally {
+      setPublishing(false);
+      setTimeout(() => setPublishMessage(null), 5000);
+    }
+  };
+
+  const handleShareProfile = async () => {
+    if (!profile.slug) return;
+    const url = `${SITE_URL}/agents/${profile.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 3000);
+    } catch {
+      // Clipboard API unavailable — fall back to a prompt so the link can still be copied manually.
+      window.prompt("Copy your public profile link:", url);
     }
   };
 
@@ -250,9 +283,18 @@ export default function ProfilePage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold text-[#0A2647]">Realtor Profile Management</h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${profile.status === "approved" ? "bg-emerald-100 text-emerald-800" : profile.status === "rejected" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                  profile.status === "approved" || profile.status === "verified" ? "bg-emerald-100 text-emerald-800"
+                  : profile.status === "rejected" || profile.status === "suspended" ? "bg-rose-100 text-rose-800"
+                  : "bg-amber-100 text-amber-800"
+                }`}>
                   {profile.status || "pending"}
                 </span>
+                {profile.is_published && (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-800">
+                    Live
+                  </span>
+                )}
               </div>
               <p className="text-slate-500 text-xs mt-0.5">Manage your professional branding, MLS details, media, and security preferences</p>
             </div>
@@ -267,6 +309,39 @@ export default function ProfilePage() {
         </header>
 
         <div className="flex-1 p-6 space-y-6 max-w-7xl w-full mx-auto">
+          {/* Profile Visibility */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-[#0A2647]">Profile Visibility</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {profile.status === "approved" || profile.status === "verified"
+                  ? profile.is_published
+                    ? "Your profile is live and visible to the public."
+                    : "Your profile is approved but not currently live."
+                  : "Your profile must be approved by an admin before you can go live."}
+              </p>
+              {publishMessage && <p className="text-xs font-semibold text-[#0A2647] mt-1">{publishMessage}</p>}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleShareProfile}
+                disabled={!profile.slug}
+                className="px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                {shareCopied ? "Link Copied!" : "Share Profile"}
+              </button>
+              <button
+                onClick={handleTogglePublish}
+                disabled={publishing || !(profile.status === "approved" || profile.status === "verified")}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition disabled:opacity-50 ${
+                  profile.is_published ? "border border-rose-300 text-rose-700 hover:bg-rose-50" : "bg-[#0A2647] text-white hover:bg-[#0d3366]"
+                }`}
+              >
+                {publishing ? "Updating..." : profile.is_published ? "Unpublish" : "Go Live"}
+              </button>
+            </div>
+          </div>
+
           {/* Tab Navigation */}
           <div className="bg-white border border-slate-200 rounded-xl p-1.5 flex gap-1 overflow-x-auto shadow-sm">
             {[

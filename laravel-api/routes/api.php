@@ -193,6 +193,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Properties
     Route::prefix('properties')->group(function () {
         Route::post('/', [PropertyController::class, 'store']);
+        Route::post('/import', [PropertyController::class, 'import']);
         Route::put('/{id}', [PropertyController::class, 'update']);
         Route::delete('/{id}', [PropertyController::class, 'destroy']);
         Route::post('/{id}/images', [PropertyController::class, 'uploadImages']);
@@ -454,6 +455,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     // Realtor Profile Self-Management (RBAC)
     Route::get('/agent-profile/me', [AgentController::class, 'me']);
     Route::put('/agent-profile/me', [AgentController::class, 'updateMe']);
+    Route::patch('/agent-profile/me/publish', [AgentController::class, 'publishMe']);
     Route::post('/agent-profile/me/media', [AgentController::class, 'uploadMediaMe']);
     Route::get('/agent-profile/me/documents', [AgentController::class, 'myDocuments']);
     Route::post('/agent-profile/me/documents', [AgentController::class, 'storeMyDocument']);

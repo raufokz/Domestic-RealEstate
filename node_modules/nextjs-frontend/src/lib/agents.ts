@@ -63,18 +63,17 @@ export async function getAgents(
   }
 }
 
-/** Fetch a single agent profile (with active listings) by slug. Returns null if missing. */
+/** Fetch a single agent profile (with active listings) by slug. Returns null only on a
+ * real 404 — any other failure throws, so a transient API outage never masquerades as
+ * "this agent doesn't exist" (which `revalidate: 300` would then cache for 5 minutes). */
 export async function getAgentBySlug(slug: string): Promise<PublicAgent | null> {
-  try {
-    const res = await fetch(`${API_BASE}/agents/${encodeURIComponent(slug)}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as PublicAgent;
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${API_BASE}/agents/${encodeURIComponent(slug)}`, {
+    headers: { Accept: "application/json" },
+    next: { revalidate: 300 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to load agent "${slug}" (HTTP ${res.status})`);
+  return (await res.json()) as PublicAgent;
 }
 
 /** Display name for an agent, falling back gracefully. */

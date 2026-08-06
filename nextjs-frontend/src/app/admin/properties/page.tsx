@@ -220,6 +220,12 @@ export default function PropertiesPage() {
         >
           + Create Property
         </Link>
+        <Link
+          href="/admin/properties/import"
+          className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
+        >
+          📁 Import
+        </Link>
         <button onClick={openCreate} className="px-4 py-2 border rounded-lg text-sm font-medium">
           Quick Add
         </button>

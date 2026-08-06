@@ -247,6 +247,35 @@ class AgentController extends Controller
         ]);
     }
 
+    /** Self-service publish/unpublish toggle — never lets an agent promote their own
+     * status; only flips visibility, and only once an admin has already approved them
+     * (status verified/approved) via AdminRealtorController::updateStatus. */
+    public function publishMe(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $profile = AgentProfile::where('user_id', $user->id)->firstOrFail();
+
+        $validated = $request->validate([
+            'is_published' => 'required|boolean',
+        ]);
+
+        if (!in_array($profile->status, ['approved', 'verified'], true)) {
+            return response()->json([
+                'message' => 'Your profile must be approved by an admin before you can go live.',
+            ], 422);
+        }
+
+        $oldValue = $profile->is_published;
+        $profile->update(['is_published' => $validated['is_published']]);
+
+        $profile->logAudit('profile_visibility_change', 'is_published', $oldValue, $validated['is_published']);
+
+        return response()->json([
+            'message' => $validated['is_published'] ? 'Your profile is now live.' : 'Your profile is now unpublished.',
+            'data' => $profile->fresh(),
+        ]);
+    }
+
     /** Upload Media (Profile Photo, Cover Photo, Logo, Office/Team Photos). */
     public function uploadMediaMe(Request $request): JsonResponse
     {

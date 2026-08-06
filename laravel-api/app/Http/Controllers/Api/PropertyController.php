@@ -128,6 +128,193 @@ class PropertyController extends Controller
         return response()->json($property, 201);
     }
 
+    /**
+     * Bulk-import properties from CSV/XLSX/JSON with smart column auto-detection
+     * (headers don't need to match exactly). Mirrors LeadController::import's
+     * shape — one ImportBatch per run, per-row failures recorded so a handful of
+     * bad rows never blocks the good ones.
+     */
+    public function import(Request $request) {
+        if (!in_array($request->user()->role, self::LISTING_ROLES)) {
+            return response()->json(['message' => 'Only agents, brokers, and admins can import listings.'], 403);
+        }
+
+        $request->validate([
+            'file' => 'required|file|max:10240',
+            'column_map' => 'nullable|string',
+        ]);
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        try {
+            [$headers, $rows] = \App\Services\TabularImportService::read($file, $ext);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'code' => 'unreadable_file',
+                'message' => 'That file could not be read.',
+                'reason' => $e->getMessage(),
+                'fix' => 'Save the file as CSV, XLSX, or JSON and upload it again.',
+            ], 422);
+        }
+
+        if ($headers === [] || $rows === []) {
+            return response()->json([
+                'success' => false,
+                'code' => 'empty_file',
+                'message' => 'The uploaded file contains no data rows.',
+                'reason' => 'no header row or no data rows were found',
+                'fix' => 'Add a header row and at least one data row, then upload again.',
+            ], 422);
+        }
+
+        $map = \App\Services\ImportColumnMapper::detect($headers, $rows, \App\Services\ImportColumnMapper::PROPERTY_ALIASES);
+
+        if ($request->filled('column_map')) {
+            $customMap = json_decode($request->input('column_map'), true);
+            if (is_array($customMap)) {
+                foreach ($customMap as $field => $headerName) {
+                    if ($headerName && in_array($headerName, $headers, true)) {
+                        $map[$field] = $headerName;
+                    }
+                }
+            }
+        }
+
+        $batch = \App\Models\ImportBatch::create([
+            'import_type' => 'properties',
+            'file_name' => $file->getClientOriginalName(),
+            'format' => $ext,
+            'status' => 'processing',
+            'column_map' => $map,
+            'detected_headers' => $headers,
+            'total_rows' => count($rows),
+            'created_by' => $request->user()?->id,
+            'started_at' => now(),
+        ]);
+
+        $index = array_flip($headers);
+        $imported = 0;
+        $failed = 0;
+        $requiredFields = ['title', 'description', 'price', 'address', 'city', 'state', 'zip'];
+
+        foreach ($rows as $i => $row) {
+            $rowNumber = $i + 2; // +1 for zero-index, +1 for the header row
+            $value = fn (?string $field) => $field !== null && isset($index[$field])
+                ? trim((string) ($row[$index[$field]] ?? ''))
+                : null;
+
+            $data = [];
+            foreach ($requiredFields as $field) {
+                $data[$field] = $value($map[$field] ?? null);
+            }
+
+            $missing = array_values(array_filter($requiredFields, fn ($f) => !$data[$f]));
+            if ($missing !== []) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'missing_required_field',
+                    'Missing required field(s): '.implode(', ', $missing).'.',
+                    $headers,
+                    $row
+                );
+                continue;
+            }
+
+            if (!is_numeric($data['price'])) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'invalid_price',
+                    '"'.$data['price'].'" is not a valid price.',
+                    $headers,
+                    $row
+                );
+                continue;
+            }
+
+            $realtorId = $request->user()->id;
+            $emailValue = $value($map['email'] ?? null);
+            if ($emailValue) {
+                $matchedUser = \App\Models\User::where('email', $emailValue)
+                    ->whereIn('role', ['agent', 'broker'])
+                    ->first();
+                if ($matchedUser) {
+                    $realtorId = $matchedUser->id;
+                }
+            }
+
+            $typeText = $value($map['property_type'] ?? null);
+            $propertyTypeId = \App\Services\PropertyTypeResolver::resolve($typeText);
+            if ($typeText && !$propertyTypeId) {
+                // Soft warning only — the row still imports without a type.
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'property_type_unmapped',
+                    '"'.$typeText.'" did not match any known property type — imported without one.',
+                    $headers,
+                    $row
+                );
+            }
+
+            try {
+                Property::create([
+                    'title' => $data['title'],
+                    'description' => $data['description'],
+                    'price' => (float) $data['price'],
+                    'address' => $data['address'],
+                    'city' => $data['city'],
+                    'state' => $data['state'],
+                    'zip' => $data['zip'],
+                    'bedrooms' => $this->toNullableInt($value($map['bedrooms'] ?? null)),
+                    'bathrooms' => $this->toNullableFloat($value($map['bathrooms'] ?? null)),
+                    'sqft' => $this->toNullableInt($value($map['sqft'] ?? null)),
+                    'property_type_id' => $propertyTypeId,
+                    'realtor_id' => $realtorId,
+                    'country' => 'US',
+                ]);
+                $imported++;
+            } catch (\Throwable $e) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError($batch, $rowNumber, 'save_failed', $e->getMessage(), $headers, $row);
+            }
+        }
+
+        $batch->update([
+            'status' => $failed > 0 ? 'completed_with_errors' : 'completed',
+            'rows_imported' => $imported,
+            'rows_failed' => $failed,
+            'completed_at' => now(),
+        ]);
+
+        $message = "Imported {$imported} propert".($imported === 1 ? 'y' : 'ies').'.';
+        if ($failed > 0) {
+            $message .= " {$failed} row(s) had issues — download the error report for details.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'batch_id' => $batch->id,
+            'count' => $imported,
+            'errors' => $failed,
+            'column_map' => $map,
+        ]);
+    }
+
+    private function toNullableInt(?string $value): ?int {
+        return $value !== null && $value !== '' && is_numeric($value) ? (int) $value : null;
+    }
+
+    private function toNullableFloat(?string $value): ?float {
+        return $value !== null && $value !== '' && is_numeric($value) ? (float) $value : null;
+    }
+
     public function update(Request $request, $id) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {

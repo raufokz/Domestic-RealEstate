@@ -182,6 +182,46 @@ export async function apiPut<T>(path: string, body?: unknown, options?: RequestI
   return data;
 }
 
+export async function apiPatch<T>(path: string, body?: unknown, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...((options?.headers as Record<string, string>) || {}),
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: "PATCH",
+      ...options,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new ApiError(
+      "Cannot reach the Domestic Real Estate server.",
+      0,
+      {
+        success: false,
+        code: "network_error",
+        message: "Cannot reach the Domestic Real Estate server.",
+        reason: "the website cannot connect to the API server",
+        fix: "Start the Laravel API and confirm NEXT_PUBLIC_API_URL.",
+      }
+    );
+  }
+
+  if (!res.ok) {
+    throwApiError(res, await parseErrorBody(res));
+  }
+
+  const data = (await res.json()) as T;
+  assertApiSuccess(data);
+  return data;
+}
+
 export async function apiDelete<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
