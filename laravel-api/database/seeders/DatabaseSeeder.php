@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'name' => 'Admin',
             'email' => 'admin@domesticrealestate.us',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('Admin@123456'),
             'role' => 'super_admin',
             'status' => 'active',
             'email_verified_at' => now(),
@@ -35,8 +35,8 @@ class DatabaseSeeder extends Seeder
 
         $agent1 = User::create([
             'name' => 'Sarah Johnson',
-            'email' => 'sarah@domesticrealestate.us',
-            'password' => Hash::make('password'),
+            'email' => 'agent@domesticrealestate.us',
+            'password' => Hash::make('Agent@123456'),
             'role' => 'agent',
             'status' => 'active',
             'email_verified_at' => now(),
@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
         $demoBuyer = User::create([
             'name' => 'Demo Buyer',
             'email' => 'buyer@domesticrealestate.us',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('Buyer@123456'),
             'role' => 'buyer',
             'status' => 'active',
             'email_verified_at' => now(),
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
         $demoSeller = User::create([
             'name' => 'Demo Seller',
             'email' => 'seller@domesticrealestate.us',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('Seller@123456'),
             'role' => 'seller',
             'status' => 'active',
             'email_verified_at' => now(),
