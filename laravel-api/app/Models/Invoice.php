@@ -10,17 +10,20 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number', 'user_id', 'service_request_id', 'payoneer_invoice_id',
-        'description', 'amount', 'currency', 'status', 'notes', 'items',
-        'sent_at', 'paid_at', 'due_at', 'due_date', 'created_by',
+        'description', 'amount', 'subtotal', 'tax_rate', 'tax_amount', 'currency', 'status', 'notes', 'items',
+        'sent_at', 'paid_at', 'due_at', 'created_by',
         'payment_gateway', 'gateway_transaction_id', 'gateway_status_raw',
     ];
 
     protected function casts(): array {
         return [
             'amount' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
             'items' => 'array',
             'gateway_status_raw' => 'array',
-            'sent_at' => 'datetime', 'paid_at' => 'datetime', 'due_at' => 'datetime', 'due_date' => 'date',
+            'sent_at' => 'datetime', 'paid_at' => 'datetime', 'due_at' => 'datetime',
         ];
     }
 

@@ -110,6 +110,34 @@ class AuthController extends Controller
                 'status' => 'pending',
                 'is_published' => false,
             ]);
+
+            // Draft-only, never auto-sent — the agent isn't verified/approved
+            // yet at registration time, so billing waits for the same admin
+            // review that publishes the profile. An admin sends it (real
+            // Payoneer checkout) from /admin/invoices once they approve.
+            $planName = $validated['pricing_plan'] ?? 'Solo';
+            $billingCycle = $validated['billing_cycle'] ?? 'monthly';
+            $tier = \App\Models\AgentProfile::PLAN_TIERS[$planName] ?? null;
+            $price = $tier[$billingCycle] ?? null;
+
+            if ($price !== null) {
+                \App\Models\Invoice::create([
+                    'invoice_number' => \App\Models\Invoice::generateNumber(),
+                    'user_id' => $user->id,
+                    'amount' => $price,
+                    'subtotal' => $price,
+                    'tax_rate' => 0,
+                    'tax_amount' => 0,
+                    'currency' => 'USD',
+                    'status' => 'draft',
+                    'items' => [[
+                        'description' => "{$planName} Plan — " . ucfirst($billingCycle) . ' billing',
+                        'quantity' => 1,
+                        'rate' => $price,
+                        'amount' => $price,
+                    ]],
+                ]);
+            }
         }
 
         AuthLog::create([

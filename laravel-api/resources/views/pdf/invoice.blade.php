@@ -54,6 +54,16 @@
                     <td style="text-align:right;">${{ number_format($invoice->amount, 2) }}</td>
                 </tr>
             @endif
+            @if ($invoice->tax_rate && $invoice->tax_rate > 0)
+                <tr>
+                    <td class="muted">Subtotal</td>
+                    <td style="text-align:right;" class="muted">${{ number_format($invoice->subtotal ?? $invoice->amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="muted">Tax ({{ number_format($invoice->tax_rate, 2) }}%)</td>
+                    <td style="text-align:right;" class="muted">${{ number_format($invoice->tax_amount ?? 0, 2) }}</td>
+                </tr>
+            @endif
             <tr class="total-row">
                 <td>Total ({{ $invoice->currency }})</td>
                 <td style="text-align:right;">${{ number_format($invoice->amount, 2) }}</td>

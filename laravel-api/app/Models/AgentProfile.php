@@ -31,12 +31,16 @@ class AgentProfile extends Model
         return array_merge(...array_values(self::SERVICE_CATALOG));
     }
 
+    // 'monthly'/'annual' mirror nextjs-frontend/src/lib/agentPlans.ts exactly —
+    // that file is the source of truth for what's *shown*, this is the source
+    // of truth for what's *billed*, so the two must stay in sync. Enterprise
+    // Custom has no price — it's sales-assisted, never auto-invoiced.
     public const PLAN_TIERS = [
-        'Solo' => ['cap' => 2, 'categories' => null],
-        'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech']],
-        'Professional' => ['cap' => 10, 'categories' => null],
-        'Elite' => ['cap' => null, 'categories' => null],
-        'Enterprise Custom' => ['cap' => null, 'categories' => null],
+        'Solo' => ['cap' => 2, 'categories' => null, 'monthly' => 149, 'annual' => 119],
+        'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech'], 'monthly' => 299, 'annual' => 239],
+        'Professional' => ['cap' => 10, 'categories' => null, 'monthly' => 599, 'annual' => 479],
+        'Elite' => ['cap' => null, 'categories' => null, 'monthly' => 999, 'annual' => 799],
+        'Enterprise Custom' => ['cap' => null, 'categories' => null, 'monthly' => null, 'annual' => null],
     ];
 
     public static function planAllowedServices(?string $planName): ?array {

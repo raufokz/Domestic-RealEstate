@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
@@ -50,27 +49,45 @@ class InvoiceController extends Controller
 
     public function createInvoice(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.rate' => 'required|numeric|min:0',
             'currency' => 'nullable|string|max:3',
             'description' => 'nullable|string',
-            'items' => 'nullable|array',
-            'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+            'tax_rate' => 'nullable|numeric|min:0',
+            'due_at' => 'nullable|date',
         ]);
 
-        $invoiceNumber = 'INV-' . strtoupper(Str::random(8));
+        // Money fields are always derived server-side from quantity/rate —
+        // never trust a client-sent amount/subtotal/tax_amount.
+        $items = array_map(function ($item) {
+            $item['amount'] = round($item['quantity'] * $item['rate'], 2);
+            return $item;
+        }, $validated['items']);
+
+        $subtotal = round(array_sum(array_column($items, 'amount')), 2);
+        $taxRate = $validated['tax_rate'] ?? 0;
+        $taxAmount = round($subtotal * ($taxRate / 100), 2);
+        $amount = $subtotal + $taxAmount;
 
         $invoice = Invoice::create([
-            'invoice_number' => $invoiceNumber,
-            'user_id' => $request->user_id,
-            'amount' => $request->amount,
+            'invoice_number' => Invoice::generateNumber(),
+            'user_id' => $validated['user_id'],
+            'amount' => $amount,
+            'subtotal' => $subtotal,
+            'tax_rate' => $taxRate,
+            'tax_amount' => $taxAmount,
             'currency' => $request->get('currency', 'USD'),
-            'status' => 'pending',
-            'description' => $request->description,
-            'items' => $request->items,
-            'due_date' => $request->due_date,
-            'created_at' => now(),
+            'status' => 'draft',
+            'description' => $validated['description'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'items' => $items,
+            'due_at' => $validated['due_at'] ?? null,
+            'created_by' => Auth::id(),
         ]);
 
         return response()->json($invoice, 201);
@@ -265,12 +282,12 @@ class InvoiceController extends Controller
             // (handlePayoneerWebhook) or the audited recordManualPayment()
             // action. Allowing it through this generic update would let
             // anyone with invoice-edit access self-report payment.
-            'status' => 'nullable|string|in:draft,pending,sent,voided',
-            'due_date' => 'nullable|date',
+            'status' => 'nullable|string|in:draft,sent,voided',
+            'due_at' => 'nullable|date',
         ]);
 
         $invoice->update($request->only([
-            'amount', 'currency', 'description', 'status', 'due_date',
+            'amount', 'currency', 'description', 'status', 'due_at',
         ]));
 
         return response()->json($invoice);

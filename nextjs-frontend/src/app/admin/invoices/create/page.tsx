@@ -77,17 +77,20 @@ export default function CreateInvoicePage() {
     setSavingAction(status);
     setSavedResult(null);
     try {
-      const data = await apiPost<{ invoice_number: string }>("/admin/invoices", {
+      const data = await apiPost<{ id: number; invoice_number: string }>("/admin/invoices", {
         user_id: selectedClient,
         items: items.map((i) => ({ description: i.description, quantity: i.quantity, rate: i.rate })),
-        subtotal,
         tax_rate: taxRate,
-        tax_amount: taxAmount,
-        total,
         due_at: dueDate || null,
         notes,
-        status,
       });
+
+      // Creation always lands as a draft — "Send Invoice" follows up with the
+      // real Payoneer-send endpoint rather than duplicating that logic here.
+      if (status === "sent") {
+        await apiPost(`/admin/invoices/${data.id}/send`);
+      }
+
       setSavedResult({ success: true, invoice_number: data.invoice_number });
     } catch (e: any) {
       setSavedResult({ success: false, error: e?.message || "Failed to save invoice" });
