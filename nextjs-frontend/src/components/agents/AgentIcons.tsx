@@ -158,3 +158,39 @@ export function ArrowUpRightIcon({ className = "w-4 h-4", title }: IconProps) {
     </svg>
   );
 }
+
+export function MapIcon({ className = "w-4 h-4", title }: IconProps) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {title && <title>{title}</title>}
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+  );
+}
+
+export function PlayIcon({ className = "w-4 h-4", title }: IconProps) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      {title && <title>{title}</title>}
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+export function TrophyIcon({ className = "w-4 h-4", title }: IconProps) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {title && <title>{title}</title>}
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 21h8m-4-4v4m-5-8h10a4 4 0 004-4V5H3v4a4 4 0 004 4zm0 0v1a3 3 0 003 3h4a3 3 0 003-3v-1" />
+    </svg>
+  );
+}
+
+export function TrendingUpIcon({ className = "w-4 h-4", title }: IconProps) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {title && <title>{title}</title>}
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  );
+}
