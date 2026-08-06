@@ -7,16 +7,16 @@ import { apiGet } from "@/lib/api";
 interface CalendarPost {
   id: number;
   content: string;
-  platform: string;
+  platform: string | null;
   status: string;
-  scheduled_at: string;
+  scheduled_at: string | null;
 }
 
 const platformColors: Record<string, string> = {
   facebook: "#1877F2",
   instagram: "#E4405F",
   linkedin: "#0A66C2",
-  twitter: "#000000",
+  x: "#000000",
   tiktok: "#1a1a1a",
   youtube: "#FF0000",
   pinterest: "#BD081C",
@@ -27,41 +27,44 @@ const platformNames: Record<string, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
   linkedin: "LinkedIn",
-  twitter: "X",
+  x: "X",
   tiktok: "TikTok",
   youtube: "YouTube",
   pinterest: "Pinterest",
   google_business: "Google Business",
 };
 
-const fallbackPosts: CalendarPost[] = [
-  { id: 1, content: "New luxury listing - Beverly Hills", platform: "facebook", status: "scheduled", scheduled_at: "2026-07-14T09:00:00Z" },
-  { id: 2, content: "Beautiful modern home showcase", platform: "instagram", status: "scheduled", scheduled_at: "2026-07-14T12:00:00Z" },
-  { id: 3, content: "Market report Q2 2026", platform: "linkedin", status: "published", scheduled_at: "2026-07-10T08:00:00Z" },
-  { id: 4, content: "Open house Sunday 2-5pm", platform: "facebook", status: "scheduled", scheduled_at: "2026-07-16T08:00:00Z" },
-  { id: 5, content: "Property tour video", platform: "youtube", status: "scheduled", scheduled_at: "2026-07-18T14:00:00Z" },
-  { id: 6, content: "Luxury interior design tips", platform: "pinterest", status: "scheduled", scheduled_at: "2026-07-20T10:00:00Z" },
-  { id: 7, content: "Client testimonial video", platform: "tiktok", status: "scheduled", scheduled_at: "2026-07-22T16:00:00Z" },
-  { id: 8, content: "Google Business listing update", platform: "google_business", status: "scheduled", scheduled_at: "2026-07-15T09:00:00Z" },
-];
-
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+interface SocialAccountLite {
+  id: number;
+  platform: string;
+}
 
 export default function SocialCalendarPage() {
   const [posts, setPosts] = useState<CalendarPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 6, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [weekView, setWeekView] = useState(false);
 
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const res = await apiGet<{ data: CalendarPost[] }>("/social/posts");
-        setPosts(res.data || fallbackPosts);
+        const [postRes, accountRes] = await Promise.all([
+          apiGet<{ data: CalendarPost[] }>("/social/posts"),
+          apiGet<SocialAccountLite[]>("/social/accounts"),
+        ]);
+        const accounts = Array.isArray(accountRes) ? accountRes : [];
+        const map = new Map(accounts.map((a) => [a.id, a.platform]));
+        const list = (postRes.data || []).map((p: CalendarPost & { target_accounts?: number[] }) => ({
+          ...p,
+          platform: (p.target_accounts?.[0] && map.get(p.target_accounts[0])) || null,
+        }));
+        setPosts(list);
       } catch {
-        setPosts(fallbackPosts);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
@@ -76,7 +79,7 @@ export default function SocialCalendarPage() {
 
   function getPostsForDay(day: number) {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return posts.filter((p) => p.scheduled_at.startsWith(dateStr));
+    return posts.filter((p) => p.scheduled_at?.startsWith(dateStr));
   }
 
   function prevMonth() {
@@ -90,12 +93,12 @@ export default function SocialCalendarPage() {
   }
 
   function goToToday() {
-    setCurrentDate(new Date(2026, 6, 1));
+    setCurrentDate(new Date());
     setSelectedDate(null);
   }
 
   const selectedDayPosts = selectedDate
-    ? posts.filter((p) => p.scheduled_at.startsWith(selectedDate))
+    ? posts.filter((p) => p.scheduled_at?.startsWith(selectedDate))
     : [];
 
   if (loading) {
@@ -180,7 +183,7 @@ export default function SocialCalendarPage() {
               const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const dayPosts = getPostsForDay(day);
               const isSelected = selectedDate === dateStr;
-              const isToday = dateStr === "2026-07-13";
+              const isToday = dateStr === new Date().toISOString().split("T")[0];
               return (
                 <div
                   key={day}
@@ -201,10 +204,10 @@ export default function SocialCalendarPage() {
                       <div
                         key={post.id}
                         className="text-[10px] px-1.5 py-0.5 rounded text-white truncate"
-                        style={{ backgroundColor: platformColors[post.platform] || "#666" }}
+                        style={{ backgroundColor: platformColors[post.platform || ""] || "#666" }}
                         title={post.content}
                       >
-                        {platformNames[post.platform]?.slice(0, 3) || "?"}
+                        {platformNames[post.platform || ""]?.slice(0, 3) || "?"}
                       </div>
                     ))}
                     {dayPosts.length > 3 && (
@@ -239,12 +242,12 @@ export default function SocialCalendarPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <div
                       className="w-5 h-5 rounded flex items-center justify-center text-white text-[8px] font-bold"
-                      style={{ backgroundColor: platformColors[post.platform] || "#666" }}
+                      style={{ backgroundColor: platformColors[post.platform || ""] || "#666" }}
                     >
-                      {post.platform[0].toUpperCase()}
+                      {post.platform ? post.platform[0].toUpperCase() : "?"}
                     </div>
                     <span className="text-xs font-medium text-gray-700">
-                      {platformNames[post.platform] || post.platform}
+                      {platformNames[post.platform || ""] || post.platform || "—"}
                     </span>
                     <span
                       className={`ml-auto text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -260,10 +263,12 @@ export default function SocialCalendarPage() {
                   </div>
                   <p className="text-xs text-gray-600 line-clamp-2">{post.content}</p>
                   <p className="text-[10px] text-gray-400 mt-1">
-                    {new Date(post.scheduled_at).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
+                    {post.scheduled_at
+                      ? new Date(post.scheduled_at).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                      : "Unscheduled"}
                   </p>
                 </div>
               ))}

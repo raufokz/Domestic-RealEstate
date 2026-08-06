@@ -63,7 +63,9 @@ export default function AdminRealtorApplicationDetailPage({ params }: { params: 
   }
 
   useEffect(() => {
-    fetchApplication();
+    void (async () => {
+      await fetchApplication();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

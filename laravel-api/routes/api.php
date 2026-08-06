@@ -75,6 +75,8 @@ Route::prefix('auth')->group(function () {
     Route::middleware('throttle:otp')->group(function () {
         Route::post('/send-otp', [AuthController::class, 'sendOtp']);
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+        Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+        Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     });
 });
 
@@ -93,6 +95,7 @@ Route::prefix('agents')->group(function () {
     Route::get('/', [AgentController::class, 'index']);
     Route::get('/featured', [AgentController::class, 'featured']);
     Route::get('/{slug}', [AgentController::class, 'show']);
+    Route::post('/{id}/contact', [AgentController::class, 'contact']);
 });
 
 // SEO Pages
@@ -206,13 +209,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/analytics', [PropertyController::class, 'analytics']);
     });
 
-    // Agents
-    Route::prefix('agents')->group(function () {
-        Route::post('/', [AgentController::class, 'store']);
-        Route::put('/{id}', [AgentController::class, 'update']);
-        Route::post('/{id}/documents', [AgentController::class, 'uploadDocument']);
-        Route::post('/{id}/contact', [AgentController::class, 'contact']);
-    });
+    // Agents (profile management lives under /agent-profile/me)
 
     // Leads CRM (read/update require auth)
     Route::prefix('leads')->group(function () {
@@ -271,7 +268,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/social-agent', [AiController::class, 'socialAgent']);
         Route::post('/seo-agent', [AiController::class, 'seoAgent']);
         Route::get('/crm-assistant', [AiController::class, 'crmAssistant']);
-        Route::get('/analytics-agent', [AiController::class, 'analyticsAgent']);
+        Route::post('/analytics-agent', [AiController::class, 'analyticsAgent']);
         Route::post('/voice', [AiController::class, 'voice']);
     });
 
@@ -317,6 +314,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/posts/{id}/retry', [SocialController::class, 'retryPost']);
         Route::get('/templates', [SocialController::class, 'indexTemplates']);
         Route::post('/templates', [SocialController::class, 'storeTemplate']);
+        Route::put('/templates/{id}', [SocialController::class, 'updateTemplate']);
+        Route::delete('/templates/{id}', [SocialController::class, 'destroyTemplate']);
         Route::post('/share-listing', [SocialController::class, 'shareListing']);
         Route::get('/calendar', [SocialController::class, 'calendar']);
         Route::get('/analytics', [SocialController::class, 'analytics']);
@@ -424,6 +423,7 @@ Route::post('/leads', [LeadController::class, 'capture']);
     Route::get('/analytics', [AgentPortalController::class, 'analytics']);
     Route::get('/pay-at-closing', [AgentPortalController::class, 'payAtClosingLeads']);
     Route::put('/leads/{purchasedLeadId}/payout-email', [MarketplaceController::class, 'updatePayoutEmail']);
+    Route::get('/sent-emails', [CampaignEmailController::class, 'indexSentEmails']);
 
     // Documents (own profile only)
     Route::get('/documents', [AgentController::class, 'myDocuments']);
@@ -490,6 +490,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::post('/agents', [AdminController::class, 'storeAgent']);
     Route::put('/agents/{id}', [AdminController::class, 'updateAgent']);
     Route::delete('/agents/{id}', [AdminController::class, 'destroyAgent']);
+    Route::post('/agents/{id}/send-payment-link', [AdminController::class, 'sendAgentPaymentLink']);
     // Realtor Profile Self-Management (RBAC)
     Route::get('/agent-profile/me', [AgentController::class, 'me']);
     Route::put('/agent-profile/me', [AgentController::class, 'updateMe']);
@@ -512,6 +513,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
     Route::get('/leads', [AdminController::class, 'leads']);
     Route::get('/enquiries', [AdminController::class, 'enquiries']);
+    Route::put('/enquiries/{id}', [AdminController::class, 'updateEnquiry']);
 
     // Pay-Per-Lead Marketplace (admin)
     Route::prefix('marketplace')->group(function () {

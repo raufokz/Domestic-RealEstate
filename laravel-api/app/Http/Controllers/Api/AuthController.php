@@ -2,10 +2,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VerificationEmail;
 use App\Models\User;
 use App\Models\AuthLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -148,6 +150,8 @@ class AuthController extends Controller
             'user_agent' => $request->userAgent() ?? '',
             'success' => true,
         ]);
+
+        $this->sendVerificationEmail($user);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -330,5 +334,75 @@ class AuthController extends Controller
             return response()->json(['message' => 'OTP verified successfully']);
         }
         throw ValidationException::withMessages(['otp' => ['Invalid OTP']]);
+    }
+
+    public function resendVerification(Request $request) {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['No account found for that email address.'],
+            ]);
+        }
+
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Your email is already verified. You can sign in now.']);
+        }
+
+        $this->sendVerificationEmail($user);
+
+        return response()->json(['message' => 'A new verification link has been sent to your email.']);
+    }
+
+    public function verifyEmail(Request $request) {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['No account found for that email address.'],
+            ]);
+        }
+
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Your email is already verified.']);
+        }
+
+        $tokenMatches = $user->email_verification_token
+            && hash_equals((string) $user->email_verification_token, (string) $request->token);
+        $notExpired = $user->email_verification_expires_at === null
+            || now()->lt($user->email_verification_expires_at);
+
+        if (!$tokenMatches || !$notExpired) {
+            throw ValidationException::withMessages([
+                'token' => ['This verification link is invalid or has expired.'],
+            ]);
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+            'email_verification_expires_at' => null,
+        ]);
+
+        return response()->json(['message' => 'Email verified successfully. You can now sign in.']);
+    }
+
+    private function sendVerificationEmail(User $user): void
+    {
+        $token = Str::random(64);
+        $user->update([
+            'email_verification_token' => $token,
+            'email_verification_expires_at' => now()->addHours(24),
+        ]);
+
+        $verifyUrl = rtrim((string) config('app.frontend_url'), '/')
+            . '/verify-email?email=' . urlencode($user->email) . '&token=' . $token;
+
+        Mail::to($user->email)->queue(new VerificationEmail($user, $verifyUrl));
     }
 }

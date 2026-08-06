@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiGet, apiPost, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { apiGet, apiPost, ApiError, API_BASE } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
 interface Backup {
@@ -77,7 +77,7 @@ export default function BackupPage() {
     if (!confirm("Delete this backup file? This cannot be undone.")) return;
     try {
       setDeleting(id);
-      await apiDelete(`/admin/backups/${id}`);
+      await apiPost(`/admin/backups/${id}/delete`);
       setBackups((prev) => prev.filter((b) => b.id !== id));
       success("Backup deleted.", "Backup");
     } catch (e) {

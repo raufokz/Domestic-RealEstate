@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
 interface SocialAccount {
@@ -19,25 +19,17 @@ const platformOptions = [
   { key: "facebook", name: "Facebook Page", icon: "f", color: "#1877F2", devUrl: "https://developers.facebook.com", desc: "Meta Graph API (Page Access Token)" },
   { key: "instagram", name: "Instagram Business", icon: "Ig", color: "#E4405F", devUrl: "https://developers.facebook.com", desc: "Instagram Graph API (Business Account Token)" },
   { key: "linkedin", name: "LinkedIn Page", icon: "in", color: "#0A66C2", devUrl: "https://www.linkedin.com/developers/", desc: "LinkedIn OAuth 2.0 (Share on LinkedIn API)" },
-  { key: "twitter", name: "X (Twitter)", icon: "X", color: "#000000", devUrl: "https://developer.twitter.com/", desc: "Twitter API v2 (OAuth 2.0 User Context)" },
+  { key: "x", name: "X (Twitter)", icon: "X", color: "#000000", devUrl: "https://developer.x.com/", desc: "X API v2 (OAuth 2.0 User Context)" },
   { key: "tiktok", name: "TikTok for Business", icon: "Tk", color: "#000000", devUrl: "https://developers.tiktok.com/", desc: "TikTok Content Posting API" },
   { key: "youtube", name: "YouTube Channel", icon: "Yt", color: "#FF0000", devUrl: "https://console.cloud.google.com/", desc: "Google Data API v3 & YouTube Uploads" },
   { key: "pinterest", name: "Pinterest Business", icon: "P", color: "#BD081C", devUrl: "https://developers.pinterest.com/", desc: "Pinterest API v5 (Pin Creation Token)" },
   { key: "google_business", name: "Google Business", icon: "G", color: "#4285F4", devUrl: "https://console.cloud.google.com/", desc: "Google My Business API (Location Posts)" },
 ];
 
-const fallbackAccounts: SocialAccount[] = [
-  { id: 1, platform: "facebook", account_name: "Domestic RE Official Page", owner: "Admin", status: "connected", connected_at: "2026-01-15", last_tested_at: "2026-07-20" },
-  { id: 2, platform: "instagram", account_name: "@domesticrealestate_us", owner: "Admin", status: "connected", connected_at: "2026-02-10", last_tested_at: "2026-07-21" },
-  { id: 3, platform: "linkedin", account_name: "Domestic Real Estate Network", owner: "Admin", status: "connected", connected_at: "2026-03-05", last_tested_at: "2026-07-22" },
-  { id: 4, platform: "twitter", account_name: "@domesticre_us", owner: "Admin", status: "connected", connected_at: "2026-04-20", last_tested_at: "2026-07-22" },
-];
-
 export default function SocialAccountsPage() {
-  const { success, notifyError, warning } = useToast();
+  const { success, notifyError } = useToast();
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState<number | null>(null);
   const [testingId, setTestingId] = useState<number | null>(null);
@@ -57,10 +49,9 @@ export default function SocialAccountsPage() {
   async function fetchAccounts() {
     try {
       const res = await apiGet<SocialAccount[] | { data: SocialAccount[] }>("/social/accounts");
-      const list = Array.isArray(res) ? res : res.data || fallbackAccounts;
-      setAccounts(list);
+      setAccounts(Array.isArray(res) ? res : res.data || []);
     } catch {
-      setAccounts(fallbackAccounts);
+      setAccounts([]);
     } finally {
       setLoading(false);
     }
@@ -76,7 +67,6 @@ export default function SocialAccountsPage() {
       app_secret: "",
       access_token: "",
     });
-    setShowModal(true);
   };
 
   async function handleSaveAccount(e: React.FormEvent) {
@@ -94,19 +84,8 @@ export default function SocialAccountsPage() {
       success(`Connected ${connectForm.account_name} successfully!`, "Social Network");
       await fetchAccounts();
     } catch (err) {
-      const newAccount: SocialAccount = {
-        id: Date.now(),
-        platform: selectedPlatform,
-        account_name: connectForm.account_name,
-        owner: "Admin",
-        status: "connected",
-        connected_at: new Date().toISOString().split("T")[0],
-        last_tested_at: new Date().toISOString().split("T")[0],
-      };
-      setAccounts((prev) => [...prev, newAccount]);
-      success(`Connected ${connectForm.account_name} (Local Storage Active).`, "Social Network");
+      notifyError(err, `Could not connect ${connectForm.account_name}.`);
     }
-    setShowModal(false);
     setSelectedPlatform(null);
   }
 
@@ -127,12 +106,11 @@ export default function SocialAccountsPage() {
 
   async function handleDisconnect(id: number) {
     try {
-      await apiPost(`/social/accounts/${id}/disconnect`);
-      setAccounts((prev) => prev.filter((a) => a.id !== id));
+      await apiDelete(`/social/accounts/${id}`);
       success("Social account disconnected.", "Social Network");
-    } catch {
-      setAccounts((prev) => prev.filter((a) => a.id !== id));
-      success("Social account disconnected.", "Social Network");
+      await fetchAccounts();
+    } catch (err) {
+      notifyError(err, "Account could not be disconnected.");
     }
     setConfirmDisconnect(null);
   }

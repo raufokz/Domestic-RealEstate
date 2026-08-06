@@ -26,6 +26,7 @@ class AgentController extends Controller
         if ($request->filled('state')) $query->where('office_state', $request->state);
         if ($request->filled('specialty')) $query->whereJsonContains('specialties', $request->specialty);
         if ($request->filled('property_type')) $query->whereJsonContains('property_types', $request->property_type);
+        if ($request->boolean('is_featured')) $query->where('is_featured', true);
 
         $agents = $query->orderBy('rating', 'desc')->paginate($request->get('per_page', 12));
         return response()->json($agents);
@@ -41,6 +42,41 @@ class AgentController extends Controller
                 ->limit(6)
                 ->get()
         );
+    }
+
+    /** Public contact request submitted from an agent profile page.
+     *  The route receives the profile id; enquiries reference the agent's user id. */
+    public function contact(Request $request, int $id): JsonResponse
+    {
+        $profile = AgentProfile::where('id', $id)
+            ->where('is_published', true)
+            ->whereIn('status', ['approved', 'verified'])
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'message' => 'required|string|max:5000',
+        ]);
+
+        $enquiry = Enquiry::create([
+            'type' => 'agent',
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'subject' => 'Contact request from agent profile',
+            'message' => $validated['message'],
+            'agent_id' => $profile->user_id,
+            'status' => 'new',
+            'source_page' => '/agents/' . $profile->slug,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your message was sent.',
+            'data' => $enquiry,
+        ], 201);
     }
 
     /** Public Realtor profile view, filtered by Realtor privacy settings. */

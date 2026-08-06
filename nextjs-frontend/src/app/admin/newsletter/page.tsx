@@ -73,12 +73,16 @@ export default function NewsletterPage() {
   }, [statusFilter, debouncedSearch, page]);
 
   useEffect(() => {
-    fetchSubscribers();
+    void (async () => {
+      await fetchSubscribers();
+    })();
   }, [fetchSubscribers]);
 
-  useEffect(() => {
+  const [prevFilters, setPrevFilters] = useState({ statusFilter, debouncedSearch });
+  if (prevFilters.statusFilter !== statusFilter || prevFilters.debouncedSearch !== debouncedSearch) {
+    setPrevFilters({ statusFilter, debouncedSearch });
     setPage(1);
-  }, [statusFilter, debouncedSearch]);
+  }
 
   const handleRemove = async (id: number) => {
     setRemoving(id);

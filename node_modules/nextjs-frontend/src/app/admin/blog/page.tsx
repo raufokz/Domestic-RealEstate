@@ -73,8 +73,6 @@ export default function BlogPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
       const params = new URLSearchParams();
       params.set("page", String(page));
@@ -89,6 +87,7 @@ export default function BlogPage() {
       setPosts(res.data);
       setLastPage(res.last_page);
       setTotal(res.total);
+      setError(null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not load blog posts.");
       setPosts([]);
@@ -97,14 +96,18 @@ export default function BlogPage() {
     }
   }, [tab, page, sort, direction, search, status]);
 
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  useEffect(() => {
+  const [prevFilters, setPrevFilters] = useState({ tab, search, status });
+  if (prevFilters.tab !== tab || prevFilters.search !== search || prevFilters.status !== status) {
+    setPrevFilters({ tab, search, status });
     setPage(1);
     setSelected([]);
-  }, [tab, search, status]);
+  }
+
+  useEffect(() => {
+    void (async () => {
+      await fetchPosts();
+    })();
+  }, [fetchPosts]);
 
   const handleTogglePublish = async (id: number) => {
     setBusyId(id);
@@ -225,6 +228,16 @@ export default function BlogPage() {
       ),
     },
   ];
+
+  if (loading) {
+    return (
+      <AdminLayout title="Blog Management">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout title="Blog Management">

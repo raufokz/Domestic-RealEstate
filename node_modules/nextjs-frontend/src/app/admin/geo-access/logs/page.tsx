@@ -90,12 +90,21 @@ export default function GeoAccessLogsPage() {
   }, [page, search, reason, dateFrom, dateTo]);
 
   useEffect(() => {
-    fetchLogs();
+    void (async () => {
+      await fetchLogs();
+    })();
   }, [fetchLogs]);
 
-  useEffect(() => {
+  const [prevFilters, setPrevFilters] = useState({ search, reason, dateFrom, dateTo });
+  if (
+    prevFilters.search !== search ||
+    prevFilters.reason !== reason ||
+    prevFilters.dateFrom !== dateFrom ||
+    prevFilters.dateTo !== dateTo
+  ) {
+    setPrevFilters({ search, reason, dateFrom, dateTo });
     setPage(1);
-  }, [search, reason, dateFrom, dateTo]);
+  }
 
   const handleExport = async () => {
     setExporting(true);

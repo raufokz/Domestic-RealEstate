@@ -68,12 +68,16 @@ export default function AdminRealtorApplicationsPage() {
   }, [page, search, status]);
 
   useEffect(() => {
-    fetchApplications();
+    void (async () => {
+      await fetchApplications();
+    })();
   }, [fetchApplications]);
 
-  useEffect(() => {
+  const [prevFilters, setPrevFilters] = useState({ search, status });
+  if (prevFilters.search !== search || prevFilters.status !== status) {
+    setPrevFilters({ search, status });
     setPage(1);
-  }, [search, status]);
+  }
 
   const columns: ColumnDef<RealtorApplicationRow>[] = [
     {

@@ -79,13 +79,18 @@ export default function PaymentsPage() {
   }, [filter, search]);
 
   useEffect(() => {
-    fetchData();
+    void (async () => {
+      await fetchData();
+    })();
   }, [fetchData]);
 
   async function handleMarkPaid(invoice: Invoice) {
     try {
       setActionLoading(invoice.id);
-      await apiPost(`/admin/invoices/${invoice.id}/pay`, { payoneer_transaction_id: txnId || undefined });
+      await apiPost(`/admin/invoices/${invoice.id}/record-manual-payment`, {
+        reference: txnId || `manual-${Date.now()}`,
+        method: "other",
+      });
       setPayModal(null);
       setTxnId("");
       fetchData();

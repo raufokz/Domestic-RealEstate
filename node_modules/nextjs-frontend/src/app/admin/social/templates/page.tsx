@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 
 interface Template {
   id: number;
   name: string;
   category: string;
-  platform: string;
-  content: string;
+  platform: string | null;
+  content_template: string;
   variables: string[];
 }
 
@@ -29,17 +29,8 @@ const platformOptions = [
   { value: "facebook", label: "Facebook" },
   { value: "instagram", label: "Instagram" },
   { value: "linkedin", label: "LinkedIn" },
-  { value: "twitter", label: "X" },
+  { value: "x", label: "X" },
   { value: "youtube", label: "YouTube" },
-];
-
-const fallbackTemplates: Template[] = [
-  { id: 1, name: "New Listing Announcement", category: "listing", platform: "all", content: "New Listing! {property_address} in {property_city} - {property_beds} bed, {property_baths} baths, {property_price}. Contact us for a viewing! #RealEstate #NewListing", variables: ["property_address", "property_city", "property_beds", "property_baths", "property_price"] },
-  { id: 2, name: "Open House Reminder", category: "open_house", platform: "facebook", content: "OPEN HOUSE this {event_day} from {event_time_start} to {event_time_end}! Come see this stunning {property_type} at {property_address}. Refreshments provided!", variables: ["event_day", "event_time_start", "event_time_end", "property_type", "property_address"] },
-  { id: 3, name: "Market Update", category: "market_report", platform: "linkedin", content: "Market Report: {report_period} shows {market_trend} in {market_area}. Average home price: {avg_price}. Read more on our blog.", variables: ["report_period", "market_trend", "market_area", "avg_price"] },
-  { id: 4, name: "Client Testimonial", category: "testimonial", platform: "all", content: "\"{testimonial_quote}\" - {client_name}. Thank you for trusting Domestic RE with your {transaction_type}! #HappyClient #Testimonial", variables: ["testimonial_quote", "client_name", "transaction_type"] },
-  { id: 5, name: "Blog Post Share", category: "blog", platform: "all", content: "New on our blog: \"{blog_title}\" - {blog_summary} Read the full article on our website! #{blog_tag}", variables: ["blog_title", "blog_summary", "blog_tag"] },
-  { id: 6, name: "Home Buying Tip", category: "tip", platform: "instagram", content: "Tip of the day: {tip_content} #RealEstateTips #HomeBuying #DomesticRE", variables: ["tip_content"] },
 ];
 
 function extractVariables(text: string): string[] {
@@ -62,10 +53,10 @@ export default function SocialTemplatesPage() {
 
   async function fetchTemplates() {
     try {
-      const res = await apiGet<{ data: Template[] }>("/social/templates");
-      setTemplates(res.data || fallbackTemplates);
+      const res = await apiGet<Template[]>("/social/templates");
+      setTemplates(Array.isArray(res) ? res : []);
     } catch {
-      setTemplates(fallbackTemplates);
+      setTemplates([]);
     } finally {
       setLoading(false);
     }
@@ -73,26 +64,24 @@ export default function SocialTemplatesPage() {
 
   async function handleSubmit() {
     const variables = extractVariables(formData.content);
+    const payload = { name: formData.name, category: formData.category, platform: formData.platform, content_template: formData.content, variables };
     if (editId) {
       try {
-        await apiPost(`/social/templates/${editId}`, { ...formData, variables, _method: "PUT" });
+        await apiPut(`/social/templates/${editId}`, payload);
       } catch {
-        // fallback
+        setShowForm(false);
+        return;
       }
       setTemplates((prev) =>
-        prev.map((t) => (t.id === editId ? { ...t, ...formData, variables } : t))
+        prev.map((t) => (t.id === editId ? { ...t, ...payload } : t))
       );
     } else {
       try {
-        const res = await apiPost<{ data: Template }>("/social/templates", { ...formData, variables });
-        if (res.data) setTemplates((prev) => [...prev, res.data]);
+        const res = await apiPost<Template>("/social/templates", payload);
+        if (res) setTemplates((prev) => [...prev, res]);
       } catch {
-        const newTemplate: Template = {
-          id: Date.now(),
-          ...formData,
-          variables,
-        };
-        setTemplates((prev) => [...prev, newTemplate]);
+        setShowForm(false);
+        return;
       }
     }
     resetForm();
@@ -108,8 +97,8 @@ export default function SocialTemplatesPage() {
     setFormData({
       name: template.name,
       category: template.category,
-      platform: template.platform,
-      content: template.content,
+      platform: template.platform ?? "all",
+      content: template.content_template,
     });
     setEditId(template.id);
     setShowForm(true);
@@ -117,9 +106,9 @@ export default function SocialTemplatesPage() {
 
   async function handleDelete(id: number) {
     try {
-      await apiPost(`/social/templates/${id}`, { _method: "DELETE" });
+      await apiDelete(`/social/templates/${id}`);
     } catch {
-      // fallback
+      return;
     }
     setTemplates((prev) => prev.filter((t) => t.id !== id));
   }
@@ -263,7 +252,7 @@ export default function SocialTemplatesPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
-                  {platformOptions.find((p) => p.value === t.platform)?.label || t.platform}
+                  {platformOptions.find((p) => p.value === (t.platform ?? "all"))?.label || t.platform || "All Platforms"}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-1">

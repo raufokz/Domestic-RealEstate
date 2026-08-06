@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name', 'email', 'password', 'role', 'status', 'phone',
         'phone_verified', 'normalized_phone', 'avatar', 'timezone',
         'locale', 'last_login_at', 'ppl_eligible', 'ppl_access_enabled',
+        'email_verified_at', 'email_verification_token', 'email_verification_expires_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -31,6 +32,7 @@ class User extends Authenticatable
     protected function casts(): array {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_expires_at' => 'datetime',
             'last_login_at' => 'datetime',
             'phone_verified' => 'boolean',
             'ppl_eligible' => 'boolean',

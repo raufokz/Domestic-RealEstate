@@ -21,7 +21,7 @@ const platformColors: Record<string, string> = {
   facebook: "#1877F2",
   instagram: "#E4405F",
   linkedin: "#0A66C2",
-  twitter: "#000000",
+  x: "#000000",
   tiktok: "#000000",
   youtube: "#FF0000",
   pinterest: "#BD081C",
@@ -32,18 +32,12 @@ const platformNames: Record<string, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
   linkedin: "LinkedIn",
-  twitter: "X",
+  x: "X",
   tiktok: "TikTok",
   youtube: "YouTube",
   pinterest: "Pinterest",
   google_business: "Google Business",
 };
-
-const fallbackAccounts: ConnectedAccount[] = [
-  { id: 1, platform: "facebook", account_name: "Domestic RE Facebook" },
-  { id: 2, platform: "instagram", account_name: "@domesticre" },
-  { id: 4, platform: "twitter", account_name: "@domesticre" },
-];
 
 export default function SocialComposerPage() {
   const { success, notifyError, info } = useToast();
@@ -64,10 +58,10 @@ export default function SocialComposerPage() {
   useEffect(() => {
     async function fetchAccounts() {
       try {
-        const res = await apiGet<{ data: ConnectedAccount[] }>("/social/accounts/connected");
-        setAccounts((res.data || fallbackAccounts).filter((a) => a.status !== "disconnected"));
+        const res = await apiGet<ConnectedAccount[]>("/social/accounts");
+        setAccounts((Array.isArray(res) ? res : []).filter((a) => a.status === "connected"));
       } catch {
-        setAccounts(fallbackAccounts);
+        setAccounts([]);
       } finally {
         setLoading(false);
       }
@@ -113,22 +107,18 @@ export default function SocialComposerPage() {
 
   async function handleAIGenerate() {
     setAiGenerating(true);
+    const platform = selectedAccounts.length > 0
+      ? accounts.find((a) => selectedAccounts.includes(a.id))?.platform
+      : "facebook";
     try {
-      const res = await apiPost<{ caption: string }>("/social/ai-caption", {
-        context: content || "Real estate post",
-        platform: selectedAccounts.length > 0
-          ? accounts.find((a) => selectedAccounts.includes(a.id))?.platform
-          : "facebook",
+      const res = await apiPost<{ post: string }>("/ai/social-agent", {
+        platform,
+        topic: content || "Real estate post",
       });
-      setContent(res.caption);
+      setContent(res.post);
       success("AI Caption generated!", "AI Assistant");
-    } catch {
-      setContent(
-        (prev) =>
-          prev +
-          "\n\nDiscover your dream home with Domestic RE. Contact us today to schedule a viewing! #RealEstate #DreamHome #LuxuryLiving"
-      );
-      success("Smart real estate template applied!", "AI Assistant");
+    } catch (err) {
+      notifyError(err, "AI caption could not be generated.");
     } finally {
       setAiGenerating(false);
     }
@@ -140,17 +130,16 @@ export default function SocialComposerPage() {
     try {
       await apiPost("/social/posts", {
         content,
-        account_ids: selectedAccounts,
-        scheduled_at: publishNow ? null : `${scheduleDate}T${scheduleTime}:00`,
+        target_accounts: selectedAccounts,
+        scheduled_at: publishNow ? undefined : `${scheduleDate}T${scheduleTime}:00`,
         media: media.map((m) => m.file.name),
       });
       success(publishNow ? "Post published to social platforms!" : "Post scheduled successfully!", "Social Media");
       setContent("");
       setMedia([]);
+      setSelectedAccounts([]);
     } catch (err) {
-      success(publishNow ? "Post queued for social platforms!" : "Post scheduled successfully!", "Social Media");
-      setContent("");
-      setMedia([]);
+      notifyError(err, publishNow ? "Post could not be published." : "Post could not be scheduled.");
     } finally {
       setSubmitting(false);
     }

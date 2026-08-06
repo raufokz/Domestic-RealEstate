@@ -136,7 +136,7 @@ class AdminRealtorController extends Controller
             'license_number' => 'nullable|string|max:100',
             'license_state' => 'nullable|string|max:100',
             'license_expiry_date' => 'nullable|date',
-            'license_status' => 'nullable|string|in:active,inactive,pending,suspended,expired',
+            'license_status' => 'nullable|string|in:active,inactive,pending,suspended',
             'mls_board' => 'nullable|string|max:255',
             'mls_number' => 'nullable|string|max:100',
             'years_experience' => 'nullable|integer|min:0',

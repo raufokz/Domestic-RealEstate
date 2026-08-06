@@ -69,7 +69,7 @@ class AdminController extends Controller
                     'total_testimonials' => Testimonial::count(),
                     'total_faqs' => Faq::count(),
                     'active_campaigns' => EmailCampaign::where('status', 'sending')->count(),
-                    'deals_won' => \App\Models\Deal::where('status', 'won')->count(),
+                    'deals_won' => \App\Models\Deal::whereHas('stage', fn ($q) => $q->where('is_won', true))->count(),
                 ],
                 'recent_leads' => Lead::with('assignee')->latest()->limit(10)->get(),
                 'recent_properties' => Property::latest()->limit(5)->get(),
@@ -170,6 +170,17 @@ class AdminController extends Controller
         if ($request->filled('status')) $query->where('status', $request->status);
         if ($request->filled('type')) $query->where('type', $request->type);
         if ($request->filled('priority')) $query->where('priority', $request->priority);
+        if ($request->filled('source')) $query->where('source', $request->source);
+        if ($request->filled('search')) {
+            $term = trim($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('first_name', 'like', "%{$term}%")
+                  ->orWhere('last_name', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%")
+                  ->orWhere('phone', 'like', "%{$term}%")
+                  ->orWhere('lead_number', 'like', "%{$term}%");
+            });
+        }
         return response()->json($query->orderBy('created_at', 'desc')->paginate(min((int) $request->get('per_page', 25), 200)));
     }
 
@@ -178,6 +189,37 @@ class AdminController extends Controller
         $query = Enquiry::with('replies');
         if ($request->filled('status')) $query->where('status', $request->status);
         return response()->json($query->orderBy('created_at', 'desc')->paginate(25));
+    }
+
+    public function updateEnquiry(Request $request, $id) {
+        $this->checkAdmin();
+        $enquiry = Enquiry::findOrFail($id);
+
+        $validated = $request->validate([
+            'status' => 'sometimes|string|in:new,replied,closed',
+            'reply' => 'nullable|string|max:10000',
+        ]);
+
+        if (!empty($validated['reply'])) {
+            $enquiry->replies()->create([
+                'reply' => $validated['reply'],
+                'replied_by' => Auth::id(),
+                'is_guest' => false,
+            ]);
+            $enquiry->status = 'replied';
+        }
+
+        if (isset($validated['status'])) {
+            $enquiry->status = $validated['status'];
+        }
+
+        $enquiry->save();
+        $this->logActivity('enquiry_updated', $enquiry, ['status' => $enquiry->status]);
+
+        return response()->json([
+            'data' => $enquiry->load('replies'),
+            'message' => 'Enquiry updated',
+        ]);
     }
 
     public function settings() {
@@ -651,7 +693,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'nullable|string|min:8',
-            'role' => 'required|string|in:admin,super_admin,agent,broker,buyer,seller,investor,staff,lender,title',
+            'role' => 'required|string|in:super_admin,admin,staff,agent,broker,buyer,seller,lender,title_company,investor,vendor',
             'status' => 'nullable|string|in:active,inactive,pending,suspended',
             'phone' => 'nullable|string|max:50',
         ]);

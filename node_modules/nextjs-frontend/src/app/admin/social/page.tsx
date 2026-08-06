@@ -15,17 +15,17 @@ interface SocialAccount {
 interface SocialPost {
   id: number;
   content: string;
-  platform: string;
   status: string;
   scheduled_at: string | null;
   published_at: string | null;
+  target_accounts?: number[];
 }
 
 const platforms = [
   { key: "facebook", name: "Facebook", icon: "f", color: "#1877F2" },
   { key: "instagram", name: "Instagram", icon: "Ig", color: "#E4405F" },
   { key: "linkedin", name: "LinkedIn", icon: "in", color: "#0A66C2" },
-  { key: "twitter", name: "X", icon: "X", color: "#000000" },
+  { key: "x", name: "X", icon: "X", color: "#000000" },
   { key: "tiktok", name: "TikTok", icon: "Tk", color: "#000000" },
   { key: "youtube", name: "YouTube", icon: "Yt", color: "#FF0000" },
   { key: "pinterest", name: "Pinterest", icon: "P", color: "#BD081C" },
@@ -41,22 +41,6 @@ const subPages = [
   { name: "Analytics", href: "/admin/social/analytics", icon: "📊" },
 ];
 
-const fallbackAccounts: SocialAccount[] = [
-  { id: 1, platform: "facebook", account_name: "Domestic RE Facebook", status: "connected" },
-  { id: 2, platform: "instagram", account_name: "@domesticre", status: "connected" },
-  { id: 3, platform: "linkedin", account_name: "Domestic RE LinkedIn", status: "error" },
-  { id: 4, platform: "twitter", account_name: "@domesticre", status: "connected" },
-  { id: 5, platform: "youtube", account_name: "Domestic RE Channel", status: "disconnected" },
-];
-
-const fallbackPosts: SocialPost[] = [
-  { id: 1, content: "New luxury listing in Beverly Hills - 5 bed, 4 bath stunning property", platform: "facebook", status: "published", scheduled_at: null, published_at: "2026-07-12T10:00:00Z" },
-  { id: 2, content: "Check out this beautiful modern home with panoramic views", platform: "instagram", status: "published", scheduled_at: null, published_at: "2026-07-12T12:00:00Z" },
-  { id: 3, content: "Market report: Q2 2026 shows strong growth in luxury segment", platform: "linkedin", status: "scheduled", scheduled_at: "2026-07-14T09:00:00Z", published_at: null },
-  { id: 4, content: "Open house this Sunday 2-5pm! Don't miss this stunning property", platform: "facebook", status: "scheduled", scheduled_at: "2026-07-15T08:00:00Z", published_at: null },
-  { id: 5, content: "Failed to post - API rate limit exceeded", platform: "twitter", status: "failed", scheduled_at: "2026-07-13T08:00:00Z", published_at: null },
-];
-
 export default function SocialOverviewPage() {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [posts, setPosts] = useState<SocialPost[]>([]);
@@ -66,14 +50,14 @@ export default function SocialOverviewPage() {
     async function fetchData() {
       try {
         const [accRes, postRes] = await Promise.all([
-          apiGet<{ data: SocialAccount[] }>("/social/accounts").catch(() => ({ data: fallbackAccounts })),
-          apiGet<{ data: SocialPost[] }>("/social/posts").catch(() => ({ data: fallbackPosts })),
+          apiGet<SocialAccount[]>("/social/accounts").catch(() => []),
+          apiGet<{ data: SocialPost[] }>("/social/posts").catch(() => ({ data: [] })),
         ]);
-        setAccounts(accRes.data || fallbackAccounts);
-        setPosts(postRes.data || fallbackPosts);
+        setAccounts(Array.isArray(accRes) ? accRes : []);
+        setPosts(postRes.data || []);
       } catch {
-        setAccounts(fallbackAccounts);
-        setPosts(fallbackPosts);
+        setAccounts([]);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
@@ -95,6 +79,12 @@ export default function SocialOverviewPage() {
     if (status === "connected") return "bg-green-100 text-green-800";
     if (status === "error") return "bg-red-100 text-red-800";
     return "bg-gray-100 text-gray-600";
+  };
+
+  const getPostPlatform = (post: SocialPost) => {
+    const firstAccountId = post.target_accounts?.[0];
+    const platform = accounts.find((a) => a.id === firstAccountId)?.platform;
+    return platform || null;
   };
 
   const postStatusBadge = (status: string) => {
@@ -184,7 +174,7 @@ export default function SocialOverviewPage() {
             <p className="p-6 text-gray-500 text-center">No posts yet</p>
           ) : (
             posts.map((post) => {
-              const plat = platforms.find((p) => p.key === post.platform);
+              const plat = platforms.find((p) => p.key === getPostPlatform(post));
               return (
                 <div key={post.id} className="p-4 flex items-center gap-4">
                   <div
@@ -196,11 +186,11 @@ export default function SocialOverviewPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-900 truncate">{post.content}</p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {plat?.name} &middot;{" "}
+                      {plat?.name}
                       {post.published_at
-                        ? `Published ${new Date(post.published_at).toLocaleDateString()}`
+                        ? ` · Published ${new Date(post.published_at).toLocaleDateString()}`
                         : post.scheduled_at
-                          ? `Scheduled ${new Date(post.scheduled_at).toLocaleDateString()}`
+                          ? ` · Scheduled ${new Date(post.scheduled_at).toLocaleDateString()}`
                           : ""}
                     </p>
                   </div>

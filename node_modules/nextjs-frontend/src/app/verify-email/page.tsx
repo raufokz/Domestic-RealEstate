@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { API_BASE } from "@/lib/api";
@@ -9,11 +9,78 @@ export default function VerifyEmailPage() {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [error, setError] = useState("");
+  const [verified, setVerified] = useState(false);
 
   const email =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("email") || ""
       : "";
+  const token =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("token") || ""
+      : "";
+  const [verifying, setVerifying] = useState(!!token);
+
+  useEffect(() => {
+    void verify();
+  }, []);
+
+  async function verify() {
+    const email = new URLSearchParams(window.location.search).get("email") || "";
+    const token = new URLSearchParams(window.location.search).get("token") || "";
+    try {
+      const res = await fetch(`${API_BASE}/auth/verify-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, token }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to verify your email");
+      }
+      setVerified(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to verify your email");
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-[#0A2647] flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+            <svg
+              className="animate-spin h-8 w-8 text-[#C9A227]"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-[#0A2647] mb-2">
+            Verifying Your Email
+          </h2>
+          <p className="text-slate-500 text-sm">
+            Please wait a moment while we confirm your email address.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleResend = async () => {
     setResending(true);
@@ -83,25 +150,51 @@ export default function VerifyEmailPage() {
             </div>
           )}
 
-          {resent ? (
+          {verified ? (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4">
-              Verification email resent! Check your inbox.
+              Your email has been verified. You can now sign in to your account.
             </div>
           ) : (
-            <button
-              onClick={handleResend}
-              disabled={resending}
-              className="w-full bg-[#0A2647] hover:bg-[#0d3366] text-white py-3 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed mb-4"
-            >
-              {resending ? "Sending..." : "Resend Verification Email"}
-            </button>
+            <>
+              {resent && !token && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4">
+                  Verification email resent! Check your inbox.
+                </div>
+              )}
+
+              {(!token || error) && !resent && (
+                <button
+                  onClick={() => {
+                    if (token && error) {
+                      void verify();
+                    } else {
+                      void handleResend();
+                    }
+                  }}
+                  disabled={resending}
+                  className="w-full bg-[#0A2647] hover:bg-[#0d3366] text-white py-3 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                >
+                  {resending
+                    ? "Sending..."
+                    : token && error
+                      ? "Try Again"
+                      : "Resend Verification Email"}
+                </button>
+              )}
+            </>
           )}
 
           <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mt-4">
-            <p className="text-amber-700 text-xs">
-              Didn&apos;t receive the email? Check your{" "}
-              <strong>spam/junk folder</strong> or try a different email address.
-            </p>
+            {verified ? (
+              <p className="text-amber-700 text-xs">
+                Verification complete. You can close this page.
+              </p>
+            ) : (
+              <p className="text-amber-700 text-xs">
+                Didn&apos;t receive the email? Check your{" "}
+                <strong>spam/junk folder</strong> or try a different email address.
+              </p>
+            )}
           </div>
         </div>
 

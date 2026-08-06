@@ -149,6 +149,26 @@ class SocialController extends Controller
         return response()->json($template, 201);
     }
 
+    public function updateTemplate(Request $request, int $id): JsonResponse
+    {
+        $template = SocialPostTemplate::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'content_template' => 'sometimes|string',
+            'platform' => 'nullable|string',
+            'category' => 'sometimes|string|in:listing,blog,testimonial,market_report,tip,event,open_house,general',
+            'variables' => 'nullable|array',
+        ]);
+        $template->update($validated);
+        return response()->json($template);
+    }
+
+    public function destroyTemplate(int $id): JsonResponse
+    {
+        SocialPostTemplate::findOrFail($id)->delete();
+        return response()->json(['message' => 'Template deleted']);
+    }
+
     public function shareListing(Request $request): JsonResponse
     {
         $validated = $request->validate([

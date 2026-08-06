@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useFetch } from "@/hooks/useFetch";
 import { fullName, initials } from "@/lib/name";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiPut } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
 
@@ -86,7 +86,7 @@ export default function LeadDetailPage() {
   const handleStatusChange = async (status: string) => {
     setNewStatus(status);
     try {
-      await apiPost(`/leads/${id}/status`, { status });
+      await apiPut(`/leads/${id}/status`, { status });
       success("Lead status updated.");
       refetch();
     } catch (e) {

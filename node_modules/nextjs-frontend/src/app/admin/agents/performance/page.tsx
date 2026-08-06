@@ -79,7 +79,7 @@ export default function AgentPerformancePage() {
   }
 
   function findAgentProfile(perf: AgentPerformance) {
-    return agents.find((a) => a.id === perf.id);
+    return agents.find((a) => a.user_id === perf.id);
   }
 
   const chartData = performance
