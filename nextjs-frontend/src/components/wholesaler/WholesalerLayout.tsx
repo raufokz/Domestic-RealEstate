@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
+const ALLOWED_ROLES = ["wholesaler", "admin", "super_admin"];
+
 const navItems = [
   { name: "Dashboard", href: "/wholesaler/dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
   { name: "My Deals", href: "/wholesaler/dashboard/deals", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
@@ -24,8 +26,48 @@ export default function WholesalerLayout({
   subtitle?: string;
 }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#0A2647] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="text-center max-w-md bg-white rounded-2xl border border-slate-200 p-10 shadow-sm">
+          <div className="text-4xl mb-3">🔒</div>
+          <h1 className="text-2xl font-bold text-[#0A2647] mb-2">Sign in required</h1>
+          <p className="text-slate-500 text-sm mb-6">Please sign in to access the Wholesaler Portal.</p>
+          <Link href="/login" className="inline-block bg-[#C9A227] text-[#0A2647] font-bold px-6 py-3 rounded-xl hover:bg-[#b8911f] transition">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ALLOWED_ROLES.includes(user.role)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="text-center max-w-md bg-white rounded-2xl border border-slate-200 p-10 shadow-sm">
+          <div className="text-4xl mb-3">⛔</div>
+          <h1 className="text-2xl font-bold text-[#0A2647] mb-2">Access denied</h1>
+          <p className="text-slate-500 text-sm mb-6">
+            Your account type does not have permission to view the Wholesaler Portal.
+          </p>
+          <Link href="/" className="inline-block bg-[#0A2647] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#07162C] transition">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const initials = user
     ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)

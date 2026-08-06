@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\OfferController;
+use App\Http\Controllers\Api\WholesalerPortalController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\SeoController;
@@ -448,6 +449,22 @@ Route::middleware(['auth:sanctum', 'role:buyer,admin,super_admin'])->prefix('buy
 Route::middleware(['auth:sanctum', 'role:seller,agent,broker,admin,super_admin'])->prefix('seller')->group(function () {
     Route::get('/offers', [OfferController::class, 'sellerIndex']);
     Route::post('/offers/{id}/respond', [OfferController::class, 'sellerRespond']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Wholesaler Portal — deal pipeline + cash-buyer list.
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:sanctum', 'role:wholesaler,admin,super_admin'])->prefix('wholesaler')->group(function () {
+    Route::get('/dashboard', [WholesalerPortalController::class, 'dashboard']);
+    Route::get('/deals', [WholesalerPortalController::class, 'deals']);
+    Route::post('/deals', [WholesalerPortalController::class, 'storeDeal']);
+    Route::get('/deals/{id}', [WholesalerPortalController::class, 'showDeal']);
+    Route::put('/deals/{id}', [WholesalerPortalController::class, 'updateDeal']);
+    Route::get('/buyers', [WholesalerPortalController::class, 'buyers']);
+    Route::post('/buyers', [WholesalerPortalController::class, 'storeBuyer']);
+    Route::put('/buyers/{id}', [WholesalerPortalController::class, 'updateBuyer']);
 });
 
 /*

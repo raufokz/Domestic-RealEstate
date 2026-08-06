@@ -18,7 +18,7 @@ class User extends Authenticatable
      * intentionally NOT reachable from public self-registration — see
      * AuthController::register.
      */
-    public const ROLES = ['buyer', 'seller', 'agent', 'broker', 'investor', 'staff', 'admin', 'super_admin'];
+    public const ROLES = ['buyer', 'seller', 'agent', 'broker', 'investor', 'wholesaler', 'staff', 'admin', 'super_admin'];
 
     protected $fillable = [
         'name', 'email', 'password', 'role', 'status', 'phone',

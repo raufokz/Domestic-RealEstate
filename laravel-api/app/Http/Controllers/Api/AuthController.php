@@ -37,7 +37,7 @@ class AuthController extends Controller
             // granted by an authenticated admin action. Accepting them here
             // was a live privilege-escalation hole (anyone could POST
             // role=super_admin and get one).
-            'role' => 'required|in:buyer,seller,agent,broker,investor',
+            'role' => 'required|in:buyer,seller,agent,broker,investor,wholesaler',
             'phone' => 'nullable|string',
             'services_needed' => 'nullable|array',
             'services_needed.*' => 'string|in:' . implode(',', \App\Models\AgentProfile::serviceCatalogFlat()),
@@ -228,7 +228,11 @@ class AuthController extends Controller
     }
 
     public function me(Request $request) {
-        return response()->json($request->user());
+        // Wrapped to match login()/register()'s {user: ...} shape — the only
+        // consumer, useAuth.ts's fetchUser(), reads res.user. A bare object
+        // here made res.user always undefined, silently logging every user
+        // back out on refresh/redirect after a real, successful login.
+        return response()->json(['user' => $request->user()]);
     }
 
     public function updateProfile(Request $request) {
