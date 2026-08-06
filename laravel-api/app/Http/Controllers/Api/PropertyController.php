@@ -14,13 +14,14 @@ use Illuminate\Support\Str;
 class PropertyController extends Controller
 {
     /** Roles allowed to create/manage property listings. */
-    private const LISTING_ROLES = ['super_admin', 'admin', 'agent', 'broker'];
+    private const LISTING_ROLES = ['super_admin', 'admin', 'agent', 'broker', 'seller'];
 
     /** True if the user owns the property or is an admin. */
     private function canManage($user, Property $property): bool
     {
         return $property->realtor_id === $user->id
             || $property->broker_id === $user->id
+            || $property->seller_id === $user->id
             || in_array($user->role, ['admin', 'super_admin']);
     }
 
@@ -102,7 +103,7 @@ class PropertyController extends Controller
 
     public function store(Request $request) {
         if (!in_array($request->user()->role, self::LISTING_ROLES)) {
-            return response()->json(['message' => 'Only agents, brokers, and admins can create listings.'], 403);
+            return response()->json(['message' => 'Only agents, brokers, sellers, and admins can create listings.'], 403);
         }
 
         $validated = $request->validate([
@@ -119,7 +120,13 @@ class PropertyController extends Controller
             'sqft' => 'nullable|integer|min:0',
         ]);
 
-        $validated['realtor_id'] = $request->user()->id;
+        // A self-listing homeowner (role=seller) owns the listing via seller_id;
+        // agents/brokers/admins keep the existing realtor_id ownership path.
+        if ($request->user()->role === 'seller') {
+            $validated['seller_id'] = $request->user()->id;
+        } else {
+            $validated['realtor_id'] = $request->user()->id;
+        }
         $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
         $validated['uuid'] = \Illuminate\Support\Str::uuid();
         $validated['country'] = 'US';

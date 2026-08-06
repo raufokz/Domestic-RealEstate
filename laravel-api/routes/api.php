@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\SeoController;
@@ -428,6 +429,25 @@ Route::post('/leads', [LeadController::class, 'capture']);
     Route::post('/documents', [AgentController::class, 'storeMyDocument']);
     Route::get('/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
     Route::delete('/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Offers — buyer/seller negotiation. Deliberately NOT reusing PortalController's
+| buyer/seller stub routes above (those are broken — nested under /admin and
+| never queried the DB). Every query is pre-scoped to the signed-in user.
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:sanctum', 'role:buyer,admin,super_admin'])->prefix('buyer')->group(function () {
+    Route::get('/offers', [OfferController::class, 'buyerIndex']);
+    Route::post('/offers', [OfferController::class, 'store']);
+    Route::post('/offers/{id}/respond', [OfferController::class, 'buyerRespond']);
+    Route::post('/offers/{id}/withdraw', [OfferController::class, 'withdraw']);
+});
+
+Route::middleware(['auth:sanctum', 'role:seller,agent,broker,admin,super_admin'])->prefix('seller')->group(function () {
+    Route::get('/offers', [OfferController::class, 'sellerIndex']);
+    Route::post('/offers/{id}/respond', [OfferController::class, 'sellerRespond']);
 });
 
 /*

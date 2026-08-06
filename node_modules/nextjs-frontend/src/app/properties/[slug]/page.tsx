@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PropertyMapWrapper from "./PropertyMapWrapper";
 import PropertyInquiryForm from "./PropertyInquiryForm";
+import MakeOfferButton from "./MakeOfferButton";
 import PropertyGallery from "./PropertyGallery";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import JsonLd from "@/components/seo/JsonLd";
@@ -300,8 +301,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                       Request a Viewing
                     </a>
                     {agentSlug && (
-                      <Link 
-                        href={`/agents/${agentSlug}`} 
+                      <Link
+                        href={`/agents/${agentSlug}`}
                         className="block w-full border border-white/15 hover:border-white/30 text-white hover:bg-white/5 font-heading text-xs font-semibold py-3.5 rounded-xl transition-all text-center"
                       >
                         View Profile
@@ -310,6 +311,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   </div>
                 </div>
               )}
+
+              {/* Make an Offer — always available regardless of whether the
+                  listing has an agent (agent-represented or FSBO seller). */}
+              <div className="bg-white border border-slate-150 p-5 rounded-3xl shadow-premium-sm">
+                <MakeOfferButton propertyId={prop.id} propertyTitle={prop.title} />
+              </div>
 
               {/* Monthly Investment Calculator Card */}
               {priceVal && (

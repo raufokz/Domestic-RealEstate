@@ -18,7 +18,7 @@ class Property extends Model
         'latitude', 'longitude', 'school_district', 'walkscore', 'photos',
         'gallery', 'video_url', 'virtual_tour_url', 'floor_plan_url',
         'amenities', 'nearby_places', 'tags', 'featured', 'premium',
-        'open_house_date', 'open_house_end', 'realtor_id', 'broker_id',
+        'open_house_date', 'open_house_end', 'realtor_id', 'broker_id', 'seller_id',
         'listed_by_type', 'approval_status', 'view_count', 'inquiry_count',
     ];
 
@@ -57,6 +57,7 @@ class Property extends Model
     public function propertyType() { return $this->belongsTo(PropertyType::class); }
     public function realtor() { return $this->belongsTo(User::class, 'realtor_id'); }
     public function broker() { return $this->belongsTo(User::class, 'broker_id'); }
+    public function seller() { return $this->belongsTo(User::class, 'seller_id'); }
     public function favorites() { return $this->hasMany(PropertyFavorite::class); }
     public function comments() { return $this->hasMany(PropertyComment::class); }
     public function analytics() { return $this->hasMany(PropertyAnalytics::class); }

@@ -1,6 +1,12 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildMetadata({
+  title: 'Map Property Search',
+  description: 'Explore homes for sale on an interactive map. Browse property listings by neighborhood and location to find homes near the places that matter to you.',
+  path: '/properties/map',
+});
 
 export default function MapPropertySearchPage() {
   return (
