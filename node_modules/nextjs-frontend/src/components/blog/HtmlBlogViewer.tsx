@@ -105,13 +105,23 @@ function isTrustedIframeUrl(urlStr: string): boolean {
 function sanitizeAndTransformHtml(rawHtml: string): string {
   if (!rawHtml) return "";
 
-  // 1. DOMPurify pass
-  const clean = DOMPurify.sanitize(rawHtml, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ADD_ATTR: ["target", "rel", "loading", "decoding"],
-    ALLOW_DATA_ATTR: false,
-  });
+  let clean = rawHtml;
+
+  // 1. DOMPurify pass with graceful fallback for Node.js / Vercel Serverless environment
+  try {
+    clean = DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS,
+      ALLOWED_ATTR,
+      ADD_ATTR: ["target", "rel", "loading", "decoding"],
+      ALLOW_DATA_ATTR: false,
+    });
+  } catch {
+    // Fallback if isomorphic-dompurify crashes or cannot run in Node serverless env
+    clean = rawHtml
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/\son\w+=["'][^"']*["']/gi, "")
+      .replace(/href=["']javascript:[^"']*["']/gi, 'href="#"');
+  }
 
   if (typeof window === "undefined") {
     // Basic string-based regex transformations for SSR fallback
@@ -207,12 +217,12 @@ export default function HtmlBlogViewer({
   showCodeCopy = true,
 }: HtmlBlogViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [sanitizedHtml, setSanitizedHtml] = useState<string>("");
   const [lightboxImg, setLightboxImg] = useState<{ src: string; alt: string } | null>(null);
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
   // Sanitize on content change
   const processedHtml = useMemo(() => sanitizeAndTransformHtml(content || ""), [content]);
+  const [sanitizedHtml, setSanitizedHtml] = useState<string>(processedHtml);
 
   useEffect(() => {
     setSanitizedHtml(processedHtml);

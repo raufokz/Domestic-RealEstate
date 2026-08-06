@@ -27,8 +27,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
 
-  // Resolve 404 before streaming response to prevent soft-404 indexing.
-  if (!post) notFound();
+  if (!post) {
+    return buildMetadata({
+      title: "Article Not Found",
+      description: "The requested research publication could not be found.",
+      path: `/blog/${slug}`,
+      noindex: true,
+    });
+  }
 
   return buildMetadata({
     title: post.seo_title || post.title,
