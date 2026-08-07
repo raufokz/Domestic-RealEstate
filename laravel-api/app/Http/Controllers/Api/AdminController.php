@@ -773,6 +773,7 @@ class AdminController extends Controller
         $validated['approval_status'] = $validated['approval_status'] ?? 'approved';
         $validated['status'] = $validated['status'] ?? 'active';
         $validated['realtor_id'] = $validated['realtor_id'] ?? Auth::id();
+        $validated['parking_spaces'] = $validated['parking_spaces'] ?? 0;
         $property = Property::create($validated);
         $this->logActivity('property_created', $property);
         return response()->json(['data' => $property, 'message' => 'Property created'], 201);
@@ -807,6 +808,9 @@ class AdminController extends Controller
             'video_url' => 'sometimes|nullable|string|max:500',
             'virtual_tour_url' => 'sometimes|nullable|string|max:500',
         ]);
+        if (array_key_exists('parking_spaces', $validated) && $validated['parking_spaces'] === null) {
+            $validated['parking_spaces'] = 0;
+        }
         $property->update($validated);
         $this->logActivity('property_updated', $property);
         return response()->json(['data' => $property->fresh('images'), 'message' => 'Property updated']);

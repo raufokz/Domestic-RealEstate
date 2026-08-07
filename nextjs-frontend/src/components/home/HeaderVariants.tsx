@@ -4,6 +4,16 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { useAuth } from "@/hooks/useAuth";
+
+function dashboardPathForRole(role: string): string {
+  if (role === "super_admin" || role === "admin") return "/admin";
+  return `/${role}/dashboard`;
+}
+
+function roleLabel(role: string): string {
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface SubMenuItem {
   title: string;
@@ -114,10 +124,18 @@ const navCategories: NavCategory[] = [
 ];
 
 export default function HeaderVariants() {
+  const { user, loading, logout } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    setAccountMenuOpen(false);
+    await logout();
+    window.location.href = "/";
+  };
 
   return (
     <div className="w-full sticky top-0 z-50 transition-all font-body">
@@ -147,9 +165,52 @@ export default function HeaderVariants() {
               Contact
             </Link>
             <span className="text-slate-700">|</span>
-            <Link href="/login" className="hover:text-[#C9A227] transition-colors flex items-center gap-1 text-white">
-              <span>👤</span> Sign In
-            </Link>
+            {!loading && user ? (
+              <div
+                className="relative"
+                onMouseEnter={() => setAccountMenuOpen(true)}
+                onMouseLeave={() => setAccountMenuOpen(false)}
+              >
+                <button
+                  className="hover:text-[#C9A227] transition-colors flex items-center gap-1.5 text-white cursor-pointer"
+                  onClick={() => setAccountMenuOpen((v) => !v)}
+                >
+                  <span>👤</span> {user.name}
+                  <span className="hidden sm:inline text-[9px] font-extrabold bg-[#C9A227]/20 text-[#C9A227] px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                    {roleLabel(user.role)}
+                  </span>
+                </button>
+                <AnimatePresence>
+                  {accountMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full right-0 mt-2 w-48 bg-white border-2 border-[#0A2647] rounded-2xl p-2 shadow-2xl z-50 normal-case tracking-normal"
+                    >
+                      <Link
+                        href={dashboardPathForRole(user.role)}
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="block px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-[#0A2647] transition-colors"
+                      >
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link href="/login" className="hover:text-[#C9A227] transition-colors flex items-center gap-1 text-white">
+                <span>👤</span> Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -306,14 +367,35 @@ export default function HeaderVariants() {
               <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-600 hover:text-slate-900">Contact Us</Link>
               <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="block p-2.5 text-xs font-bold text-slate-600 hover:text-slate-900">Blog</Link>
             </div>
-            <div className="flex gap-3 pt-2">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl border border-slate-350 text-xs font-bold text-slate-700">
-                Sign In
-              </Link>
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl bg-[#C9A227] text-[#0A2647] text-xs font-extrabold">
-                Get Started Free
-              </Link>
-            </div>
+            {!loading && user ? (
+              <div className="flex gap-3 pt-2">
+                <Link
+                  href={dashboardPathForRole(user.role)}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center py-2.5 rounded-xl bg-[#C9A227] text-[#0A2647] text-xs font-extrabold"
+                >
+                  {user.name}'s Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex-1 text-center py-2.5 rounded-xl border border-slate-350 text-xs font-bold text-red-600 cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-3 pt-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl border border-slate-350 text-xs font-bold text-slate-700">
+                  Sign In
+                </Link>
+                <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2.5 rounded-xl bg-[#C9A227] text-[#0A2647] text-xs font-extrabold">
+                  Get Started Free
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
