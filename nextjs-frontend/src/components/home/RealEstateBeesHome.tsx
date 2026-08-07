@@ -270,28 +270,52 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
     },
   ];
 
+  const faqCategories = ["All", "Leads & Marketplace", "Integrations & Tech", "Broker Memberships", "Data & Quality"];
+  const [activeFaqCategory, setActiveFaqCategory] = useState("All");
+
   const faqItems = [
     {
+      category: "Leads & Marketplace",
+      icon: "🏢",
       q: "What is Domestic Real Estate (DomesticRealEstate / Domestic Realestate)?",
-      a: "Domestic Real Estate (commonly searched as DomesticRealEstate or Domestic Realestate) is an AI-powered proptech marketplace connecting buyers, sellers, property investors, and licensed real estate agents with verified seller leads, off-market listings, and market analytics.",
+      a: "Domestic Real Estate is an enterprise-grade AI proptech platform designed for property buyers, sellers, real estate investors, and licensed real estate brokers. We combine real-time off-market deal feeds, skip-tracing algorithms, and nationwide directory indexing to streamline property transactions across North America.",
     },
     {
+      category: "Leads & Marketplace",
+      icon: "🔥",
       q: "How does the Domestic Real Estate Lead Generation Marketplace work?",
-      a: "Our Domestic Real Estate network connects agents, investors, and brokers directly with motivated seller leads, off-market property owners, and pre-screened home buyers. Leads are verified using real-time skip tracing and property data feeds.",
+      a: "Our platform aggregates high-intent lead signals from probate filings, pre-foreclosures, absentee owners, and direct-to-seller marketing channels. Inquiries are instantly verified using multi-point skip tracing and routed directly to agents and investors in real time.",
     },
     {
+      category: "Data & Quality",
+      icon: "🛡️",
       q: "Are the leads exclusive or shared among multiple agents?",
-      a: "We offer both 100% exclusive lead packages assigned to a single zip code agent as well as shared marketplace inquiries for wholesalers and private lenders across Domestic Realestate markets.",
+      a: "We offer both 100% Territory-Exclusive lead subscriptions (locked to specific zip codes for solo agents & teams) as well as open marketplace pay-per-lead options for wholesalers, funds, and private lenders.",
     },
     {
+      category: "Integrations & Tech",
+      icon: "⚡",
       q: "Can I integrate Domestic Real Estate leads with my existing CRM?",
-      a: "Yes! The DomesticRealEstate platform features native Webhook and API integrations supporting Follow Up Boss, KVCore, Salesforce, HubSpot, Zapier, and leading real estate CRMs.",
+      a: "Yes! Domestic Real Estate supports instant Webhook and REST API integrations with Follow Up Boss, KVCore, Salesforce, HubSpot, Zapier, Lofty, and over 1,000+ real estate tools.",
     },
     {
-      q: "How are Domestic Real Estate software platforms evaluated and reviewed?",
-      a: "Our editorial board benchmarks software based on conversion ROI, customer service ratings, platform uptime, API access, and verified user testimonials across domestic real estate markets.",
+      category: "Broker Memberships",
+      icon: "💎",
+      q: "What benefits do partner brokerages receive upon joining?",
+      a: "Partner brokerages gain verified directory status, priority lead dispatching, custom team seats, dedicated MLS sync pipelines, and a featured profile in our nationwide Realtor Network.",
+    },
+    {
+      category: "Data & Quality",
+      icon: "📊",
+      q: "How are software platforms evaluated and benchmarked?",
+      a: "Our independent evaluation board benchmarks software based on verified conversion ROI, platform uptime, customer support response times, API capabilities, and real client reviews.",
     },
   ];
+
+  const filteredFaqs = activeFaqCategory === "All" 
+    ? faqItems 
+    : faqItems.filter(f => f.category === activeFaqCategory);
+
 
   const currentPro = proSegments[activeProIndex];
   const estAnnualRevenue = Math.round(monthlyLeads * 0.06 * avgCommission);
@@ -1227,25 +1251,94 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
         </div>
       </section>
 
-      {/* ── SEO SECTION 6: SCHEMA FAQ ACCORDION WITH FRAMER MOTION ── */}
-      <section className="py-20 bg-slate-100 border-t border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 text-left">
+      {/* ── LUXURY SCHEMA FAQ ACCORDION & KNOWLEDGE BASE ── */}
+      <section className="py-24 bg-gradient-to-b from-slate-50 via-slate-100 to-white border-t border-slate-200 relative overflow-hidden">
+        {/* Ambient Glow Decorative Backdrops */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-[#C9A227]/5 blur-3xl pointer-events-none rounded-full" />
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-left">
+          
+          {/* FAQ Section Header */}
           <div className="text-center mb-12">
-            <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">Frequently Asked Questions</span>
-            <h2 className="text-3xl font-extrabold text-[#0A2647] mt-1">Everything You Need to Know</h2>
+            <div className="inline-flex items-center gap-2 bg-[#0A2647] text-[#C9A227] text-[10px] font-black uppercase px-3.5 py-1.5 rounded-full font-mono tracking-widest shadow-md mb-3">
+              <span>💡</span> KNOWLEDGE BASE & FREQUENTLY ASKED QUESTIONS
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-[#0A2647] tracking-tight font-heading">
+              Got Questions? We Have Answers.
+            </h2>
+            <p className="mt-3 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed">
+              Everything you need to know about our off-market deal pipelines, motivated seller lead subscriptions, CRM integrations, and nationwide brokerage network.
+            </p>
+
+            {/* Category Filter Pills */}
+            <div className="mt-8 flex flex-wrap justify-center gap-2">
+              {faqCategories.map((cat) => {
+                const isActive = activeFaqCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveFaqCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? "bg-[#0A2647] text-[#C9A227] shadow-lg ring-2 ring-[#C9A227]/50 scale-105"
+                        : "bg-white text-slate-700 hover:bg-slate-200 border border-slate-200 shadow-sm"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
+          {/* Luxury FAQ Accordion Cards */}
           <div className="space-y-4">
-            {faqItems.map((faq, idx) => {
+            {filteredFaqs.map((faq, idx) => {
               const isOpen = openFaqIndex === idx;
               return (
-                <div key={idx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className={`rounded-2xl transition-all duration-300 overflow-hidden border-2 ${
+                    isOpen
+                      ? "bg-white border-[#C9A227] shadow-xl ring-2 ring-[#C9A227]/20"
+                      : "bg-white/80 hover:bg-white border-slate-200 hover:border-[#0A2647]/40 shadow-sm"
+                  }`}
+                >
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                    className="w-full p-5 text-left font-extrabold text-[#0A2647] flex justify-between items-center cursor-pointer hover:text-[#C9A227] transition-colors"
+                    className="w-full p-6 text-left font-extrabold text-[#0A2647] flex items-center justify-between gap-4 cursor-pointer group"
                   >
-                    <span className="text-sm sm:text-base">{faq.q}</span>
-                    <span className="text-xl font-mono text-[#C9A227] font-bold">{isOpen ? "−" : "+"}</span>
+                    <div className="flex items-center gap-4">
+                      {/* Number & Icon Pill */}
+                      <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm shrink-0 font-mono font-black transition-all ${
+                        isOpen
+                          ? "bg-[#0A2647] text-[#C9A227] shadow-md"
+                          : "bg-slate-100 text-slate-700 group-hover:bg-[#C9A227]/20 group-hover:text-[#0A2647]"
+                      }`}>
+                        {faq.icon || `0${idx + 1}`}
+                      </span>
+
+                      <div>
+                        <span className="text-[10px] font-mono font-bold uppercase text-[#C9A227] block mb-0.5">
+                          {faq.category}
+                        </span>
+                        <h3 className="text-base sm:text-lg font-extrabold text-[#0A2647] group-hover:text-[#C9A227] transition-colors leading-snug">
+                          {faq.q}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Expand/Collapse Chevron Indicator */}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 font-extrabold text-sm ${
+                      isOpen
+                        ? "bg-[#C9A227] text-[#0A2647] rotate-180 shadow"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-[#0A2647] group-hover:text-white"
+                    }`}>
+                      ↓
+                    </div>
                   </button>
 
                   <AnimatePresence>
@@ -1255,16 +1348,40 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="px-5 pb-5 text-xs sm:text-sm text-slate-800 leading-relaxed border-t border-slate-100 pt-3 font-medium"
+                        className="px-6 pb-6 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium border-t border-slate-100 pt-4"
                       >
-                        {faq.a}
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 leading-relaxed">
+                          {faq.a}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
+
+          {/* Concierge Support & Questions CTA Banner */}
+          <div className="mt-12 bg-gradient-to-r from-[#07162C] via-[#0A2647] to-[#07162C] rounded-3xl p-8 text-white border border-[#C9A227]/40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4 text-left">
+              <span className="text-4xl p-3 bg-white/10 rounded-2xl border border-white/15 shrink-0">💬</span>
+              <div>
+                <h4 className="text-lg font-extrabold text-white">Still Have Questions About Our Platform?</h4>
+                <p className="text-xs text-slate-300 font-medium mt-1">
+                  Our 24/7 Concierge Support Team is ready to help you select the best plan or territory.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+              <Link
+                href="/contact"
+                className="w-full md:w-auto bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-black px-6 py-3 rounded-xl text-xs shadow-gold transition-all text-center"
+              >
+                Contact Concierge Team →
+              </Link>
+            </div>
+          </div>
+
         </div>
       </section>
 
