@@ -355,10 +355,11 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
         </div>
       </section>
 
+
       {/* ── ABOUT SECTION: DOMESTIC REAL ESTATE SOLUTIONS ── */}
       <section className="py-16 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-6 text-left">
               <span className="text-[#C9A227] text-xs font-extrabold uppercase tracking-widest">About Our Platform</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A2647] mt-1">
@@ -370,17 +371,40 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
               <p className="mt-3 text-slate-600 text-sm leading-relaxed">
                 From real-time skip tracing and verified motivated seller lead pipelines to instant AI property valuation algorithms, our platform powers high-intent property transactions across every major <strong>Domestic Real Estate Market</strong>.
               </p>
-            </div>
-            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
-                <div className="text-3xl mb-2">🏢</div>
-                <h3 className="font-extrabold text-[#0A2647] text-base mb-1">Company Leadership</h3>
-                <p className="text-xs text-slate-600">Nationwide network connecting top 1% agents, buyers, and sellers.</p>
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left">
+                  <div className="text-2xl mb-1">🏢</div>
+                  <h3 className="font-extrabold text-[#0A2647] text-xs mb-0.5">Company Leadership</h3>
+                  <p className="text-[11px] text-slate-600">Nationwide network connecting top 1% agents, buyers, and sellers.</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left">
+                  <div className="text-2xl mb-1">⚙️</div>
+                  <h3 className="font-extrabold text-[#0A2647] text-xs mb-0.5">Intelligent Solutions</h3>
+                  <p className="text-[11px] text-slate-600">Off-market deal matching, skip-tracing, and automated CRM sync.</p>
+                </div>
               </div>
-              <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
-                <div className="text-3xl mb-2">⚙️</div>
-                <h3 className="font-extrabold text-[#0A2647] text-base mb-1">Intelligent Solutions</h3>
-                <p className="text-xs text-slate-600">Off-market deal matching, skip-tracing, and automated CRM sync.</p>
+            </div>
+
+            {/* Single Luxury Architectural AI Image Showcase */}
+            <div className="lg:col-span-6">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 group">
+                <img
+                  src="/images/home/about_luxury.png"
+                  alt="Domestic Real Estate Luxury Architectural Villa"
+                  className="w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2647]/90 via-[#0A2647]/20 to-transparent flex flex-col justify-end p-6 text-left">
+                  <span className="inline-block bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase px-3 py-1 rounded-full w-fit mb-2 shadow font-mono">
+                    High-End Estate Architecture
+                  </span>
+                  <h3 className="text-xl font-extrabold text-white">
+                    Domestic Real Estate Ecosystem
+                  </h3>
+                  <p className="text-xs text-slate-200 mt-1 font-medium">
+                    Connecting motivated sellers, investors, & top-tier advisors nationwide.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -628,63 +652,93 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             <p className="text-xs text-slate-600 font-medium mt-1">Run quick calculations on deal profitability and property returns in real time.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Tool 1: Cap Rate Calculator */}
-            <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-extrabold text-[#0A2647]">🧮 Rental Property Cap Rate Tool</h3>
-                <span className="bg-[#0A2647] text-[#C9A227] text-xs font-mono font-extrabold px-3 py-1 rounded-full">
-                  Cap Rate: {((calcCapRate.noi / calcCapRate.price) * 100).toFixed(2)}%
-                </span>
-              </div>
-              <div className="space-y-4 text-xs font-bold text-slate-700">
-                <div>
-                  <label className="block mb-1">Net Operating Income (NOI / yr)</label>
-                  <input
-                    type="number"
-                    value={calcCapRate.noi}
-                    onChange={(e) => setCalcCapRate({ ...calcCapRate, noi: Number(e.target.value) })}
-                    className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1">Total Purchase Price ($)</label>
-                  <input
-                    type="number"
-                    value={calcCapRate.price}
-                    onChange={(e) => setCalcCapRate({ ...calcCapRate, price: Number(e.target.value) })}
-                    className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
-                  />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Visual Luxury Penthouse Office Card */}
+            <div className="lg:col-span-4 flex">
+              <div className="w-full relative rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200 group flex flex-col justify-end min-h-[320px]">
+                <img
+                  src="/images/home/tools_luxury.png"
+                  alt="Financial Tools Penthouse Office"
+                  className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2647] via-[#0A2647]/40 to-transparent" />
+                <div className="relative z-10 p-6 text-left text-white">
+                  <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono">
+                    Financial Underwriting
+                  </span>
+                  <h4 className="text-lg font-extrabold text-white mt-2">
+                    Precision Deal Analytics
+                  </h4>
+                  <p className="text-xs text-slate-200 mt-1">
+                    Engineered for high-yield property ROI modeling.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Tool 2: Fix & Flip 70% Rule Calculator */}
-            <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-extrabold text-[#0A2647]">🏚️ Fix & Flip 70% Maximum Offer Tool</h3>
-                <span className="bg-[#0A2647] text-emerald-400 text-xs font-mono font-extrabold px-3 py-1 rounded-full">
-                  Max Allowable Offer: ${(calcFlip.arv * 0.7 - calcFlip.repairs).toLocaleString()}
-                </span>
-              </div>
-              <div className="space-y-4 text-xs font-bold text-slate-700">
+            {/* Interactive Calculators */}
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Tool 1: Cap Rate Calculator */}
+              <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-lg flex flex-col justify-between">
                 <div>
-                  <label className="block mb-1">After Repair Value (ARV / $)</label>
-                  <input
-                    type="number"
-                    value={calcFlip.arv}
-                    onChange={(e) => setCalcFlip({ ...calcFlip, arv: Number(e.target.value) })}
-                    className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
-                  />
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-extrabold text-[#0A2647]">🧮 Rental Cap Rate Tool</h3>
+                    <span className="bg-[#0A2647] text-[#C9A227] text-xs font-mono font-extrabold px-2.5 py-1 rounded-full">
+                      Cap Rate: {((calcCapRate.noi / calcCapRate.price) * 100).toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="space-y-4 text-xs font-bold text-slate-700">
+                    <div>
+                      <label className="block mb-1">Net Operating Income (NOI / yr)</label>
+                      <input
+                        type="number"
+                        value={calcCapRate.noi}
+                        onChange={(e) => setCalcCapRate({ ...calcCapRate, noi: Number(e.target.value) })}
+                        className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1">Total Purchase Price ($)</label>
+                      <input
+                        type="number"
+                        value={calcCapRate.price}
+                        onChange={(e) => setCalcCapRate({ ...calcCapRate, price: Number(e.target.value) })}
+                        className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
+                      />
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Tool 2: Fix & Flip 70% Rule Calculator */}
+              <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-lg flex flex-col justify-between">
                 <div>
-                  <label className="block mb-1">Estimated Renovation Budget ($)</label>
-                  <input
-                    type="number"
-                    value={calcFlip.repairs}
-                    onChange={(e) => setCalcFlip({ ...calcFlip, repairs: Number(e.target.value) })}
-                    className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
-                  />
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-extrabold text-[#0A2647]">🏚️ Fix & Flip 70% MAO</h3>
+                    <span className="bg-[#0A2647] text-emerald-400 text-xs font-mono font-extrabold px-2.5 py-1 rounded-full">
+                      Max Offer: ${(calcFlip.arv * 0.7 - calcFlip.repairs).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="space-y-4 text-xs font-bold text-slate-700">
+                    <div>
+                      <label className="block mb-1">After Repair Value (ARV / $)</label>
+                      <input
+                        type="number"
+                        value={calcFlip.arv}
+                        onChange={(e) => setCalcFlip({ ...calcFlip, arv: Number(e.target.value) })}
+                        className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1">Estimated Renovation ($)</label>
+                      <input
+                        type="number"
+                        value={calcFlip.repairs}
+                        onChange={(e) => setCalcFlip({ ...calcFlip, repairs: Number(e.target.value) })}
+                        className="w-full bg-slate-100 p-3 rounded-xl border border-slate-300 font-mono text-slate-900 font-bold"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -920,46 +974,69 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
         </div>
       </section>
 
-      {/* ── CENTRALIZED COMMUNITY BLOCK (CENTERED, MINIMALIST PREMIUM) ── */}
-      <section className="py-20 bg-gradient-to-r from-[#0A2647] via-[#0D315c] to-[#0A2647] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider font-mono">
-              Industry Network
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-6 leading-tight font-heading">
-              Join The Growing Community of <span className="text-[#C9A227]">Real Estate Experts</span>
-            </h2>
+      {/* ── CENTRALIZED COMMUNITY BLOCK (WITH DYNAMIC THEME IMAGE) ── */}
+      <section className="py-20 bg-gradient-to-r from-[#0A2647] via-[#0D315c] to-[#0A2647] text-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            <div className="lg:col-span-7 text-left">
+              <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider font-mono">
+                Industry Network
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 leading-tight font-heading">
+                Join The Growing Community of <span className="text-[#C9A227]">Real Estate Experts</span>
+              </h2>
 
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
-              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
-                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Direct Access</h4>
-                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
-                  Connect to exclusive off-market deals and verified motivated seller lead channels.
-                </p>
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                <div className="bg-white/10 backdrop-blur border border-white/15 p-4 rounded-2xl">
+                  <div className="w-7 h-7 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs mb-2">✓</div>
+                  <h4 className="text-[#C9A227] font-heading font-extrabold text-xs mb-1">Direct Access</h4>
+                  <p className="text-[11px] font-semibold text-slate-200 leading-relaxed">
+                    Connect to exclusive off-market deals and verified seller lead channels.
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur border border-white/15 p-4 rounded-2xl">
+                  <div className="w-7 h-7 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs mb-2">✓</div>
+                  <h4 className="text-[#C9A227] font-heading font-extrabold text-xs mb-1">Network Connections</h4>
+                  <p className="text-[11px] font-semibold text-slate-200 leading-relaxed">
+                    Trade directly with active investors, top brokers, lenders, and tech partners.
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur border border-white/15 p-4 rounded-2xl">
+                  <div className="w-7 h-7 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-xs mb-2">✓</div>
+                  <h4 className="text-[#C9A227] font-heading font-extrabold text-xs mb-1">Public Exposure</h4>
+                  <p className="text-[11px] font-semibold text-slate-200 leading-relaxed">
+                    Get listed inside nationwide real estate service directories.
+                  </p>
+                </div>
               </div>
-              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
-                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Network Connections</h4>
-                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
-                  Co-operate and trade directly with active investors, top brokers, lenders, and tech partners.
-                </p>
-              </div>
-              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-                <div className="w-8 h-8 rounded-full bg-[#C9A227] text-[#0A2647] font-extrabold flex items-center justify-center text-sm mb-4">✓</div>
-                <h4 className="text-[#C9A227] font-heading font-extrabold text-sm mb-1.5">Public Exposure</h4>
-                <p className="text-xs font-semibold text-slate-200 leading-relaxed">
-                  Get listed inside nationwide real estate service directories to rank higher locally.
-                </p>
+
+              <div className="mt-8">
+                <Link href="/register" className="inline-block bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-8 py-3.5 rounded-xl text-xs sm:text-sm shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                  Join The Network Free →
+                </Link>
               </div>
             </div>
 
-            <div className="mt-12">
-              <Link href="/register" className="inline-block bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-8 py-4 rounded-xl text-xs sm:text-sm shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                Join The Network Free →
-              </Link>
+            {/* Single Luxury Community Image Display */}
+            <div className="lg:col-span-5">
+              <div className="relative rounded-3xl overflow-hidden border-2 border-[#C9A227]/50 shadow-2xl group h-80">
+                <img
+                  src="/images/home/community_luxury.png"
+                  alt="Community Real Estate Executives"
+                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2647]/80 via-transparent to-transparent p-6 flex flex-col justify-end text-left">
+                  <span className="bg-[#C9A227] text-[#0A2647] text-[10px] font-black uppercase px-2.5 py-1 rounded-full w-fit font-mono">
+                    Executive Network
+                  </span>
+                  <p className="text-xs text-white font-extrabold mt-1">
+                    Nationwide PropTech Network
+                  </p>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </section>
