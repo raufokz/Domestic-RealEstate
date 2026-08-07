@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
+import { useRequireAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { name: "Dashboard", href: "/super-admin/dashboard", icon: "📊" },
@@ -29,6 +30,7 @@ export default function SuperAdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useRequireAuth();
 
   return (
     <div className="flex h-screen bg-slate-50">

@@ -2,14 +2,38 @@
 
 import { useState, type FormEvent } from 'react';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
+import { apiPost, ApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 export default function InquiryPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { notifyError } = useToast();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    try {
+      const [firstName, ...rest] = form.name.trim().split(/\s+/);
+      await apiPost('/leads/capture', {
+        first_name: firstName || form.name,
+        last_name: rest.join(' ') || undefined,
+        email: form.email,
+        phone: form.phone || undefined,
+        type: 'vendor',
+        source: 'wholesaler_inquiry',
+        notes: form.message,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      notifyError(
+        err,
+        err instanceof ApiError ? err.message : 'Failed to send your message. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-300 font-body text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-colors';
@@ -38,25 +62,25 @@ export default function InquiryPage() {
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 md:p-12 border border-gray-100 space-y-6">
               <div>
-                <label className={labelClass}>Full Name *</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Smith" className={inputClass} />
+                <label htmlFor="wsinq-name" className={labelClass}>Full Name *</label>
+                <input id="wsinq-name" name="name" type="text" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Smith" className={inputClass} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className={labelClass}>Email Address *</label>
-                  <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@example.com" className={inputClass} />
+                  <label htmlFor="wsinq-email" className={labelClass}>Email Address *</label>
+                  <input id="wsinq-email" name="email" type="email" autoComplete="email" inputMode="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@example.com" className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Phone Number</label>
-                  <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(555) 123-4567" className={inputClass} />
+                  <label htmlFor="wsinq-phone" className={labelClass}>Phone Number</label>
+                  <input id="wsinq-phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(555) 123-4567" className={inputClass} />
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Message *</label>
-                <textarea rows={5} required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Tell us how we can help you..." className={inputClass + ' resize-none'} />
+                <label htmlFor="wsinq-message" className={labelClass}>Message *</label>
+                <textarea id="wsinq-message" name="message" rows={5} required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Tell us how we can help you..." className={inputClass + ' resize-none'} />
               </div>
-              <button type="submit" className="w-full bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors text-lg">
-                Send Message
+              <button type="submit" disabled={loading} className="w-full bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed">
+                {loading ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           )}

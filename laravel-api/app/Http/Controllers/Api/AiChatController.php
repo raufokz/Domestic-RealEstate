@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Lead;
 use App\Services\LeadCaptureService;
 use App\Services\AiService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +81,12 @@ class AiChatController extends Controller
         $c = AiConversation::with(['lead', 'assignedAgent'])->find($id);
 
         if (!$c) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         // Map to Detail format expected by frontend
@@ -127,7 +133,12 @@ class AiChatController extends Controller
         $conversation = AiConversation::find($id);
 
         if (!$conversation) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         $request->validate([
@@ -168,7 +179,12 @@ class AiChatController extends Controller
         $conversation = AiConversation::find($id);
 
         if (!$conversation) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         $request->validate([
@@ -189,7 +205,12 @@ class AiChatController extends Controller
         $conversation = AiConversation::find($id);
 
         if (!$conversation) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         $request->validate([
@@ -210,7 +231,12 @@ class AiChatController extends Controller
         $conversation = AiConversation::find($id);
 
         if (!$conversation) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         $request->validate([
@@ -231,7 +257,12 @@ class AiChatController extends Controller
         $conversation = AiConversation::find($id);
 
         if (!$conversation) {
-            return response()->json(['message' => 'Conversation not found'], 404);
+            return ApiResponse::fail(
+                'Conversation not found',
+                'not_found',
+                404,
+                reason: 'this conversation may have been deleted',
+            );
         }
 
         $conversation->delete();

@@ -8,6 +8,7 @@ use App\Models\AgentProfile;
 use App\Models\Enquiry;
 use App\Models\Lead;
 use App\Models\Property;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -395,7 +396,12 @@ class AgentController extends Controller
         $doc = AgentDocument::where('agent_id', $profile->id)->findOrFail($id);
 
         if (!$doc->file_url || !Storage::disk('public')->exists($doc->file_url)) {
-            return response()->json(['message' => 'File not found'], 404);
+            return ApiResponse::fail(
+                'File not found',
+                'not_found',
+                404,
+                reason: 'this document file is missing from storage',
+            );
         }
         return response()->download(storage_path('app/public/' . $doc->file_url), $doc->original_name ?? basename($doc->file_url));
     }

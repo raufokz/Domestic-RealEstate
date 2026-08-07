@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessDataExport;
 use App\Models\DataExport;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -49,11 +50,22 @@ class DataExportController extends Controller
         $export = DataExport::where('created_by', request()->user()->id)->findOrFail($id);
 
         if ($export->status !== 'completed' || !$export->file_path) {
-            return response()->json(['message' => 'Export not ready'], 404);
+            return ApiResponse::fail(
+                'Export not ready',
+                'export_not_ready',
+                404,
+                reason: 'this export is still processing or failed to complete',
+                fix: 'Wait for the export status to show "completed", then try downloading again.',
+            );
         }
 
         if (!Storage::exists($export->file_path)) {
-            return response()->json(['message' => 'File not found'], 404);
+            return ApiResponse::fail(
+                'File not found',
+                'not_found',
+                404,
+                reason: 'the export file is missing from storage',
+            );
         }
 
         return Storage::download($export->file_path);

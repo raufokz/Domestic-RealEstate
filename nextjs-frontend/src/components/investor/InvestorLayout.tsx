@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
 const navItems = [
@@ -26,7 +26,7 @@ export default function InvestorLayout({
   subtitle?: string;
 }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout } = useRequireAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const initials = user

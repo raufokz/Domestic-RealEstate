@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, createElement, type ReactNode } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { apiGet, apiPost, setToken, clearToken, isAuthenticated } from "@/lib/api";
 
 interface User {
@@ -76,4 +77,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   return useContext(AuthCtx);
+}
+
+/**
+ * Guard for authenticated-only layouts (admin/portal). Redirects to /login
+ * with a returnTo once loading settles and no user is present — covers both
+ * "never logged in" and "token expired mid-session" (AuthProvider clears the
+ * token and sets user:null on any /auth/me failure, but never redirects on
+ * its own).
+ */
+export function useRequireAuth(): AuthContextType {
+  const auth = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!auth.loading && !auth.user) {
+      router.replace(`/login?returnTo=${encodeURIComponent(pathname || "/")}`);
+    }
+  }, [auth.loading, auth.user, pathname, router]);
+
+  return auth;
 }

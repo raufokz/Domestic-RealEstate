@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Invoice;
 use App\Services\Payments\InvoicePdfService;
 use App\Services\Payments\PayoneerService;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -179,7 +180,12 @@ class InvoiceController extends Controller
         $signature = $request->header('X-Payoneer-Signature'); // VERIFY header name against live docs
         if (!$this->payments->verifyWebhookSignature($request->getContent(), $signature)) {
             Log::warning('Rejected invoice webhook with invalid/missing signature', ['ip' => $request->ip()]);
-            return response()->json(['message' => 'Invalid signature.'], 401);
+            return ApiResponse::fail(
+                'Invalid signature.',
+                'invalid_signature',
+                401,
+                reason: 'the webhook signature did not match',
+            );
         }
 
         $event = $request->input('event', 'payment.succeeded');
@@ -188,7 +194,12 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::find($invoiceId);
         if (!$invoice) {
-            return response()->json(['message' => 'Invoice not found.'], 404);
+            return ApiResponse::fail(
+                'Invoice not found.',
+                'not_found',
+                404,
+                reason: 'no invoice matches the reference id in this webhook payload',
+            );
         }
 
         if ($event === 'payment.succeeded' && $invoice->status !== 'paid') {

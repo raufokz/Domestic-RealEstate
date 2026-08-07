@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
 const NAV_GROUPS: { label?: string; items: { name: string; href: string; icon: string }[] }[] = [
@@ -51,7 +51,7 @@ export default function AgentLayout({
   subtitle?: string;
 }) {
   const pathname = usePathname();
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout } = useRequireAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading) {

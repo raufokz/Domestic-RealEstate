@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Middleware;
 
+use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -16,15 +17,32 @@ class EnsureRole
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return ApiResponse::fail(
+                'Please sign in again to continue.',
+                'unauthenticated',
+                401,
+                reason: 'your session expired or you are not logged in',
+                fix: 'Log in at /admin/login or your portal login page.',
+            );
         }
 
         if ($user->status !== 'active') {
-            return response()->json(['message' => 'Your account is not active.'], 403);
+            return ApiResponse::fail(
+                'Your account is not active.',
+                'account_inactive',
+                403,
+                reason: 'this account has been suspended or deactivated',
+                fix: 'Contact info@domesticrealestate.us to reactivate your account.',
+            );
         }
 
         if (!empty($roles) && !in_array($user->role, $roles, true)) {
-            return response()->json(['message' => 'Forbidden. Insufficient permissions.'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to do this.',
+                'insufficient_role',
+                403,
+                reason: 'your account role does not have access to this resource',
+            );
         }
 
         return $next($request);

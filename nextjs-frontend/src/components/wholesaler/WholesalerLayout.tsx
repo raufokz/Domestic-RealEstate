@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
 const ALLOWED_ROLES = ["wholesaler", "admin", "super_admin"];
@@ -26,7 +26,7 @@ export default function WholesalerLayout({
   subtitle?: string;
 }) {
   const pathname = usePathname();
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout } = useRequireAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading) {

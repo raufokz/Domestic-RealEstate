@@ -129,18 +129,18 @@ export default function ServiceRequestPage() {
             <p className="text-slate-500 text-sm mb-4">How can our team reach you?</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Full Name *</label>
-                <input type="text" required value={form.full_name} onChange={(e) => update("full_name", e.target.value)}
+                <label htmlFor="service-full-name" className="block text-sm font-medium text-navy mb-1">Full Name *</label>
+                <input id="service-full-name" name="full_name" type="text" autoComplete="name" required value={form.full_name} onChange={(e) => update("full_name", e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors" placeholder="John Doe" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Email *</label>
-                <input type="email" required value={form.email} onChange={(e) => update("email", e.target.value)}
+                <label htmlFor="service-email" className="block text-sm font-medium text-navy mb-1">Email *</label>
+                <input id="service-email" name="email" type="email" autoComplete="email" inputMode="email" required value={form.email} onChange={(e) => update("email", e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors" placeholder="john@example.com" />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-navy mb-1">Phone</label>
-                <input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)}
+                <label htmlFor="service-phone" className="block text-sm font-medium text-navy mb-1">Phone</label>
+                <input id="service-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors bg-slate-50 text-slate-400"
                   placeholder="Coming Soon" disabled />
                 <p className="text-xs text-slate-400 mt-1">Phone verification coming soon.</p>

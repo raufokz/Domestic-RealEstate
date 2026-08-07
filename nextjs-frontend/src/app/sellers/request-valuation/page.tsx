@@ -3,12 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
+import { apiPost, ApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 const propertyTypes = ['Single Family', 'Condo', 'Townhouse', 'Multi-Family', 'Land'];
 const conditions = ['Excellent', 'Very Good', 'Good', 'Fair', 'Needs Work'];
 const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 export default function RequestValuationPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
@@ -17,14 +23,33 @@ export default function RequestValuationPage() {
   const [condition, setCondition] = useState('Good');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { notifyError } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await apiPost('/forms/seller-request', {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: phone || undefined,
+        property_address: address,
+        city,
+        state,
+        zip: zip || undefined,
+        condition,
+        message: `Property type: ${propertyType}`,
+      });
       setSubmitted(true);
-    }, 1500);
+    } catch (err) {
+      notifyError(
+        err,
+        err instanceof ApiError ? err.message : 'Failed to submit your valuation request. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -89,10 +114,76 @@ export default function RequestValuationPage() {
             <p className="font-body text-gray-500 mb-8">Fill in the details below and we&apos;ll prepare your custom valuation report.</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="valuation-first-name" className="block font-body text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <input
+                    id="valuation-first-name"
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Jane"
+                    required
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="valuation-last-name" className="block font-body text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <input
+                    id="valuation-last-name"
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    required
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="valuation-email" className="block font-body text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <input
+                    id="valuation-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="valuation-phone" className="block font-body text-sm font-medium text-gray-700 mb-2">Phone (optional)</label>
+                  <input
+                    id="valuation-phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(555) 123-4567"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block font-body text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                <label htmlFor="valuation-address" className="block font-body text-sm font-medium text-gray-700 mb-2">Street Address</label>
                 <input
+                  id="valuation-address"
+                  name="address"
                   type="text"
+                  autoComplete="street-address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="123 Main Street"
@@ -103,9 +194,12 @@ export default function RequestValuationPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
-                  <label className="block font-body text-sm font-medium text-gray-700 mb-2">City</label>
+                  <label htmlFor="valuation-city" className="block font-body text-sm font-medium text-gray-700 mb-2">City</label>
                   <input
+                    id="valuation-city"
+                    name="city"
                     type="text"
+                    autoComplete="address-level2"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="City"
@@ -114,8 +208,11 @@ export default function RequestValuationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block font-body text-sm font-medium text-gray-700 mb-2">State</label>
+                  <label htmlFor="valuation-state" className="block font-body text-sm font-medium text-gray-700 mb-2">State</label>
                   <select
+                    id="valuation-state"
+                    name="state"
+                    autoComplete="address-level1"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     required
@@ -128,9 +225,13 @@ export default function RequestValuationPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-body text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                  <label htmlFor="valuation-zip" className="block font-body text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
                   <input
+                    id="valuation-zip"
+                    name="zip"
                     type="text"
+                    autoComplete="postal-code"
+                    inputMode="numeric"
                     value={zip}
                     onChange={(e) => setZip(e.target.value)}
                     placeholder="00000"
@@ -141,8 +242,10 @@ export default function RequestValuationPage() {
               </div>
 
               <div>
-                <label className="block font-body text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                <label htmlFor="valuation-property-type" className="block font-body text-sm font-medium text-gray-700 mb-2">Property Type</label>
                 <select
+                  id="valuation-property-type"
+                  name="propertyType"
                   value={propertyType}
                   onChange={(e) => setPropertyType(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body focus:ring-2 focus:ring-[#C9A227] focus:border-transparent outline-none bg-white"

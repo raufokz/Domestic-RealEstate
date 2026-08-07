@@ -11,6 +11,7 @@ use App\Models\Payout;
 use App\Models\PurchasedLead;
 use App\Models\User;
 use App\Services\Payments\PayoneerService;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -595,7 +596,12 @@ class MarketplaceController extends Controller
         $signature = $request->header('X-Payoneer-Signature'); // VERIFY exact header name against live Payoneer docs
         if (!$this->payments->verifyWebhookSignature($request->getContent(), $signature)) {
             Log::warning('Rejected marketplace webhook with invalid/missing signature', ['ip' => $request->ip()]);
-            return response()->json(['message' => 'Invalid signature.'], 401);
+            return ApiResponse::fail(
+                'Invalid signature.',
+                'invalid_signature',
+                401,
+                reason: 'the webhook signature did not match',
+            );
         }
 
         $payload = $request->all();
@@ -614,7 +620,12 @@ class MarketplaceController extends Controller
 
         $purchase = MarketplaceLeadPurchase::with('lead')->find($purchaseId);
         if (!$purchase) {
-            return response()->json(['message' => 'Purchase record not found.'], 404);
+            return ApiResponse::fail(
+                'Purchase record not found.',
+                'not_found',
+                404,
+                reason: 'no marketplace purchase matches the reference id in this webhook payload',
+            );
         }
 
         if ($event === 'payment.succeeded' && $purchase->status !== MarketplaceLeadPurchase::STATUS_PAID) {
@@ -1030,7 +1041,12 @@ class MarketplaceController extends Controller
         $signature = $request->header('X-Payoneer-Signature'); // VERIFY header name against live docs
         if (!$this->payments->verifyWebhookSignature($request->getContent(), $signature)) {
             Log::warning('Rejected payout webhook with invalid/missing signature', ['ip' => $request->ip()]);
-            return response()->json(['message' => 'Invalid signature.'], 401);
+            return ApiResponse::fail(
+                'Invalid signature.',
+                'invalid_signature',
+                401,
+                reason: 'the webhook signature did not match',
+            );
         }
 
         $event = $request->input('event', 'payout.paid');
@@ -1039,7 +1055,12 @@ class MarketplaceController extends Controller
 
         $payout = Payout::with('purchasedLead')->find($payoutId);
         if (!$payout) {
-            return response()->json(['message' => 'Payout record not found.'], 404);
+            return ApiResponse::fail(
+                'Payout record not found.',
+                'not_found',
+                404,
+                reason: 'no payout matches the reference id in this webhook payload',
+            );
         }
 
         if ($event === 'payout.paid' && $payout->status !== Payout::STATUS_PAID) {

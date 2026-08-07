@@ -2,15 +2,26 @@
 
 import { useState } from 'react';
 import { PageHero } from '@/components/ui/PageTemplate';
+import { apiPost, ApiError } from '@/lib/api';
 
 export default function UnsubscribePage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    setLoading(true);
+    setError('');
+    try {
+      await apiPost('/email/unsubscribe', { email });
       setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to unsubscribe. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,8 +55,13 @@ export default function UnsubscribePage() {
                 Enter the email address you used to subscribe and we&apos;ll remove you from our mailing list.
               </p>
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
+                <label htmlFor="unsubscribe-email" className="sr-only">Email address</label>
                 <input
+                  id="unsubscribe-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  inputMode="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
@@ -54,11 +70,15 @@ export default function UnsubscribePage() {
                 />
                 <button
                   type="submit"
-                  className="bg-[#8B1E3F] text-white font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#8B1E3F]/90 transition-colors whitespace-nowrap"
+                  disabled={loading}
+                  className="bg-[#8B1E3F] text-white font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#8B1E3F]/90 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Unsubscribe
+                  {loading ? 'Unsubscribing...' : 'Unsubscribe'}
                 </button>
               </form>
+              {error && (
+                <p className="font-body text-sm text-red-600 text-center mt-4">{error}</p>
+              )}
               <p className="font-body text-xs text-gray-400 text-center mt-4">
                 You can resubscribe at any time by visiting our newsletter page.
               </p>

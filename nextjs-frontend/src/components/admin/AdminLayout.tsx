@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
 import SystemStatusBar from "@/components/admin/SystemStatusBar";
 import NotificationBell from "@/components/admin/NotificationBell";
+import { useRequireAuth } from "@/hooks/useAuth";
 
 const navSections = [
   { label: "OVERVIEW", items: [
@@ -143,6 +144,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useRequireAuth();
 
   return (
     <div className="flex h-screen bg-gray-100">

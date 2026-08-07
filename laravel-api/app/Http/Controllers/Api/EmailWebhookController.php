@@ -44,7 +44,12 @@ class EmailWebhookController extends Controller
         if (!hash_equals((string) $configuredSecret, (string) $providedSecret)) {
             Log::warning('Rejected email bounce webhook with invalid/missing secret', ['ip' => $request->ip()]);
 
-            return response()->json(['message' => 'Invalid signature.'], 401);
+            return ApiResponse::fail(
+                'Invalid signature.',
+                'invalid_signature',
+                401,
+                reason: 'the webhook secret did not match',
+            );
         }
 
         $validated = $request->validate([

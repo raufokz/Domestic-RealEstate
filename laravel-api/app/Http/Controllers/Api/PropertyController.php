@@ -6,6 +6,7 @@ use App\Models\Property;
 use App\Models\PropertyFavorite;
 use App\Models\PropertyImage;
 use App\Models\Enquiry;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -103,7 +104,12 @@ class PropertyController extends Controller
 
     public function store(Request $request) {
         if (!in_array($request->user()->role, self::LISTING_ROLES)) {
-            return response()->json(['message' => 'Only agents, brokers, sellers, and admins can create listings.'], 403);
+            return ApiResponse::fail(
+                'Only agents, brokers, sellers, and admins can create listings.',
+                'insufficient_role',
+                403,
+                reason: 'your account role cannot create property listings',
+            );
         }
 
         $validated = $request->validate([
@@ -143,7 +149,12 @@ class PropertyController extends Controller
      */
     public function import(Request $request) {
         if (!in_array($request->user()->role, self::LISTING_ROLES)) {
-            return response()->json(['message' => 'Only agents, brokers, and admins can import listings.'], 403);
+            return ApiResponse::fail(
+                'Only agents, brokers, and admins can import listings.',
+                'insufficient_role',
+                403,
+                reason: 'your account role cannot bulk-import property listings',
+            );
         }
 
         $request->validate([
@@ -325,7 +336,12 @@ class PropertyController extends Controller
     public function update(Request $request, $id) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $restricted = ['approval_status', 'featured', 'premium', 'view_count', 'inquiry_count', 'realtor_id', 'broker_id', 'seller_id', 'uuid', 'slug'];
         $blocked = in_array($request->user()->role, ['admin', 'super_admin'])
@@ -339,7 +355,12 @@ class PropertyController extends Controller
     public function destroy(Request $request, $id) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $property->delete();
         return response()->json(['message' => 'Property deleted']);
@@ -348,7 +369,12 @@ class PropertyController extends Controller
     public function uploadImages(Request $request, $id) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $request->validate(['images' => 'required|array', 'images.*' => 'image|max:5120']);
 
@@ -375,7 +401,12 @@ class PropertyController extends Controller
     public function destroyImage(Request $request, $propertyId, $imageId) {
         $property = Property::findOrFail($propertyId);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $image = PropertyImage::where('property_id', $propertyId)->findOrFail($imageId);
         if (Storage::disk('public')->exists($image->path)) {
@@ -397,7 +428,12 @@ class PropertyController extends Controller
     public function setPrimaryImage(Request $request, $propertyId, $imageId) {
         $property = Property::findOrFail($propertyId);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $image = PropertyImage::where('property_id', $propertyId)->findOrFail($imageId);
 
@@ -412,7 +448,12 @@ class PropertyController extends Controller
     public function reorderImages(Request $request, $propertyId) {
         $property = Property::findOrFail($propertyId);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         $validated = $request->validate(['order' => 'required|array', 'order.*' => 'integer']);
 
@@ -441,7 +482,12 @@ class PropertyController extends Controller
     public function analytics(Request $request, $id) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponse::fail(
+                'You do not have permission to manage this property.',
+                'insufficient_role',
+                403,
+                reason: 'you are not the owner of this listing and are not an admin',
+            );
         }
         return response()->json($property->analytics()->orderBy('date', 'desc')->limit(30)->get());
     }
