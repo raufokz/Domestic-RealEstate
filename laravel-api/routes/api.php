@@ -144,7 +144,7 @@ Route::prefix('forms')->group(function () {
 Route::post('/service-requests', [ServiceRequestController::class, 'store']);
 
 // Public lead capture (homepage forms — no auth)
-Route::post('/leads/capture', [LeadController::class, 'capture']);
+Route::post('/leads/capture', [LeadController::class, 'capture'])->middleware('throttle:5,1');
 
 // AI (public chat + property recommendation)
 Route::prefix('ai')->group(function () {
@@ -291,7 +291,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Invoices
     Route::prefix('invoices')->group(function () {
         Route::get('/my', [InvoiceController::class, 'myInvoices']);
-        Route::get('/stats', [InvoiceController::class, 'getInvoiceStats']);
         Route::get('/{invoiceNumber}', [InvoiceController::class, 'show']);
     });
 
@@ -313,59 +312,61 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/posts/{id}', [SocialController::class, 'destroyPost']);
         Route::post('/posts/{id}/retry', [SocialController::class, 'retryPost']);
         Route::get('/templates', [SocialController::class, 'indexTemplates']);
-        Route::post('/templates', [SocialController::class, 'storeTemplate']);
-        Route::put('/templates/{id}', [SocialController::class, 'updateTemplate']);
-        Route::delete('/templates/{id}', [SocialController::class, 'destroyTemplate']);
+        Route::post('/templates', [SocialController::class, 'storeTemplate'])->middleware('role:staff,admin,super_admin');
+        Route::put('/templates/{id}', [SocialController::class, 'updateTemplate'])->middleware('role:staff,admin,super_admin');
+        Route::delete('/templates/{id}', [SocialController::class, 'destroyTemplate'])->middleware('role:staff,admin,super_admin');
         Route::post('/share-listing', [SocialController::class, 'shareListing']);
         Route::get('/calendar', [SocialController::class, 'calendar']);
         Route::get('/analytics', [SocialController::class, 'analytics']);
     });
 
     // Email Campaigns (frontend uses /email-campaigns path)
-    Route::prefix('email-campaigns')->group(function () {
-        Route::get('/', [CampaignEmailController::class, 'index']);
-        Route::post('/', [CampaignEmailController::class, 'store']);
-        Route::post('/bulk-followup', [CampaignEmailController::class, 'bulkFollowUp']);
-        Route::post('/send-test', [CampaignEmailController::class, 'sendTestEmail']);
-        Route::get('/{id}', [CampaignEmailController::class, 'show']);
-        Route::put('/{id}', [CampaignEmailController::class, 'update']);
-        Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
-        Route::post('/{id}/send', [CampaignEmailController::class, 'send']);
-        Route::get('/{id}/progress', [CampaignEmailController::class, 'progress']);
-        Route::get('/{id}/recipients', [CampaignEmailController::class, 'recipients']);
-        Route::post('/{id}/recipients/import', [CampaignEmailController::class, 'importRecipients']);
-    });
+    Route::middleware('role:staff,admin,super_admin')->group(function () {
+        Route::prefix('email-campaigns')->group(function () {
+            Route::get('/', [CampaignEmailController::class, 'index']);
+            Route::post('/', [CampaignEmailController::class, 'store']);
+            Route::post('/bulk-followup', [CampaignEmailController::class, 'bulkFollowUp']);
+            Route::post('/send-test', [CampaignEmailController::class, 'sendTestEmail']);
+            Route::get('/{id}', [CampaignEmailController::class, 'show']);
+            Route::put('/{id}', [CampaignEmailController::class, 'update']);
+            Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
+            Route::post('/{id}/send', [CampaignEmailController::class, 'send']);
+            Route::get('/{id}/progress', [CampaignEmailController::class, 'progress']);
+            Route::get('/{id}/recipients', [CampaignEmailController::class, 'recipients']);
+            Route::post('/{id}/recipients/import', [CampaignEmailController::class, 'importRecipients']);
+        });
 
-    // Email Campaigns (original path)
-    Route::prefix('campaigns')->group(function () {
-        Route::get('/', [CampaignEmailController::class, 'index']);
-        Route::post('/', [CampaignEmailController::class, 'store']);
-        Route::get('/{id}', [CampaignEmailController::class, 'show']);
-        Route::put('/{id}', [CampaignEmailController::class, 'update']);
-        Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
-        Route::post('/{id}/send', [CampaignEmailController::class, 'send']);
-        Route::get('/{id}/progress', [CampaignEmailController::class, 'progress']);
-        Route::get('/{id}/recipients', [CampaignEmailController::class, 'recipients']);
-        Route::post('/{id}/recipients/import', [CampaignEmailController::class, 'importRecipients']);
-    });
+        // Email Campaigns (original path)
+        Route::prefix('campaigns')->group(function () {
+            Route::get('/', [CampaignEmailController::class, 'index']);
+            Route::post('/', [CampaignEmailController::class, 'store']);
+            Route::get('/{id}', [CampaignEmailController::class, 'show']);
+            Route::put('/{id}', [CampaignEmailController::class, 'update']);
+            Route::delete('/{id}', [CampaignEmailController::class, 'destroy']);
+            Route::post('/{id}/send', [CampaignEmailController::class, 'send']);
+            Route::get('/{id}/progress', [CampaignEmailController::class, 'progress']);
+            Route::get('/{id}/recipients', [CampaignEmailController::class, 'recipients']);
+            Route::post('/{id}/recipients/import', [CampaignEmailController::class, 'importRecipients']);
+        });
 
-    // Sent Emails
-    Route::prefix('sent-emails')->group(function () {
-        Route::get('/', [CampaignEmailController::class, 'indexSentEmails']);
-    });
+        // Sent Emails
+        Route::prefix('sent-emails')->group(function () {
+            Route::get('/', [CampaignEmailController::class, 'indexSentEmails']);
+        });
 
-    // Email Templates
-    Route::get('/email-templates', [CampaignEmailController::class, 'templates']);
-    Route::post('/email-templates', [CampaignEmailController::class, 'storeTemplate']);
-    Route::post('/email-templates/preview', [CampaignEmailController::class, 'previewTemplate']);
-    Route::put('/email-templates/{id}', [CampaignEmailController::class, 'updateTemplate']);
-    Route::delete('/email-templates/{id}', [CampaignEmailController::class, 'destroyTemplate']);
+        // Email Templates
+        Route::get('/email-templates', [CampaignEmailController::class, 'templates']);
+        Route::post('/email-templates', [CampaignEmailController::class, 'storeTemplate']);
+        Route::post('/email-templates/preview', [CampaignEmailController::class, 'previewTemplate']);
+        Route::put('/email-templates/{id}', [CampaignEmailController::class, 'updateTemplate']);
+        Route::delete('/email-templates/{id}', [CampaignEmailController::class, 'destroyTemplate']);
+    });
 
     // Unsubscribe (public token-based)
     Route::post('/unsubscribe', [CampaignEmailController::class, 'unsubscribe']);
 
     // Pipelines & Deals
-    Route::prefix('pipelines')->group(function () {
+    Route::middleware('role:staff,admin,super_admin')->prefix('pipelines')->group(function () {
         Route::get('/', [PipelineController::class, 'index']);
         Route::post('/', [PipelineController::class, 'store']);
         Route::get('/{id}', [PipelineController::class, 'show']);
@@ -472,7 +473,7 @@ Route::middleware(['auth:sanctum', 'role:wholesaler,admin,super_admin'])->prefix
 | Admin Routes (admin + super_admin only)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard']);
     Route::get('/stats', [AdminController::class, 'stats']);
     Route::get('/analytics', [AdminController::class, 'analytics']);
@@ -492,14 +493,16 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::delete('/agents/{id}', [AdminController::class, 'destroyAgent']);
     Route::post('/agents/{id}/send-payment-link', [AdminController::class, 'sendAgentPaymentLink']);
     // Realtor Profile Self-Management (RBAC)
-    Route::get('/agent-profile/me', [AgentController::class, 'me']);
-    Route::put('/agent-profile/me', [AgentController::class, 'updateMe']);
-    Route::patch('/agent-profile/me/publish', [AgentController::class, 'publishMe']);
-    Route::post('/agent-profile/me/media', [AgentController::class, 'uploadMediaMe']);
-    Route::get('/agent-profile/me/documents', [AgentController::class, 'myDocuments']);
-    Route::post('/agent-profile/me/documents', [AgentController::class, 'storeMyDocument']);
-    Route::get('/agent-profile/me/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
-    Route::delete('/agent-profile/me/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+    Route::withoutMiddleware('role:staff,admin,super_admin')->middleware('role:agent,broker,staff,admin,super_admin')->group(function () {
+        Route::get('/agent-profile/me', [AgentController::class, 'me']);
+        Route::put('/agent-profile/me', [AgentController::class, 'updateMe']);
+        Route::patch('/agent-profile/me/publish', [AgentController::class, 'publishMe']);
+        Route::post('/agent-profile/me/media', [AgentController::class, 'uploadMediaMe']);
+        Route::get('/agent-profile/me/documents', [AgentController::class, 'myDocuments']);
+        Route::post('/agent-profile/me/documents', [AgentController::class, 'storeMyDocument']);
+        Route::get('/agent-profile/me/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
+        Route::delete('/agent-profile/me/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+    });
 
     // Admin Realtor Management & Verification Portal
     Route::get('/realtors', [AdminRealtorController::class, 'index']);
@@ -825,10 +828,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/webhooks/endpoints', [TestingController::class, 'webhookEndpoints']);
         Route::get('/webhooks/history', [TestingController::class, 'webhookHistory']);
         Route::post('/webhooks/send-test', [TestingController::class, 'sendTestWebhook']);
+        Route::post('/forms/validate', [TestingController::class, 'formsValidate']);
+        Route::post('/forms/test', [TestingController::class, 'formsTest']);
     });
 
     // Property Management
-    Route::get('/property-types', [PropertyManagementController::class, 'propertyTypes']);
+    Route::get('/property-types', [PropertyManagementController::class, 'propertyTypes'])->withoutMiddleware('role:staff,admin,super_admin')->middleware('role:agent,broker,staff,admin,super_admin');
     Route::post('/property-types', [PropertyManagementController::class, 'storePropertyType']);
     Route::put('/property-types/{id}', [PropertyManagementController::class, 'updatePropertyType']);
     Route::delete('/property-types/{id}', [PropertyManagementController::class, 'destroyPropertyType']);

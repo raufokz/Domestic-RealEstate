@@ -20,7 +20,7 @@ export default function ContactFormWidget() {
     setLoading(true);
     setError("");
     try {
-      await apiPost("/contact", {
+      await apiPost("/marketing/contact", {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,

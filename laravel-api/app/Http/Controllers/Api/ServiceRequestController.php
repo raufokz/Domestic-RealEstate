@@ -59,7 +59,11 @@ class ServiceRequestController extends Controller
     public function show($requestNumber) {
         $user = Auth::user();
         $sr = ServiceRequest::where('request_number', $requestNumber)->firstOrFail();
-        if ($sr->user_id && $sr->user_id !== $user?->id && !in_array($user?->role, ['admin', 'super_admin'])) {
+        $isAdmin = $user && in_array($user->role, ['admin', 'super_admin']);
+        if (!$sr->user_id && !$isAdmin) {
+            abort(403);
+        }
+        if ($sr->user_id && $sr->user_id !== $user?->id && !$isAdmin) {
             abort(403);
         }
         return response()->json($sr->load(['contracts', 'invoices']));

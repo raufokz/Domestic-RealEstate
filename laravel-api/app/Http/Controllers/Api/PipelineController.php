@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pipeline;
 use App\Models\PipelineStage;
 use App\Models\Deal;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
 class PipelineController extends Controller
@@ -102,8 +103,14 @@ class PipelineController extends Controller
 
     public function moveDeal(Request $request, $pipelineId, $dealId)
     {
-        $request->validate(['stage_id' => 'required|exists:pipeline_stages,id']);
+        $request->validate([
+            'stage_id' => 'required|integer|exists:pipeline_stages,id',
+        ]);
         $deal = Deal::where('pipeline_id', $pipelineId)->findOrFail($dealId);
+        $stage = PipelineStage::where('id', $request->stage_id)->where('pipeline_id', $pipelineId)->first();
+        if (!$stage) {
+            return response()->json(['message' => 'Stage does not belong to this pipeline.'], 422);
+        }
         $deal->update(['stage_id' => $request->stage_id]);
 
         $stage = PipelineStage::find($request->stage_id);
@@ -127,15 +134,19 @@ class PipelineController extends Controller
         $validated = $request->validate([
             'deal_ids' => 'required|array',
             'deal_ids.*' => 'integer|exists:deals,id',
-            'stage_id' => 'required|exists:pipeline_stages,id',
+            'stage_id' => 'required|integer|exists:pipeline_stages,id',
         ]);
+
+        $stage = PipelineStage::where('id', $validated['stage_id'])->where('pipeline_id', $pipelineId)->first();
+        if (!$stage) {
+            return response()->json(['message' => 'Stage does not belong to this pipeline.'], 422);
+        }
 
         Deal::where('pipeline_id', $pipelineId)
             ->whereIn('id', $validated['deal_ids'])
             ->update(['stage_id' => $validated['stage_id']]);
 
-        $stage = PipelineStage::find($validated['stage_id']);
-        if ($stage && $stage->is_won) {
+        if ($stage->is_won) {
             Deal::where('pipeline_id', $pipelineId)->whereIn('id', $validated['deal_ids'])->update(['status' => 'won', 'closed_at' => now()]);
         } elseif ($stage && $stage->is_lost) {
             Deal::where('pipeline_id', $pipelineId)->whereIn('id', $validated['deal_ids'])->update(['status' => 'lost', 'closed_at' => now()]);

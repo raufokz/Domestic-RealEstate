@@ -58,7 +58,8 @@ class MarketingController extends Controller
 
     public function valuation(Request $request) {
         $request->validate([
-            'address' => 'required|string',
+            'email' => 'nullable|email',
+            'address' => 'required_without:email|string',
             'city' => 'nullable|string',
             'state' => 'nullable|string',
             'zip' => 'nullable|string',
@@ -73,7 +74,7 @@ class MarketingController extends Controller
             'name' => $request->input('name', 'Valuation Visitor'),
             'email' => $request->input('email', 'info@domesticrealestate.us'),
             'phone' => $request->input('phone', ''),
-            'subject' => 'Home Valuation Request - ' . $request->address,
+            'subject' => 'Home Valuation Request - ' . $request->input('address', 'email-only'),
             'message' => json_encode($request->only([
                 'address', 'city', 'state', 'zip', 'bedrooms', 'bathrooms',
                 'sqft', 'property_type', 'condition',
@@ -88,8 +89,18 @@ class MarketingController extends Controller
                 $request->email,
                 $request->input('phone'),
                 'valuation',
-                'Valuation request for '.$request->address
+                'Valuation request for '.($request->input('address', 'no address provided'))
             );
+        }
+
+        if (!$request->filled('address')) {
+            return response()->json([
+                'message' => 'Valuation lead captured',
+                'estimated_value' => null,
+                'low_estimate' => null,
+                'high_estimate' => null,
+                'analysis' => 'Thanks! A specialist will contact you with a detailed valuation.',
+            ], 200);
         }
 
         $sqft = (int) ($request->sqft ?? 2000);

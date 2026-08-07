@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { apiPost } from "@/lib/api";
+import { apiPost, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import AdminLayout from "@/components/admin/AdminLayout";
 
@@ -105,16 +105,25 @@ export default function FormsTestingPage() {
       });
       setTestResult(data);
       if (data.validation_results) setValidationResults(data.validation_results);
-    } catch (e: any) {
-      setTestResult({
-        success: false,
-        validation_results: [],
-        db_inserted: false,
-        db_record: null,
-        email_sent: false,
-        email_to: null,
-        errors: [e?.message || "Test failed"],
-      });
+    } catch (e: unknown) {
+      const payload =
+        e instanceof ApiError && e.data && (e.data as Record<string, unknown>).validation_results
+          ? (e.data as unknown as TestResult)
+          : null;
+      if (payload) {
+        setTestResult(payload);
+        if (payload.validation_results) setValidationResults(payload.validation_results);
+      } else {
+        setTestResult({
+          success: false,
+          validation_results: [],
+          db_inserted: false,
+          db_record: null,
+          email_sent: false,
+          email_to: null,
+          errors: [e instanceof Error ? e.message : "Test failed"],
+        });
+      }
     }
     setLoading(false);
   }

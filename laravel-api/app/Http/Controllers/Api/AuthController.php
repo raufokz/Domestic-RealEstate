@@ -319,7 +319,7 @@ class AuthController extends Controller
         $request->validate(['phone' => 'required|string']);
         $otp = rand(100000, 999999);
         cache()->put("otp:{$request->phone}", $otp, now()->addMinutes(10));
-        return response()->json(['message' => 'OTP sent successfully', 'otp_dev' => $otp]);
+        return response()->json(['message' => 'OTP sent successfully']);
     }
 
     public function verifyOtp(Request $request) {

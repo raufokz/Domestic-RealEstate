@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { apiPost } from '@/lib/api';
 import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
@@ -24,10 +26,16 @@ export default function LenderJoinPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch('/api/forms/lender-application', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      await apiPost("/marketing/contact", {
+        name: formData.name,
+        email: formData.email,
+        subject: "Lender Partnership Application - " + (formData.company || "New Lender"),
+        message: [
+          formData.company ? `Company: ${formData.company}` : null,
+          formData.license ? `NMLS / License: ${formData.license}` : null,
+          formData.specialties ? `Specialties: ${formData.specialties}` : null,
+        ].filter(Boolean).join("\n"),
+        source: "lender_application",
       });
       setSubmitted(true);
     } catch {
@@ -49,7 +57,7 @@ export default function LenderJoinPage() {
             </div>
             <h1 className="font-heading text-3xl font-bold text-[#0A2647] mb-4">Application Submitted!</h1>
             <p className="text-gray-600 text-lg mb-6">Thank you for applying to become a lender partner. Our team will review your application and contact you within 48 hours.</p>
-            <a href="/" className="inline-block bg-[#0A2647] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#0A2647]/90 transition-colors">Return to Home</a>
+            <Link href="/" className="inline-block bg-[#0A2647] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#0A2647]/90 transition-colors">Return to Home</Link>
           </div>
         </div>
       </div>

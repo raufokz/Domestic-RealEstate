@@ -112,13 +112,13 @@ class LeadController extends Controller
         $existing = Lead::where('normalized_email', $validated['normalized_email'])->first();
         if ($existing) {
             $existing->update([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'] ?: $existing->last_name,
-                'phone' => $validated['phone'] ?? $existing->phone,
-                'budget_min' => $validated['budget_min'] ?? $existing->budget_min,
-                'budget_max' => $validated['budget_max'] ?? $existing->budget_max,
-                'timeline' => $validated['timeline'] ?? $existing->timeline,
-                'motivation' => $validated['motivation'] ?? $existing->motivation,
+                'first_name' => $existing->first_name ?: $validated['first_name'],
+                'last_name' => $existing->last_name ?: ($validated['last_name'] ?? ''),
+                'phone' => $existing->phone ?: ($validated['phone'] ?? null),
+                'budget_min' => $existing->budget_min ?? ($validated['budget_min'] ?? null),
+                'budget_max' => $existing->budget_max ?? ($validated['budget_max'] ?? null),
+                'timeline' => $existing->timeline ?: ($validated['timeline'] ?? null),
+                'motivation' => $existing->motivation ?: ($validated['motivation'] ?? null),
                 'notes' => trim(($existing->notes ? $existing->notes."\n" : '').($notes ?: 'Updated via public form')),
             ]);
             LeadActivity::create([

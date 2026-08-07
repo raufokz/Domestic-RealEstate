@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { apiPost } from '@/lib/api';
 import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 
@@ -26,10 +28,18 @@ export default function PropertyManagerJoinPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch('/api/forms/property-manager-application', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      await apiPost("/marketing/contact", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        subject: "Property Manager Partnership Application - " + (formData.company || "New Property Manager"),
+        message: [
+          formData.company ? `Company: ${formData.company}` : null,
+          formData.portfolio_size ? `Portfolio Size: ${formData.portfolio_size}` : null,
+          formData.states ? `States: ${formData.states}` : null,
+          formData.message ? `Message: ${formData.message}` : null,
+        ].filter(Boolean).join("\n"),
+        source: "property_manager_application",
       });
       setSubmitted(true);
     } catch {
@@ -51,7 +61,7 @@ export default function PropertyManagerJoinPage() {
             </div>
             <h1 className="font-heading text-3xl font-bold text-[#0A2647] mb-4">Application Submitted!</h1>
             <p className="text-gray-600 text-lg mb-6">Thank you for applying. Our partnerships team will review and contact you within 48 hours.</p>
-            <a href="/" className="inline-block bg-[#0A2647] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#0A2647]/90 transition-colors">Return to Home</a>
+            <Link href="/" className="inline-block bg-[#0A2647] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#0A2647]/90 transition-colors">Return to Home</Link>
           </div>
         </div>
       </div>

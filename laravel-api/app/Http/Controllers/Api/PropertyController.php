@@ -327,7 +327,12 @@ class PropertyController extends Controller
         if (!$this->canManage($request->user(), $property)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $property->update($request->all());
+        $restricted = ['approval_status', 'featured', 'premium', 'view_count', 'inquiry_count', 'realtor_id', 'broker_id', 'seller_id', 'uuid', 'slug'];
+        $blocked = in_array($request->user()->role, ['admin', 'super_admin'])
+            ? ['uuid', 'slug', 'view_count', 'inquiry_count']
+            : $restricted;
+        $allowed = array_values(array_diff($property->getFillable(), $blocked));
+        $property->update($request->only($allowed));
         return response()->json($property);
     }
 

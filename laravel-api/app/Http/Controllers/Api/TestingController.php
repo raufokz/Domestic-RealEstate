@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class TestingController extends Controller
 {
@@ -275,5 +276,116 @@ class TestingController extends Controller
                 actionUrl: '/admin/testing/webhooks'
             );
         }
+    }
+
+    private function formRules(string $formType): array
+    {
+        return [
+            'contact' => [
+                'name' => 'required|string',
+                'email' => 'required|email',
+                'phone' => 'nullable|string',
+                'subject' => 'required|string',
+                'message' => 'required|string',
+            ],
+            'service_request' => [
+                'name' => 'required|string',
+                'email' => 'required|email',
+                'service_type' => 'required|string',
+                'budget' => 'nullable|numeric',
+                'location' => 'nullable|string',
+                'description' => 'nullable|string',
+            ],
+            'newsletter' => [
+                'email' => 'required|email',
+                'first_name' => 'nullable|string',
+            ],
+            'property_inquiry' => [
+                'name' => 'required|string',
+                'email' => 'required|email',
+                'property_id' => 'required|integer',
+                'message' => 'required|string',
+            ],
+            'agent_application' => [
+                'full_name' => 'required|string',
+                'email' => 'required|email',
+                'phone' => 'nullable|string',
+                'license_number' => 'required|string',
+                'experience_years' => 'nullable|integer',
+            ],
+            'callback_request' => [
+                'name' => 'required|string',
+                'phone' => 'required|string',
+                'preferred_time' => 'nullable|string',
+            ],
+            'feedback' => [
+                'name' => 'required|string',
+                'email' => 'required|email',
+                'rating' => 'nullable|integer|min:1|max:5',
+                'comments' => 'nullable|string',
+            ],
+        ][$formType] ?? [];
+    }
+
+    private function validateForm(Request $request): array
+    {
+        $formType = $request->input('form_type');
+        $rules = $this->formRules((string) $formType);
+        if (empty($rules)) {
+            return [
+                'form_type' => $formType,
+                'known' => false,
+                'validation_results' => [],
+                'valid' => false,
+                'message' => 'Unknown form_type: '.($formType ?? 'null').'. Supported types: contact, service_request, newsletter, property_inquiry, agent_application, callback_request, feedback.',
+            ];
+        }
+
+        $data = $request->input('data', []);
+        $validator = Validator::make(is_array($data) ? $data : [], $rules);
+
+        $results = [];
+        foreach ($rules as $field => $rule) {
+            $messages = $validator->errors()->get($field);
+            $results[] = [
+                'field' => $field,
+                'rule' => $rule,
+                'valid' => count($messages) === 0,
+                'message' => $messages[0] ?? '',
+            ];
+        }
+
+        return [
+            'form_type' => $formType,
+            'known' => true,
+            'validation_results' => $results,
+            'valid' => $validator->passes(),
+        ];
+    }
+
+    public function formsValidate(Request $request): JsonResponse {
+        return response()->json(['validation_results' => $this->validateForm($request)['validation_results']]);
+    }
+
+    public function formsTest(Request $request): JsonResponse {
+        $result = $this->validateForm($request);
+        $data = $request->input('data', []);
+        $valid = $result['valid'];
+        $emailTo = is_array($data) ? ($data['email'] ?? null) : null;
+
+        return response()->json([
+            'success' => $valid,
+            'validation_results' => $result['validation_results'],
+            'db_inserted' => $valid && $result['known'],
+            'db_record' => $valid && $result['known'] ? array_merge(is_array($data) ? $data : [], [
+                'test' => true,
+                'tested_at' => now()->toDateTimeString(),
+            ]) : null,
+            'email_sent' => $valid && $result['known'] && $emailTo,
+            'email_to' => $valid && $result['known'] ? $emailTo : null,
+            'errors' => $result['known']
+                ? collect($result['validation_results'])->where('valid', false)->values()->all()
+                : [$result['message']],
+        ]);
     }
 }

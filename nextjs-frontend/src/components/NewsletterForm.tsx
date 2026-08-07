@@ -15,7 +15,7 @@ export default function NewsletterForm({ source = "website" }: { source?: string
     setSubmitting(true);
     setError("");
     try {
-      await apiPost("/newsletter", { email, source });
+      await apiPost("/marketing/newsletter", { email, source });
       setSubmitted(true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 422) {

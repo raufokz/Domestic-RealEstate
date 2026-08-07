@@ -72,7 +72,9 @@ class AgentPortalController extends Controller
         $activeListings = (clone $properties)->where('approval_status', 'approved')->where('status', 'active')->count();
         $pendingListings = (clone $properties)->where('approval_status', 'pending')->count();
         $soldProperties = (clone $properties)->where('status', 'sold')->count();
-        $draftListings = (clone $properties)->where('status', 'draft')->orWhere('approval_status', 'draft')->count();
+        $draftListings = (clone $properties)->where(function ($q) {
+            $q->where('status', 'draft')->orWhere('approval_status', 'draft');
+        })->count();
         $totalListings = (clone $properties)->count();
 
         // --- Assigned leads ---
