@@ -1,8 +1,9 @@
 "use client";
 
 import SellerLayout from "@/components/seller/SellerLayout";
-import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { apiGet, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface Document {
   id: number;
@@ -13,56 +14,117 @@ interface Document {
   status: string;
 }
 
-const FALLBACK_DATA: Document[] = [
-  { id: 1, name: "Listing Agreement — Beachfront Villa", type: "Agreement", date: "Jun 15, 2026", size: "340 KB", status: "Signed" },
-  { id: 2, name: "Seller Disclosure — Downtown Loft", type: "Disclosure", date: "Jun 20, 2026", size: "520 KB", status: "Signed" },
-  { id: 3, name: "Inspection Report — Family Estate", type: "Inspection", date: "Jul 8, 2026", size: "3.2 MB", status: "Received" },
-  { id: 4, name: "Closing Documents — Penthouse Suite", type: "Closing", date: "Jul 1, 2026", size: "1.8 MB", status: "Pending" },
-  { id: 5, name: "Home Warranty Agreement", type: "Warranty", date: "Jun 25, 2026", size: "280 KB", status: "Signed" },
-  { id: 6, name: "HOA Compliance Certificate", type: "Compliance", date: "Jul 5, 2026", size: "150 KB", status: "Received" },
-];
-
 const TYPE_COLORS: Record<string, string> = {
   Agreement: "bg-blue-100 text-blue-700",
   Disclosure: "bg-amber-100 text-amber-700",
   Inspection: "bg-emerald-100 text-emerald-700",
   Closing: "bg-purple-100 text-purple-700",
   Warranty: "bg-cyan-100 text-cyan-700",
-  Compliance: "bg-rose-100 text-rose-700",
+  Other: "bg-slate-100 text-slate-600",
 };
 
-export default function SellerDocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>(FALLBACK_DATA);
-  const [loading, setLoading] = useState(true);
+function readAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const result = await apiGet<Document[]>("/seller/documents");
-        setDocuments(result);
-      } catch {
-        setDocuments(FALLBACK_DATA);
-      } finally {
-        setLoading(false);
-      }
+export default function SellerDocumentsPage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { success, notifyError } = useToast();
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<Document[]>("/seller/documents");
+      setDocuments(result);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not load your documents.");
+    } finally {
+      setLoading(false);
     }
-    fetchData();
   }, []);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = readAuthToken();
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch(`${API_BASE}/seller/documents`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      success("Document uploaded.");
+      fetchData();
+    } catch (e) {
+      notifyError(e, "Could not upload this document.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleDownload(doc: Document) {
+    const token = readAuthToken();
+    const res = await fetch(`${API_BASE}/seller/documents/${doc.id}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!res.ok) {
+      notifyError(null, "Could not download this document.");
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = window.document.createElement("a");
+    a.href = url;
+    a.download = doc.name;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm("Delete this document?")) return;
+    try {
+      await apiDelete(`/seller/documents/${id}`);
+      setDocuments((prev) => prev.filter((d) => d.id !== id));
+    } catch (e) {
+      notifyError(e, "Could not delete this document.");
+    }
+  }
+
   return (
-    <SellerLayout title="Documents" subtitle="Manage all your listing and transaction documents.">
+    <SellerLayout title="Documents" subtitle="Manage your listing and transaction documents.">
       <div className="space-y-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
           </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-sm">
+            {error}
+            <button onClick={fetchData} className="ml-3 underline font-semibold">Retry</button>
+          </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">{documents.length} documents</span>
-              <button className="bg-[#C9A227] text-[#0A2647] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">
-                + Upload Document
-              </button>
+              <label className="bg-[#C9A227] text-[#0A2647] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition cursor-pointer">
+                {uploading ? "Uploading..." : "+ Upload Document"}
+                <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" disabled={uploading} onChange={handleUpload} />
+              </label>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -90,9 +152,7 @@ export default function SellerDocumentsPage() {
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_COLORS[doc.type] || "bg-slate-100 text-slate-600"}`}>
-                            {doc.type}
-                          </span>
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_COLORS[doc.type] || TYPE_COLORS.Other}`}>{doc.type}</span>
                         </td>
                         <td className="px-5 py-4 text-sm text-slate-500">{doc.date}</td>
                         <td className="px-5 py-4 text-sm text-slate-500">{doc.size}</td>
@@ -107,8 +167,8 @@ export default function SellerDocumentsPage() {
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button className="text-[#0A2647] hover:text-[#C9A227] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">View</button>
-                            <button className="text-slate-400 hover:text-[#0A2647] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Download</button>
+                            <button onClick={() => handleDownload(doc)} className="text-[#0A2647] hover:text-[#C9A227] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Download</button>
+                            <button onClick={() => handleDelete(doc.id)} className="text-slate-400 hover:text-red-500 text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -116,6 +176,9 @@ export default function SellerDocumentsPage() {
                   </tbody>
                 </table>
               </div>
+              {documents.length === 0 && (
+                <div className="p-8 text-center text-slate-400">No documents uploaded yet.</div>
+              )}
             </div>
           </>
         )}

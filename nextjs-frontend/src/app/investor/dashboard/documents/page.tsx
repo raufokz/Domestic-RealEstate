@@ -1,8 +1,9 @@
 "use client";
 
 import InvestorLayout from "@/components/investor/InvestorLayout";
-import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { apiGet, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface Document {
   id: number;
@@ -13,55 +14,108 @@ interface Document {
   status: string;
 }
 
-const FALLBACK_DATA: Document[] = [
-  { id: 1, name: "Tax Return 2025 — Schedule E", type: "Tax Document", date: "Apr 15, 2026", size: "1.2 MB", status: "Ready" },
-  { id: 2, name: "Rental Agreement — Riverside Complex", type: "Rental Agreement", date: "Jan 1, 2026", size: "450 KB", status: "Active" },
-  { id: 3, name: "Insurance Policy — Beach Rental", type: "Insurance", date: "Mar 1, 2026", size: "890 KB", status: "Active" },
-  { id: 4, name: "Q2 2026 Financial Report", type: "Financial Report", date: "Jul 1, 2026", size: "2.3 MB", status: "Ready" },
-  { id: 5, name: "Property Tax Assessment — Dallas", type: "Tax Document", date: "Feb 15, 2026", size: "320 KB", status: "Paid" },
-  { id: 6, name: "Lease Agreement — Downtown Office", type: "Rental Agreement", date: "Jun 1, 2026", size: "580 KB", status: "Active" },
-  { id: 7, name: "Depreciation Schedule 2026", type: "Financial Report", date: "Jan 1, 2026", size: "1.1 MB", status: "Ready" },
-];
-
-const TYPE_COLORS: Record<string, string> = {
-  "Tax Document": "bg-blue-100 text-blue-700",
-  "Rental Agreement": "bg-emerald-100 text-emerald-700",
-  "Insurance": "bg-purple-100 text-purple-700",
-  "Financial Report": "bg-amber-100 text-amber-700",
-};
+function readAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
 
 export default function InvestorDocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>(FALLBACK_DATA);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { success, notifyError } = useToast();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const result = await apiGet<Document[]>("/investor/documents");
-        setDocuments(result);
-      } catch {
-        setDocuments(FALLBACK_DATA);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<Document[]>("/investor/documents");
+      setDocuments(result);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not load your documents.");
+    } finally {
+      setLoading(false);
     }
-    fetchData();
   }, []);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = readAuthToken();
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch(`${API_BASE}/investor/documents`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      success("Document uploaded.");
+      fetchData();
+    } catch (e) {
+      notifyError(e, "Could not upload this document.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleDownload(doc: Document) {
+    const token = readAuthToken();
+    const res = await fetch(`${API_BASE}/investor/documents/${doc.id}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!res.ok) {
+      notifyError(null, "Could not download this document.");
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = window.document.createElement("a");
+    a.href = url;
+    a.download = doc.name;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm("Delete this document?")) return;
+    try {
+      await apiDelete(`/investor/documents/${id}`);
+      setDocuments((prev) => prev.filter((d) => d.id !== id));
+    } catch (e) {
+      notifyError(e, "Could not delete this document.");
+    }
+  }
+
   return (
-    <InvestorLayout title="Documents" subtitle="Manage your investment documents and records.">
+    <InvestorLayout title="Documents" subtitle="Your private investment document vault.">
       <div className="space-y-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
           </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-sm">
+            {error}
+            <button onClick={fetchData} className="ml-3 underline font-semibold">Retry</button>
+          </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">{documents.length} documents</span>
-              <button className="bg-[#C9A227] text-[#0A2647] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">
-                + Upload Document
-              </button>
+              <label className="bg-[#C9A227] text-[#0A2647] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition cursor-pointer">
+                {uploading ? "Uploading..." : "+ Upload Document"}
+                <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" disabled={uploading} onChange={handleUpload} />
+              </label>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -88,25 +142,16 @@ export default function InvestorDocumentsPage() {
                             <span className="font-semibold text-[#0A2647] text-sm">{doc.name}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-4">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_COLORS[doc.type] || "bg-slate-100 text-slate-600"}`}>
-                            {doc.type}
-                          </span>
-                        </td>
+                        <td className="px-5 py-4 text-sm text-slate-500">{doc.type}</td>
                         <td className="px-5 py-4 text-sm text-slate-500">{doc.date}</td>
                         <td className="px-5 py-4 text-sm text-slate-500">{doc.size}</td>
                         <td className="px-5 py-4">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                            doc.status === "Ready" || doc.status === "Active" || doc.status === "Paid" ? "bg-green-100 text-green-700" :
-                            "bg-yellow-100 text-yellow-700"
-                          }`}>
-                            {doc.status}
-                          </span>
+                          <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-blue-100 text-blue-700">{doc.status}</span>
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button className="text-[#0A2647] hover:text-[#C9A227] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">View</button>
-                            <button className="text-slate-400 hover:text-[#0A2647] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Download</button>
+                            <button onClick={() => handleDownload(doc)} className="text-[#0A2647] hover:text-[#C9A227] text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Download</button>
+                            <button onClick={() => handleDelete(doc.id)} className="text-slate-400 hover:text-red-500 text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -114,6 +159,9 @@ export default function InvestorDocumentsPage() {
                   </tbody>
                 </table>
               </div>
+              {documents.length === 0 && (
+                <div className="p-8 text-center text-slate-400">No documents uploaded yet.</div>
+              )}
             </div>
           </>
         )}

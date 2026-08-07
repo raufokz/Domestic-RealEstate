@@ -3,131 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\MortgageApplication;
+use App\Models\Offer;
 use Illuminate\Http\JsonResponse;
 
 class PortalController extends Controller
 {
-    public function buyerSearches(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function destroyBuyerSearch($id): JsonResponse
-    {
-        return response()->json(['message' => 'Search deleted']);
-    }
-
-    public function buyerOffers(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function buyerMortgage(): JsonResponse
-    {
-        return response()->json(['data' => []]);
-    }
-
-    public function buyerMessages(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function storeBuyerMessage($request): JsonResponse
-    {
-        return response()->json(['message' => 'Message sent'], 201);
-    }
-
-    public function buyerDocuments(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function buyerAppointments(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function sellerAppointments(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function sellerValuations(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function sellerOffers(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function sellerDocuments(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function investorOpportunities(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function investorDocuments(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
-    public function investorAnalytics(): JsonResponse
-    {
-        return response()->json([
-            'properties_viewed' => 0,
-            'saved_properties' => 0,
-            'offers_made' => 0,
-            'total_invested' => 0,
-        ]);
-    }
-
-    public function investorAlerts(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
-
     public function brokerDashboard(): JsonResponse
     {
         return response()->json([
@@ -143,51 +24,62 @@ class PortalController extends Controller
         ]);
     }
 
+    /** Platform-wide mortgage applications (real, buyer-self-reported via
+     * BuyerPortalController::storeMortgageApplication) — NOT scoped to an
+     * individual lender since `lender_name` is free text, not an FK to a
+     * `role=lender` account, so there is no "my applications" concept yet. */
     public function lenderDashboard(): JsonResponse
     {
+        $applications = MortgageApplication::with('user:id,name,email')->latest('applied_at')->limit(10)->get();
+
         return response()->json([
-            'total_loans' => 0,
-            'pending_applications' => 0,
-            'approved_loans' => 0,
-            'total_volume' => 0,
+            'total_applications' => MortgageApplication::count(),
+            'pending_applications' => MortgageApplication::where('status', 'applied')->count(),
+            'approved_applications' => MortgageApplication::where('status', 'approved')->count(),
+            'total_requested_volume' => (int) MortgageApplication::whereIn('status', ['applied', 'pre_approved', 'approved'])->sum('amount'),
+            'lender_linked' => false,
+            'recent_applications' => $applications->map(fn (MortgageApplication $a) => [
+                'id' => $a->id,
+                'borrower' => $a->user?->name ?? 'Unknown',
+                'lender' => $a->lender_name,
+                'amount' => (int) $a->amount,
+                'rate' => $a->rate,
+                'status' => str($a->status)->headline(),
+                'date' => $a->applied_at->format('M j, Y'),
+            ]),
         ]);
     }
 
+    /** Platform-wide accepted offers stand in for "closings in progress" —
+     * there is no dedicated title/escrow-order table, but every accepted
+     * offer genuinely needs title work, so this is real data, not invented.
+     * Not scoped to an individual title company (no such account link exists
+     * yet — same limitation as lenderDashboard). */
     public function titleDashboard(): JsonResponse
     {
+        $accepted = Offer::with(['property', 'buyer:id,name'])
+            ->where('status', 'accepted')
+            ->latest('responded_at')
+            ->get();
+
+        $completedThisMonth = Offer::where('status', 'accepted')
+            ->whereNotNull('closing_date')
+            ->whereBetween('closing_date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->count();
+
         return response()->json([
-            'active_closings' => 0,
-            'completed_this_month' => 0,
-            'pending_documents' => 0,
-            'revenue' => 0,
+            'active_closings' => $accepted->count(),
+            'completed_this_month' => $completedThisMonth,
+            'title_linked' => false,
+            'recent_closings' => $accepted->take(10)->map(fn (Offer $o) => [
+                'id' => $o->id,
+                'property' => collect([$o->property?->address, $o->property?->city])->filter()->implode(', ') ?: 'Unknown property',
+                'buyer' => $o->buyer?->name ?? 'Unknown',
+                'amount' => (int) $o->current_amount,
+                'closing_date' => optional($o->closing_date)->format('M j, Y'),
+                'status' => 'Accepted — Pending Closing',
+            ]),
         ]);
     }
 
-    public function superAdminDashboard(): JsonResponse
-    {
-        return response()->json([
-            'total_users' => 0,
-            'total_properties' => 0,
-            'total_revenue' => 0,
-            'system_health' => 'good',
-        ]);
-    }
-
-    public function staffDashboard(): JsonResponse
-    {
-        return response()->json([
-            'assigned_tasks' => 0,
-            'completed_tasks' => 0,
-            'pending_tasks' => 0,
-            'open_tickets' => 0,
-        ]);
-    }
-
-    public function staffDashboardTasks(): JsonResponse
-    {
-        return response()->json([
-            'data' => [],
-            'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 15, 'total' => 0],
-        ]);
-    }
 }

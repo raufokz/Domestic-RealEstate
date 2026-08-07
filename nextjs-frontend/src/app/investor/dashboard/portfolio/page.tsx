@@ -1,129 +1,60 @@
 "use client";
 
 import InvestorLayout from "@/components/investor/InvestorLayout";
+import Link from "next/link";
+import { useEffect, useState, useCallback } from "react";
+import { apiGet, ApiError } from "@/lib/api";
 
-const PROPERTIES = [
-  {
-    id: 1,
-    name: "Sunset Boulevard Condo",
-    type: "Condo",
-    purchasePrice: "$420,000",
-    currentValue: "$485,000",
-    roi: "+15.5%",
-    status: "Occupied",
-    cashFlow: "$2,800/mo",
-    statusColor: "bg-emerald-100 text-emerald-700",
-    roiColor: "text-emerald-600",
-  },
-  {
-    id: 2,
-    name: "Downtown Loft",
-    type: "Loft",
-    purchasePrice: "$540,000",
-    currentValue: "$620,000",
-    roi: "+14.8%",
-    status: "Occupied",
-    cashFlow: "$3,200/mo",
-    statusColor: "bg-emerald-100 text-emerald-700",
-    roiColor: "text-emerald-600",
-  },
-  {
-    id: 3,
-    name: "Beachfront Villa",
-    type: "Single Family",
-    purchasePrice: "$1,050,000",
-    currentValue: "$1,250,000",
-    roi: "+19.0%",
-    status: "Vacant",
-    cashFlow: "$0/mo",
-    statusColor: "bg-amber-100 text-amber-700",
-    roiColor: "text-emerald-600",
-  },
-  {
-    id: 4,
-    name: "Suburban Duplex",
-    type: "Multi-Family",
-    purchasePrice: "$310,000",
-    currentValue: "$380,000",
-    roi: "+22.6%",
-    status: "Occupied",
-    cashFlow: "$4,100/mo",
-    statusColor: "bg-emerald-100 text-emerald-700",
-    roiColor: "text-emerald-600",
-  },
-  {
-    id: 5,
-    name: "Midtown Townhouse",
-    type: "Townhouse",
-    purchasePrice: "$480,000",
-    currentValue: "$540,000",
-    roi: "+12.5%",
-    status: "Under Maintenance",
-    cashFlow: "$0/mo",
-    statusColor: "bg-blue-100 text-blue-700",
-    roiColor: "text-emerald-600",
-  },
-];
+interface PortfolioResponse {
+  data: unknown[];
+  available: boolean;
+  message: string;
+}
 
-export default function PortfolioPage() {
+export default function InvestorPortfolioPage() {
+  const [data, setData] = useState<PortfolioResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<PortfolioResponse>("/investor/portfolio");
+      setData(result);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not load your portfolio.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   return (
-    <InvestorLayout title="My Portfolio" subtitle="Track all your investment properties">
+    <InvestorLayout title="My Portfolio" subtitle="Properties you've acquired through the platform.">
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <span className="text-sm text-slate-500">Total Invested</span>
-            <p className="text-2xl font-bold text-[#0A2647] mt-1">$2,800,000</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <span className="text-sm text-slate-500">Current Value</span>
-            <p className="text-2xl font-bold text-[#0A2647] mt-1">$3,275,000</p>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-sm">
+            {error}
+            <button onClick={fetchData} className="ml-3 underline font-semibold">Retry</button>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <span className="text-sm text-slate-500">Monthly Cash Flow</span>
-            <p className="text-2xl font-bold text-[#C9A227] mt-1">$10,100</p>
+        ) : (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+            <div className="text-4xl mb-3">🏗️</div>
+            <h3 className="text-lg font-bold text-[#0A2647] mb-2">Acquired-Property Tracking Isn&apos;t Available Yet</h3>
+            <p className="text-slate-500 text-sm max-w-md mx-auto">{data?.message}</p>
+            <Link href="/investor/dashboard/saved-properties" className="inline-block mt-6 px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">
+              View Saved Properties
+            </Link>
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-lg font-bold text-[#0A2647]">Properties</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Property</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Purchase Price</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Current Value</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">ROI</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Cash Flow</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {PROPERTIES.map((prop) => (
-                  <tr key={prop.id} className="hover:bg-slate-50 transition cursor-pointer">
-                    <td className="px-5 py-4">
-                      <div>
-                        <p className="font-medium text-[#0A2647] text-sm">{prop.name}</p>
-                        <p className="text-xs text-slate-400">{prop.type}</p>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">{prop.purchasePrice}</td>
-                    <td className="px-5 py-4 text-sm font-medium text-[#0A2647]">{prop.currentValue}</td>
-                    <td className="px-5 py-4 text-sm font-semibold">{prop.roi}</td>
-                    <td className="px-5 py-4">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${prop.statusColor}`}>
-                        {prop.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-sm font-medium text-[#0A2647]">{prop.cashFlow}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        )}
       </div>
     </InvestorLayout>
   );

@@ -1,66 +1,70 @@
 "use client";
 
 import SellerLayout from "@/components/seller/SellerLayout";
-import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { useEffect, useState, useCallback } from "react";
+import { apiGet, ApiError } from "@/lib/api";
 
 interface Appointment {
   id: number;
-  property: string;
-  buyersAgent: string;
-  date: string;
-  time: string;
+  property: string | null;
+  buyersAgent: string | null;
+  date: string | null;
+  time: string | null;
   type: string;
-  feedback: string;
+  feedback: string | null;
   status: string;
-  gradient: string;
 }
 
-const FALLBACK_DATA: Appointment[] = [
-  { id: 1, property: "Luxury Beachfront Villa", buyersAgent: "Sarah Johnson", date: "Jul 15, 2026", time: "2:30 PM", type: "Showing", feedback: "Loved the ocean view, concerned about HOA fees", status: "Scheduled", gradient: "from-cyan-400 to-cyan-600" },
-  { id: 2, property: "Modern Downtown Loft", buyersAgent: "Michael Chen", date: "Jul 14, 2026", time: "10:00 AM", type: "Open House", feedback: "", status: "Completed", gradient: "from-violet-400 to-violet-600" },
-  { id: 3, property: "Suburban Family Estate", buyersAgent: "Emily Davis", date: "Jul 18, 2026", time: "11:00 AM", type: "Showing", feedback: "", status: "Scheduled", gradient: "from-rose-400 to-rose-600" },
-  { id: 4, property: "Penthouse Suite", buyersAgent: "Lisa Anderson", date: "Jul 12, 2026", time: "3:00 PM", type: "Showing", feedback: "Excellent property, will make an offer", status: "Completed", gradient: "from-amber-400 to-amber-600" },
-];
+const FILTERS = ["All", "Scheduled", "Completed"];
 
 export default function SellerAppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(FALLBACK_DATA);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState("All");
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const result = await apiGet<Appointment[]>("/seller/appointments");
-        setAppointments(result);
-      } catch {
-        setAppointments(FALLBACK_DATA);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<Appointment[]>("/seller/appointments");
+      setAppointments(result);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not load your appointments.");
+    } finally {
+      setLoading(false);
     }
-    fetchData();
   }, []);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const filtered = filter === "All" ? appointments : appointments.filter((a) => a.status === filter);
+
   return (
-    <SellerLayout title="Showing Appointments" subtitle="Manage property showings and open houses.">
+    <SellerLayout title="Showing Appointments" subtitle="Showings and open houses your agent has scheduled.">
       <div className="space-y-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C9A227]" />
           </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-sm">
+            {error}
+            <button onClick={fetchData} className="ml-3 underline font-semibold">Retry</button>
+          </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                {["All", "Scheduled", "Completed"].map((f) => (
-                  <button key={f} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${f === "All" ? "bg-[#0A2647] text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                {FILTERS.map((f) => (
+                  <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${filter === f ? "bg-[#0A2647] text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
                     {f}
                   </button>
                 ))}
               </div>
-              <button className="bg-[#C9A227] text-[#0A2647] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition">
-                + Schedule Showing
-              </button>
+              <p className="text-xs text-slate-400 max-w-xs text-right">Contact your listing agent to schedule a new showing.</p>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -77,17 +81,14 @@ export default function SellerAppointmentsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {appointments.map((apt) => (
+                    {filtered.map((apt) => (
                       <tr key={apt.id} className="hover:bg-slate-50 transition">
                         <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${apt.gradient} flex-shrink-0`} />
-                            <span className="font-semibold text-[#0A2647] text-sm">{apt.property}</span>
-                          </div>
+                          <span className="font-semibold text-[#0A2647] text-sm">{apt.property || "Showing"}</span>
                         </td>
-                        <td className="px-5 py-4 text-sm text-slate-600">{apt.buyersAgent}</td>
+                        <td className="px-5 py-4 text-sm text-slate-600">{apt.buyersAgent || "—"}</td>
                         <td className="px-5 py-4">
-                          <p className="text-sm font-medium text-[#0A2647]">{apt.date}</p>
+                          <p className="text-sm font-medium text-[#0A2647]">{apt.date || "—"}</p>
                           <p className="text-xs text-slate-500">{apt.time}</p>
                         </td>
                         <td className="px-5 py-4">
@@ -106,6 +107,11 @@ export default function SellerAppointmentsPage() {
                   </tbody>
                 </table>
               </div>
+              {filtered.length === 0 && (
+                <div className="p-8 text-center text-slate-400">
+                  {appointments.length === 0 ? "No showings scheduled yet." : "No appointments match this filter."}
+                </div>
+              )}
             </div>
           </>
         )}

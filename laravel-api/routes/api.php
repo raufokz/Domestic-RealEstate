@@ -5,6 +5,10 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\WholesalerPortalController;
+use App\Http\Controllers\Api\BuyerPortalController;
+use App\Http\Controllers\Api\SellerPortalController;
+use App\Http\Controllers\Api\InvestorPortalController;
+use App\Http\Controllers\Api\StaffPortalController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\SeoController;
@@ -379,8 +383,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{pipelineId}/deals/bulk-archive', [PipelineController::class, 'bulkArchiveDeals']);
         Route::delete('/{pipelineId}/deals/{dealId}', [PipelineController::class, 'destroyDeal']);
     });
-
-    Route::get('/super-admin/dashboard', [PortalController::class, 'superAdminDashboard']);
 });
 
 // Lead capture (public — no auth required)
@@ -445,12 +447,68 @@ Route::middleware(['auth:sanctum', 'role:buyer,admin,super_admin'])->prefix('buy
     Route::post('/offers', [OfferController::class, 'store']);
     Route::post('/offers/{id}/respond', [OfferController::class, 'buyerRespond']);
     Route::post('/offers/{id}/withdraw', [OfferController::class, 'withdraw']);
+
+    Route::get('/searches', [BuyerPortalController::class, 'savedSearches']);
+    Route::post('/searches', [BuyerPortalController::class, 'storeSavedSearch']);
+    Route::put('/searches/{id}', [BuyerPortalController::class, 'updateSavedSearch']);
+    Route::delete('/searches/{id}', [BuyerPortalController::class, 'destroySavedSearch']);
+    Route::post('/searches/{id}/run', [BuyerPortalController::class, 'runSavedSearch']);
+
+    Route::get('/appointments', [BuyerPortalController::class, 'appointments']);
+
+    Route::get('/mortgage', [BuyerPortalController::class, 'mortgageApplications']);
+    Route::post('/mortgage', [BuyerPortalController::class, 'storeMortgageApplication']);
+
+    Route::get('/messages', [BuyerPortalController::class, 'messages']);
+    Route::get('/messages/{id}', [BuyerPortalController::class, 'messageThread']);
+    Route::post('/messages', [BuyerPortalController::class, 'storeMessage']);
+
+    Route::get('/documents', [BuyerPortalController::class, 'documents']);
+    Route::post('/documents', [BuyerPortalController::class, 'storeDocument']);
+    Route::get('/documents/{id}/download', [BuyerPortalController::class, 'downloadDocument']);
+    Route::delete('/documents/{id}', [BuyerPortalController::class, 'destroyDocument']);
 });
 
 Route::middleware(['auth:sanctum', 'role:seller,agent,broker,admin,super_admin'])->prefix('seller')->group(function () {
     Route::get('/offers', [OfferController::class, 'sellerIndex']);
     Route::post('/offers/{id}/respond', [OfferController::class, 'sellerRespond']);
     Route::get('/properties', [PropertyController::class, 'myListings']);
+
+    Route::get('/appointments', [SellerPortalController::class, 'appointments']);
+    Route::get('/valuations', [SellerPortalController::class, 'valuations']);
+
+    Route::get('/documents', [SellerPortalController::class, 'documents']);
+    Route::post('/documents', [SellerPortalController::class, 'storeDocument']);
+    Route::get('/documents/{id}/download', [SellerPortalController::class, 'downloadDocument']);
+    Route::delete('/documents/{id}', [SellerPortalController::class, 'destroyDocument']);
+});
+
+Route::middleware(['auth:sanctum', 'role:investor,admin,super_admin'])->prefix('investor')->group(function () {
+    Route::get('/opportunities', [InvestorPortalController::class, 'opportunities']);
+
+    Route::get('/saved-properties', [InvestorPortalController::class, 'savedProperties']);
+    Route::delete('/saved-properties/{propertyId}', [InvestorPortalController::class, 'destroySavedProperty']);
+
+    // Alerts reuse the same saved_searches mechanism as the buyer portal —
+    // "price drop / new listing" alerts are just a saved search with
+    // alert_enabled toggled, so there's no need for a parallel table.
+    Route::get('/alerts', [BuyerPortalController::class, 'savedSearches']);
+    Route::post('/alerts', [BuyerPortalController::class, 'storeSavedSearch']);
+    Route::put('/alerts/{id}', [BuyerPortalController::class, 'updateSavedSearch']);
+    Route::delete('/alerts/{id}', [BuyerPortalController::class, 'destroySavedSearch']);
+    Route::post('/alerts/{id}/run', [BuyerPortalController::class, 'runSavedSearch']);
+
+    Route::get('/analytics', [InvestorPortalController::class, 'analytics']);
+    Route::get('/portfolio', [InvestorPortalController::class, 'portfolio']);
+
+    Route::get('/messages', [InvestorPortalController::class, 'messages']);
+    Route::get('/messages/{id}', [InvestorPortalController::class, 'messageThread']);
+    Route::post('/messages', [InvestorPortalController::class, 'storeMessage']);
+
+    Route::get('/documents', [InvestorPortalController::class, 'documents']);
+    Route::post('/documents', [InvestorPortalController::class, 'storeDocument']);
+    Route::get('/documents/{id}/download', [InvestorPortalController::class, 'downloadDocument']);
+    Route::delete('/documents/{id}', [InvestorPortalController::class, 'destroyDocument']);
 });
 
 /*
@@ -936,26 +994,33 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
     Route::put('/ai-prompts/{id}', [AiPromptController::class, 'update']);
     Route::delete('/ai-prompts/{id}', [AiPromptController::class, 'destroy']);
 
-    // Portal Routes
-    Route::get('/buyer/searches', [PortalController::class, 'buyerSearches']);
-    Route::delete('/buyer/searches/{id}', [PortalController::class, 'destroyBuyerSearch']);
-    Route::get('/buyer/offers', [PortalController::class, 'buyerOffers']);
-    Route::get('/buyer/mortgage', [PortalController::class, 'buyerMortgage']);
-    Route::get('/buyer/messages', [PortalController::class, 'buyerMessages']);
-    Route::post('/buyer/messages', [PortalController::class, 'storeBuyerMessage']);
-    Route::get('/buyer/documents', [PortalController::class, 'buyerDocuments']);
-    Route::get('/buyer/appointments', [PortalController::class, 'buyerAppointments']);
-    Route::get('/seller/appointments', [PortalController::class, 'sellerAppointments']);
-    Route::get('/seller/valuations', [PortalController::class, 'sellerValuations']);
-    Route::get('/seller/offers', [PortalController::class, 'sellerOffers']);
-    Route::get('/seller/documents', [PortalController::class, 'sellerDocuments']);
-    Route::get('/investor/opportunities', [PortalController::class, 'investorOpportunities']);
-    Route::get('/investor/documents', [PortalController::class, 'investorDocuments']);
-    Route::get('/investor/analytics', [PortalController::class, 'investorAnalytics']);
-    Route::get('/investor/alerts', [PortalController::class, 'investorAlerts']);
-    Route::get('/lender/dashboard', [PortalController::class, 'lenderDashboard']);
-    Route::get('/title/dashboard', [PortalController::class, 'titleDashboard']);
-    Route::get('/super-admin/dashboard', [PortalController::class, 'superAdminDashboard']);
-    Route::get('/staff/dashboard', [PortalController::class, 'staffDashboard']);
-    Route::get('/staff/dashboard/tasks', [PortalController::class, 'staffDashboardTasks']);
+    // NOTE: buyer/seller/investor/staff/broker/lender/title portal routes all
+    // moved to their own correctly role-gated prefix groups below — this
+    // block requires role:staff,admin,super_admin, so an actual buyer/seller/
+    // investor/broker/lender/title user could never reach any route nested
+    // here. Super-admin dashboard now reuses the already-real
+    // AdminController::dashboard() + SystemController::systemHealth()
+    // (super_admin is already included in this block's role gate).
+});
+
+Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('staff')->group(function () {
+    Route::get('/dashboard', [StaffPortalController::class, 'dashboard']);
+    Route::get('/dashboard/tasks', [StaffPortalController::class, 'tasks']);
+    Route::put('/dashboard/tasks/{id}', [StaffPortalController::class, 'updateTask']);
+});
+
+// Broker/lender/title dashboards remain honest zero-state stubs
+// (PortalController) — no fabricated numbers, just real "nothing tracked
+// yet" responses — but are now reachable by the actual role instead of
+// being nested under an admin-only nested path.
+Route::middleware(['auth:sanctum', 'role:broker,admin,super_admin'])->prefix('broker')->group(function () {
+    Route::get('/dashboard', [PortalController::class, 'brokerDashboard']);
+});
+
+Route::middleware(['auth:sanctum', 'role:lender,admin,super_admin'])->prefix('lender')->group(function () {
+    Route::get('/dashboard', [PortalController::class, 'lenderDashboard']);
+});
+
+Route::middleware(['auth:sanctum', 'role:title,admin,super_admin'])->prefix('title')->group(function () {
+    Route::get('/dashboard', [PortalController::class, 'titleDashboard']);
 });
