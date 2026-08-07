@@ -17,6 +17,18 @@ export interface PublicAgent {
   office_state?: string | null;
   office_phone?: string | null;
   office_email?: string | null;
+  mobile_number?: string | null;
+  whatsapp_number?: string | null;
+  website?: string | null;
+  cover_photo?: string | null;
+  company_logo?: string | null;
+  social_links?: Record<string, string | null | undefined> | null;
+  languages?: string[] | null;
+  certifications?: string[] | null;
+  awards?: string[] | null;
+  designations?: string[] | null;
+  nar_membership?: boolean;
+  realtor_membership?: boolean;
   rating?: string | number;
   review_count?: number;
   sales_count?: number;

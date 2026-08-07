@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import AgentLayout from "@/components/agent/AgentLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { apiGet, apiPut, ApiError } from "@/lib/api";
+import { apiPut, ApiError } from "@/lib/api";
 
 export default function AgentSettingsPage() {
   const { user, logout } = useAuth();
@@ -23,30 +24,6 @@ export default function AgentSettingsPage() {
   });
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
-
-  const [notifications, setNotifications] = useState({
-    email_leads: true,
-    email_messages: true,
-    email_marketing: false,
-    sms_leads: false,
-    sms_messages: false,
-    push_leads: true,
-    push_messages: true,
-  });
-  const [savingNotifications, setSavingNotifications] = useState(false);
-  const [notificationsMessage, setNotificationsMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    // AgentController::me() returns the profile as a bare object, not {data: ...}.
-    apiGet<{ notification_preferences?: typeof notifications }>("/admin/agent-profile/me")
-      .then((res) => {
-        if (res.notification_preferences) {
-          setNotifications((prev) => ({ ...prev, ...res.notification_preferences }));
-        }
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function handleSaveAccount() {
     setSavingAccount(true);
@@ -85,20 +62,6 @@ export default function AgentSettingsPage() {
     }
   }
 
-  async function handleSaveNotifications() {
-    setSavingNotifications(true);
-    setNotificationsMessage(null);
-    try {
-      await apiPut("/admin/agent-profile/me", { notification_preferences: notifications });
-      setNotificationsMessage("Notification preferences saved.");
-    } catch (e) {
-      setNotificationsMessage(e instanceof ApiError ? e.message : "Could not save preferences.");
-    } finally {
-      setSavingNotifications(false);
-      setTimeout(() => setNotificationsMessage(null), 4000);
-    }
-  }
-
   return (
     <AgentLayout title="Settings" subtitle="Manage your account settings">
       <div className="space-y-6">
@@ -106,7 +69,6 @@ export default function AgentSettingsPage() {
           {[
             { key: "account", label: "Account" },
             { key: "password", label: "Password" },
-            { key: "notifications", label: "Notifications" },
           ].map((t) => (
             <button
               key={t.key}
@@ -176,38 +138,15 @@ export default function AgentSettingsPage() {
           </div>
         )}
 
-        {tab === "notifications" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="text-lg font-bold text-[#0A2647] mb-5">Notification Preferences</h3>
-            <div className="space-y-4">
-              {[
-                { key: "email_leads", label: "Email: New lead assigned", group: "Email Notifications" },
-                { key: "email_messages", label: "Email: New message received", group: "Email Notifications" },
-                { key: "email_marketing", label: "Email: Marketing & product updates", group: "Email Notifications" },
-                { key: "sms_leads", label: "SMS: New lead assigned (Coming Soon)", group: "SMS Notifications" },
-                { key: "sms_messages", label: "SMS: Urgent messages (Coming Soon)", group: "SMS Notifications" },
-                { key: "push_leads", label: "Push: New lead assigned", group: "Push Notifications" },
-                { key: "push_messages", label: "Push: New messages", group: "Push Notifications" },
-              ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between py-2">
-                  <span className="text-sm text-slate-700">{item.label}</span>
-                  <button
-                    onClick={() => setNotifications((p) => ({ ...p, [item.key]: !p[item.key as keyof typeof p] }))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notifications[item.key as keyof typeof notifications] ? "bg-[#C9A227]" : "bg-slate-300"}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notifications[item.key as keyof typeof notifications] ? "translate-x-6" : "translate-x-1"}`} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex items-center gap-3">
-              <button onClick={handleSaveNotifications} disabled={savingNotifications} className="px-6 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-lg text-sm font-semibold hover:bg-[#b8911f] transition disabled:opacity-50">
-                {savingNotifications ? "Saving..." : "Save Preferences"}
-              </button>
-              {notificationsMessage && <span className="text-xs font-semibold text-slate-600">{notificationsMessage}</span>}
-            </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-[#0A2647]">Full Profile, Media & Notification Preferences</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Manage your public bio, license/MLS details, profile photo, brokerage info, and notification preferences from your Profile page.</p>
           </div>
-        )}
+          <Link href="/agent/dashboard/profile" className="shrink-0 px-4 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3366] transition">
+            Go to Profile
+          </Link>
+        </div>
 
         <div className="bg-white rounded-xl border border-red-200 p-6">
           <h3 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h3>

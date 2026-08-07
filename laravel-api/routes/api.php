@@ -450,6 +450,7 @@ Route::middleware(['auth:sanctum', 'role:buyer,admin,super_admin'])->prefix('buy
 Route::middleware(['auth:sanctum', 'role:seller,agent,broker,admin,super_admin'])->prefix('seller')->group(function () {
     Route::get('/offers', [OfferController::class, 'sellerIndex']);
     Route::post('/offers/{id}/respond', [OfferController::class, 'sellerRespond']);
+    Route::get('/properties', [PropertyController::class, 'myListings']);
 });
 
 /*

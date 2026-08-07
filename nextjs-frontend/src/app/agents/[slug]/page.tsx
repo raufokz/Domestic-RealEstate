@@ -15,10 +15,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: "Agent Not Found", robots: { index: false, follow: true } };
   }
   const name = agentName(agent);
+  const ogImage = agent.cover_photo
+    ? storageUrl(agent.cover_photo)
+    : agent.user?.avatar
+    ? storageUrl(agent.user.avatar)
+    : undefined;
   return buildMetadata({
     title: `${name}${agent.headline ? ` | ${agent.headline}` : ""}`,
     description: `Connect with ${name}${agent.headline ? `, ${agent.headline}` : ""} at Domestic Real Estate.${agent.sales_count ? ` ${agent.sales_count} homes sold.` : ""}`,
     path: `/agents/${slug}`,
+    ...(ogImage ? { image: ogImage } : {}),
   });
 }
 
@@ -32,11 +38,25 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
   const rating = agent.rating != null ? Number(agent.rating) : 0;
   const location = [agent.office_city, agent.office_state].filter(Boolean).join(", ");
   const listings = agent.listings ?? [];
+  const coverPhotoUrl = agent.cover_photo ? storageUrl(agent.cover_photo) : null;
+  const companyLogoUrl = agent.company_logo ? storageUrl(agent.company_logo) : null;
+  const credentials = [
+    ...(agent.certifications ?? []),
+    ...(agent.designations ?? []),
+    ...(agent.awards ?? []),
+  ].filter(Boolean);
+  const socialLinks = Object.entries(agent.social_links ?? {}).filter(([, url]) => !!url) as [string, string][];
 
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-[#0A2647] text-white py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0A2647] text-white py-12 md:py-16 overflow-hidden">
+        {coverPhotoUrl && (
+          <>
+            <Image src={coverPhotoUrl} alt="" fill sizes="100vw" className="object-cover opacity-30" priority />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0A2647]/80 via-[#0A2647]/85 to-[#0A2647]" />
+          </>
+        )}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-start gap-8">
             <div className="w-32 h-32 md:w-40 md:h-40 bg-[#C9A227]/20 rounded-3xl flex items-center justify-center flex-shrink-0 overflow-hidden">
               {agent.user?.avatar ? (
@@ -46,8 +66,21 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
               )}
             </div>
             <div className="flex-1">
-              <p className="text-[#C9A227] font-heading text-sm tracking-widest uppercase mb-2">Verified Agent</p>
-              <h1 className="font-heading text-3xl md:text-4xl font-bold mb-1">{name}</h1>
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <p className="text-[#C9A227] font-heading text-sm tracking-widest uppercase">Verified Agent</p>
+                {agent.realtor_membership && (
+                  <span className="bg-white/10 border border-white/20 text-white text-xs font-heading font-semibold px-2.5 py-0.5 rounded-full">REALTOR®</span>
+                )}
+                {agent.nar_membership && (
+                  <span className="bg-white/10 border border-white/20 text-white text-xs font-heading font-semibold px-2.5 py-0.5 rounded-full">NAR Member</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="font-heading text-3xl md:text-4xl font-bold">{name}</h1>
+                {companyLogoUrl && (
+                  <Image src={companyLogoUrl} alt={agent.brokerage_name || "Brokerage logo"} width={40} height={40} className="h-10 w-10 object-contain bg-white rounded-lg p-1" />
+                )}
+              </div>
               {agent.headline && <p className="font-body text-white/70 text-lg mb-3">{agent.headline}</p>}
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 {rating > 0 && (
@@ -83,6 +116,23 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
                     {agent.office_email || agent.user?.email}
                   </span>
                 )}
+                {agent.whatsapp_number && (
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
+                    WhatsApp: {agent.whatsapp_number}
+                  </span>
+                )}
+                {agent.website && (
+                  <a href={agent.website} target="_blank" rel="noopener noreferrer nofollow" className="flex items-center gap-2 hover:text-[#C9A227] transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A8.959 8.959 0 0121 12a8.959 8.959 0 01-1.157 4.418m-15.686-8.836A8.959 8.959 0 003 12c0 1.605.42 3.113 1.157 4.418m0 0A8.997 8.997 0 0012 21" /></svg>
+                    Website
+                  </a>
+                )}
+                {socialLinks.length > 0 && socialLinks.map(([platform, url]) => (
+                  <a key={platform} href={url} target="_blank" rel="noopener noreferrer nofollow" className="capitalize hover:text-[#C9A227] transition-colors">
+                    {platform}
+                  </a>
+                ))}
               </div>
               {(agent.license_number || agent.brokerage_name || location) && (
                 <div className="mt-3 flex items-center gap-2 text-sm font-body text-white/50">
@@ -153,6 +203,36 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
                       <p className="font-heading font-semibold text-[#0A2647] text-sm">{area}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {(credentials.length > 0 || (agent.languages && agent.languages.length > 0)) && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-[#0A2647] mb-4">Credentials &amp; Languages</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {credentials.length > 0 && (
+                    <div>
+                      <p className="font-heading text-sm font-semibold text-[#0A2647] mb-2 uppercase tracking-wide">Certifications &amp; Awards</p>
+                      <ul className="space-y-1.5">
+                        {credentials.map((c, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm font-body text-gray-600">
+                            <span className="text-[#C9A227]">★</span> {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {agent.languages && agent.languages.length > 0 && (
+                    <div>
+                      <p className="font-heading text-sm font-semibold text-[#0A2647] mb-2 uppercase tracking-wide">Languages Spoken</p>
+                      <div className="flex flex-wrap gap-2">
+                        {agent.languages.map((lang, i) => (
+                          <span key={i} className="bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full">{lang}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

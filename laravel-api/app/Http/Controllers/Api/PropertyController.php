@@ -56,6 +56,19 @@ class PropertyController extends Controller
         return response()->json($properties);
     }
 
+    /** Self-service "my listings" for a seller who self-lists (owns via seller_id) —
+     * unlike index(), NOT filtered to approved+active so a seller can see their own
+     * pending/rejected/draft listings too. */
+    public function myListings(Request $request) {
+        $user = $request->user();
+        $query = Property::where('seller_id', $user->id)->with(['propertyType', 'images']);
+
+        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('approval_status')) $query->where('approval_status', $request->approval_status);
+
+        return response()->json($query->latest()->paginate($request->get('per_page', 12)));
+    }
+
     public function featured() {
         $properties = cache()->remember('properties_featured', 3600, function () {
             return Property::where('featured', true)->where('approval_status', 'approved')
