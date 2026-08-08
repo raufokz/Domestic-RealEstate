@@ -37,7 +37,7 @@ function plainTextToHtml(text: string): string {
 }
 
 export async function generateStaticParams() {
-  return [
+  const defaultSlugs = [
     { slug: "where-to-buy-real-estate-in-nyc-guide" },
     { slug: "domestic-vs-international-real-estate-investment" },
     { slug: "real-estate-investment-process-domestic-vs-foreign" },
@@ -51,7 +51,22 @@ export async function generateStaticParams() {
     { slug: "domestic-real-estate-stocks-guide" },
     { slug: "how-domestic-real-estate-values-are-determined" },
     { slug: "real-estate-generates-over-percent-of-us-gross-domestic-product" },
+    { slug: "ai-revolutionizing-real-estate" },
+    { slug: "new-york-city-real-estate-guide-2026" },
+    { slug: "first-time-buyer-checklist" },
+    { slug: "2026-market-forecast" },
+    { slug: "best-cities-to-buy-rental-property-in-2026" },
   ];
+
+  try {
+    const { posts } = await getBlogPosts(100);
+    if (!posts || !Array.isArray(posts)) return defaultSlugs;
+    const apiSlugs = posts.map((p) => ({ slug: p.slug }));
+    const merged = [...defaultSlugs, ...apiSlugs.filter((s) => !defaultSlugs.some((g) => g.slug === s.slug))];
+    return merged;
+  } catch {
+    return defaultSlugs;
+  }
 }
 
 export async function generateMetadata({
