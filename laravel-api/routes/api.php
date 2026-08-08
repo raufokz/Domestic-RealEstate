@@ -203,6 +203,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('properties')->group(function () {
         Route::post('/', [PropertyController::class, 'store']);
         Route::post('/import', [PropertyController::class, 'import']);
+        Route::post('/parse-paste', [PropertyController::class, 'parsePaste']);
+        Route::post('/import-paste', [PropertyController::class, 'importPaste']);
         Route::put('/{id}', [PropertyController::class, 'update']);
         Route::delete('/{id}', [PropertyController::class, 'destroy']);
         Route::post('/{id}/images', [PropertyController::class, 'uploadImages']);
@@ -561,6 +563,7 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
         Route::post('/agent-profile/me/documents', [AgentController::class, 'storeMyDocument']);
         Route::get('/agent-profile/me/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
         Route::delete('/agent-profile/me/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+        Route::get('/contacts/search', [ContactController::class, 'index']);
     });
 
     // Admin Realtor Management & Verification Portal
@@ -643,7 +646,6 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
     // Contacts (Admin)
     Route::prefix('contacts')->group(function () {
         Route::get('/', [ContactController::class, 'index']);
-        Route::get('/search', [ContactController::class, 'index']);
         Route::get('/stats', [ContactController::class, 'stats']);
         Route::post('/', [ContactController::class, 'store']);
         Route::get('/{id}', [ContactController::class, 'show']);

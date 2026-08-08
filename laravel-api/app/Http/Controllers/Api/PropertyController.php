@@ -338,12 +338,185 @@ class PropertyController extends Controller
         ]);
     }
 
-    private function toNullableInt(?string $value): ?int {
-        return $value !== null && $value !== '' && is_numeric($value) ? (int) $value : null;
+    /**
+     * Paste-import preview: feed raw Zillow search-result text (tab-separated
+     * clipboard copy, optionally with schema.org Event JSON cells) and get back
+     * the normalized listings the dashboard will show before committing.
+     */
+    public function parsePaste(Request $request) {
+        if (!in_array($request->user()->role, self::LISTING_ROLES)) {
+            return ApiResponse::fail(
+                'Only agents, brokers, and admins can import listings.',
+                'insufficient_role',
+                403,
+                reason: 'your account role cannot bulk-import property listings',
+            );
+        }
+
+        $request->validate(['text' => 'required|string']);
+
+        $listings = \App\Services\ZillowPasteParser::parse($request->input('text', ''));
+
+        return ApiResponse::ok(
+            ['listings' => $listings, 'count' => count($listings)],
+            count($listings) > 0
+                ? 'Detected '.count($listings).' propert'.(count($listings) === 1 ? 'y' : 'ies').'.'
+                : 'No properties detected — check the pasted text and try again.',
+        );
     }
 
-    private function toNullableFloat(?string $value): ?float {
-        return $value !== null && $value !== '' && is_numeric($value) ? (float) $value : null;
+    /**
+     * Commit the listings produced by parsePaste (they arrive already
+     * normalized, possibly after the admin edited them in the preview).
+     * Mirrors import()'s batch shape so failed rows are never lost.
+     */
+    public function importPaste(Request $request) {
+        if (!in_array($request->user()->role, self::LISTING_ROLES)) {
+            return ApiResponse::fail(
+                'Only agents, brokers, and admins can import listings.',
+                'insufficient_role',
+                403,
+                reason: 'your account role cannot bulk-import property listings',
+            );
+        }
+
+        $request->validate(['listings' => 'required|array|max:1000']);
+
+        $batch = \App\Models\ImportBatch::create([
+            'import_type' => 'properties',
+            'file_name' => 'pasted-listings',
+            'format' => 'paste',
+            'status' => 'processing',
+            'column_map' => [],
+            'detected_headers' => ['title', 'price', 'address', 'city', 'state', 'zip', 'bedrooms', 'bathrooms', 'sqft'],
+            'total_rows' => count($request->listings),
+            'created_by' => $request->user()?->id,
+            'started_at' => now(),
+        ]);
+
+        $imported = 0;
+        $failed = 0;
+
+        foreach ($request->listings as $i => $raw) {
+            $rowNumber = $i + 1;
+            $row = is_array($raw) ? $raw : [];
+            $headers = array_keys($row);
+
+            $title = trim((string) ($row['title'] ?? ''));
+            $price = trim((string) ($row['price'] ?? ''));
+            $address = trim((string) ($row['address'] ?? ''));
+            $city = trim((string) ($row['city'] ?? ''));
+            $state = trim((string) ($row['state'] ?? ''));
+            $zip = trim((string) ($row['zip'] ?? ''));
+
+            $missing = [];
+            foreach (['price', 'address', 'city', 'state', 'zip'] as $required) {
+                if (trim((string) ($row[$required] ?? '')) === '') {
+                    $missing[] = $required;
+                }
+            }
+            if ($missing !== []) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'missing_required_field',
+                    'Missing required field(s): '.implode(', ', $missing).'.',
+                    $headers,
+                    $row
+                );
+                continue;
+            }
+
+            if (!is_numeric($price)) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'invalid_price',
+                    '"'.$price.'" is not a valid price.',
+                    $headers,
+                    $row
+                );
+                continue;
+            }
+
+            $propertyTypeId = \App\Services\PropertyTypeResolver::resolve($row['property_type'] ?? null);
+
+            try {
+                Property::create([
+                    'title' => $title !== '' ? $title : $address,
+                    'description' => $this->buildPasteDescription($row),
+                    'price' => (float) $price,
+                    'address' => $address,
+                    'city' => $city,
+                    'state' => $state,
+                    'zip' => $zip,
+                    'bedrooms' => $this->toNullableInt($row['bedrooms'] ?? null),
+                    'bathrooms' => $this->toNullableFloat($row['bathrooms'] ?? null),
+                    'sqft' => $this->toNullableInt($row['sqft'] ?? null),
+                    'property_type_id' => $propertyTypeId,
+                    'photos' => array_values(array_filter((array) ($row['photos'] ?? []), fn ($p) => is_string($p) && $p !== '')),
+                    'latitude' => $this->toNullableFloat($row['latitude'] ?? null),
+                    'longitude' => $this->toNullableFloat($row['longitude'] ?? null),
+                    'open_house_date' => $row['open_house_date'] ?? null,
+                    'open_house_end' => $row['open_house_end'] ?? null,
+                    'realtor_id' => $request->user()->id,
+                    'country' => 'US',
+                    'status' => 'active',
+                    'approval_status' => 'pending',
+                ]);
+                $imported++;
+            } catch (\Throwable $e) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError($batch, $rowNumber, 'save_failed', $e->getMessage(), $headers, $row);
+            }
+        }
+
+        $batch->update([
+            'status' => $failed > 0 ? 'completed_with_errors' : 'completed',
+            'rows_imported' => $imported,
+            'rows_failed' => $failed,
+            'completed_at' => now(),
+        ]);
+
+        $message = "Imported {$imported} propert".($imported === 1 ? 'y' : 'ies').'.';
+        if ($failed > 0) {
+            $message .= " {$failed} row(s) had issues — check the import history for details.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'batch_id' => $batch->id,
+            'count' => $imported,
+            'errors' => $failed,
+        ]);
+    }
+
+    private function buildPasteDescription(array $row): string
+    {
+        $parts = [];
+        if (!empty($row['status'])) {
+            $parts[] = ucfirst(strtolower((string) $row['status']));
+        }
+        if (!empty($row['listing_broker'])) {
+            $parts[] = 'Listed by '.$row['listing_broker'];
+        }
+        if (!empty($row['source_url'])) {
+            $parts[] = 'Source: '.$row['source_url'];
+        }
+        return implode('. ', $parts) !== '' ? implode('. ', $parts).'.' : 'Imported listing.';
+    }
+
+    private function toNullableInt(mixed $value): ?int {
+        $value = $value === null ? '' : (string) $value;
+        return $value !== '' && is_numeric($value) ? (int) $value : null;
+    }
+
+    private function toNullableFloat(mixed $value): ?float {
+        $value = $value === null ? '' : (string) $value;
+        return $value !== '' && is_numeric($value) ? (float) $value : null;
     }
 
     public function update(Request $request, $id) {
