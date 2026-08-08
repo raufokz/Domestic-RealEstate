@@ -24,10 +24,11 @@ export interface BlogPost {
   reading_time?: number | null;
   word_count?: number | null;
   tags?: string[] | null;
+  secondary_keywords?: string[] | null;
   category?: { id: number; name?: string; slug?: string } | null;
   categories?: { id: number; name?: string; slug?: string }[] | null;
   author?: { id: number; name?: string; email?: string } | null;
-  co_author?: { id: number; name?: string; email?: string } | null;
+  coAuthor?: { id: number; name?: string; email?: string } | null;
   is_featured?: boolean;
   is_trending?: boolean;
   is_popular?: boolean;
@@ -71,10 +72,11 @@ export async function getBlogPosts(perPage = 12): Promise<BlogListResult> {
       return { posts: [], error: `Could not load articles (server responded ${res.status}).` };
     }
     const data = await res.json();
-    // index() returns a Laravel paginator: { data: [...], current_page, ... }
-    const posts = (Array.isArray(data) ? data : data?.data ?? []) as BlogPost[];
+    const rawPosts = (Array.isArray(data) ? data : data?.data ?? []) as unknown[];
+    const posts = rawPosts.map((p) => normalizeBlogPost(p)).filter((p): p is BlogPost => p !== null);
     return { posts, error: null };
-  } catch {
+  } catch (err) {
+    console.error("[blog] Failed to load posts list:", err);
     return { posts: [], error: "Could not reach the content service. Please try again shortly." };
   }
 }
@@ -349,14 +351,109 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       next: { revalidate: 300 },
     });
     if (res.ok) {
-      return (await res.json()) as BlogPost;
+      const data = await res.json();
+      return normalizeBlogPost(data, slug);
     }
-  } catch {
-    // API unavailable or network timeout
+  } catch (err) {
+    console.error(`[blog] Failed to load post "${slug}":`, err);
   }
 
   // Fallback to static research guide if slug matches one of our 12 educational guides
   return FALLBACK_RESEARCH_GUIDES[slug] ?? null;
+}
+
+function normalizeBlogPost(raw: unknown, fallbackSlug: string = ""): BlogPost | null {
+  if (!raw || typeof raw !== "object") return null;
+  const data = raw as Record<string, unknown>;
+
+  const title = typeof data.title === "string" ? data.title : "";
+  if (!title) return null;
+
+  const rawTags = data.tags;
+  const tags: string[] = Array.isArray(rawTags)
+    ? rawTags.filter((t): t is string => typeof t === "string")
+    : typeof rawTags === "string"
+      ? rawTags.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+
+  const rawContent = data.content;
+  const content = typeof rawContent === "string" ? rawContent : "";
+
+  const rawStatus = data.status;
+  const status: BlogPost["status"] =
+    typeof rawStatus === "string" &&
+    ["draft", "review", "published", "scheduled", "archived"].includes(rawStatus)
+      ? (rawStatus as BlogPost["status"])
+      : "draft";
+
+  const rawPublishedAt = data.published_at;
+  const published_at: string | null =
+    typeof rawPublishedAt === "string"
+      ? rawPublishedAt
+      : rawPublishedAt && typeof rawPublishedAt === "object" && "date" in rawPublishedAt
+        ? typeof (rawPublishedAt as Record<string, unknown>).date === "string"
+          ? ((rawPublishedAt as Record<string, unknown>).date as string)
+          : null
+        : null;
+
+  const rawSecondaryKeywords = data.secondary_keywords;
+  const secondary_keywords: string[] | null = Array.isArray(rawSecondaryKeywords)
+    ? rawSecondaryKeywords.filter((k): k is string => typeof k === "string")
+    : typeof rawSecondaryKeywords === "string"
+      ? rawSecondaryKeywords.split(",").map((s) => s.trim()).filter(Boolean)
+      : null;
+
+  const rawFaqSchema = data.faq_schema;
+  const faq_schema: { question: string; answer: string }[] | null = Array.isArray(rawFaqSchema)
+    ? rawFaqSchema.filter((item): item is { question: string; answer: string } =>
+        item && typeof item === "object" && "question" in item && "answer" in item
+      )
+    : null;
+
+  return {
+    id: typeof data.id === "number" ? data.id : 0,
+    slug: typeof data.slug === "string" ? data.slug : fallbackSlug,
+    title,
+    excerpt: typeof data.excerpt === "string" ? data.excerpt : null,
+    content,
+    featured_image: typeof data.featured_image === "string" ? data.featured_image : null,
+    featured_image_alt: typeof data.featured_image_alt === "string" ? data.featured_image_alt : null,
+    featured_image_caption: typeof data.featured_image_caption === "string" ? data.featured_image_caption : null,
+    featured_image_credit: typeof data.featured_image_credit === "string" ? data.featured_image_credit : null,
+    status,
+    published_at,
+    created_at: typeof data.created_at === "string" ? data.created_at : null,
+    seo_title: typeof data.seo_title === "string" ? data.seo_title : null,
+    meta_description: typeof data.meta_description === "string" ? data.meta_description : null,
+    reading_time: typeof data.reading_time === "number" ? data.reading_time : null,
+    word_count: typeof data.word_count === "number" ? data.word_count : null,
+    tags,
+    is_featured: typeof data.is_featured === "boolean" ? data.is_featured : false,
+    is_trending: typeof data.is_trending === "boolean" ? data.is_trending : false,
+    is_popular: typeof data.is_popular === "boolean" ? data.is_popular : false,
+    is_editors_choice: typeof data.is_editors_choice === "boolean" ? data.is_editors_choice : false,
+    view_count: typeof data.view_count === "number" ? data.view_count : 0,
+    like_count: typeof data.like_count === "number" ? data.like_count : 0,
+    share_count: typeof data.share_count === "number" ? data.share_count : 0,
+    focus_keyword: typeof data.focus_keyword === "string" ? data.focus_keyword : null,
+    secondary_keywords,
+    canonical_url: typeof data.canonical_url === "string" ? data.canonical_url : null,
+    robots_index: typeof data.robots_index === "boolean" ? data.robots_index : true,
+    og_title: typeof data.og_title === "string" ? data.og_title : null,
+    og_description: typeof data.og_description === "string" ? data.og_description : null,
+    og_image: typeof data.og_image === "string" ? data.og_image : null,
+    twitter_title: typeof data.twitter_title === "string" ? data.twitter_title : null,
+    twitter_description: typeof data.twitter_description === "string" ? data.twitter_description : null,
+    twitter_image: typeof data.twitter_image === "string" ? data.twitter_image : null,
+    json_ld_override: typeof data.json_ld_override === "string" ? data.json_ld_override : null,
+    faq_schema,
+    breadcrumb_title: typeof data.breadcrumb_title === "string" ? data.breadcrumb_title : null,
+    category: data.category && typeof data.category === "object" ? (data.category as BlogPost["category"]) : null,
+    categories: Array.isArray(data.categories) ? (data.categories as BlogPost["categories"]) : [],
+    author: data.author && typeof data.author === "object" ? (data.author as BlogPost["author"]) : null,
+    coAuthor: data.coAuthor && typeof data.coAuthor === "object" ? (data.coAuthor as BlogPost["coAuthor"]) : null,
+    images: Array.isArray(data.images) ? (data.images as BlogPost["images"]) : [],
+  };
 }
 
 /**
@@ -406,7 +503,7 @@ export function incrementBlogView(slug: string): void {
 /** Short teaser: the stored excerpt, or the first 180 chars of the body text. */
 export function postExcerpt(post: BlogPost): string {
   if (post.excerpt) return post.excerpt;
-  const text = (post.content ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const text = typeof post.content === "string" ? post.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() : "";
   return text.length > 180 ? `${text.slice(0, 180)}…` : text;
 }
 

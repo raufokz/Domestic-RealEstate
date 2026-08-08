@@ -19,6 +19,12 @@ import HtmlBlogViewer from "@/components/blog/HtmlBlogViewer";
 import NewsletterForm from "@/components/NewsletterForm";
 import ViewTracker from "@/components/blog/ViewTracker";
 
+function normalizeTags(rawTags: string[] | string | null | undefined): string[] {
+  if (Array.isArray(rawTags)) return rawTags;
+  if (typeof rawTags === "string") return rawTags.split(",").map((t) => t.trim()).filter(Boolean);
+  return [];
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -42,7 +48,7 @@ export async function generateMetadata({
     path: `/blog/${post.slug}`,
     ogType: "article",
     image: post.og_image || post.featured_image || undefined,
-    keywords: post.tags ?? undefined,
+    keywords: Array.isArray(post.tags) ? post.tags : undefined,
     publishedTime: post.published_at ?? undefined,
     noindex: post.robots_index === false,
     canonicalOverride: post.canonical_url || undefined,
@@ -67,11 +73,12 @@ export default async function BlogPostPage({
 
   const related = await getRelatedPosts(post);
   const { prev, next } = await getAdjacentPosts(post);
-  const { html: contentHtml, toc } = extractToc(post.content);
+  const safeContent = typeof post.content === "string" ? post.content : "";
+  const { html: contentHtml, toc } = extractToc(safeContent);
   const date = formatBlogDate(post.published_at ?? post.created_at);
   const readTime = formatReadingTime(post.reading_time);
   const authorName = post.author?.name ?? "Domestic RE Editorial Board";
-  const tags = post.tags ?? [];
+  const tags: string[] = normalizeTags(post.tags);
   const shareUrl = `${SITE_URL}/blog/${post.slug}`;
 
   const articleLd = {
@@ -92,7 +99,7 @@ export default async function BlogPostPage({
   };
 
   const faqLd =
-    post.faq_schema && post.faq_schema.length > 0
+    post.faq_schema && Array.isArray(post.faq_schema) && post.faq_schema.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",

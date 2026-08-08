@@ -92,16 +92,30 @@ interface FormState {
 }
 
 function toFormState(post?: BlogFormPost | null): FormState {
+  const rawTags = post?.tags;
+  const tags: string = Array.isArray(rawTags)
+    ? rawTags.join(", ")
+    : typeof rawTags === "string"
+      ? rawTags
+      : "";
+
+  const rawSecondaryKeywords = post?.secondary_keywords;
+  const secondaryKeywords: string[] = Array.isArray(rawSecondaryKeywords)
+    ? rawSecondaryKeywords
+    : typeof rawSecondaryKeywords === "string"
+      ? rawSecondaryKeywords.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
   return {
     title: post?.title ?? "",
     slug: post?.slug ?? "",
     excerpt: post?.excerpt ?? "",
     content: post?.content ?? "",
     category_id: post?.category_id ? String(post.category_id) : "",
-    category_ids: (post?.categories ?? []).map((c) => c.id),
+    category_ids: Array.isArray(post?.categories) ? post.categories.map((c) => c.id) : [],
     author_id: post?.author_id ? String(post.author_id) : "",
     co_author_id: post?.co_author_id ? String(post.co_author_id) : "",
-    tags: (post?.tags ?? []).join(", "),
+    tags,
     status: post?.status ?? "draft",
     scheduled_at: post?.scheduled_at ? post.scheduled_at.slice(0, 16) : "",
     is_featured: post?.is_featured ?? false,
@@ -116,7 +130,7 @@ function toFormState(post?: BlogFormPost | null): FormState {
       seo_title: post?.seo_title ?? "",
       meta_description: post?.meta_description ?? "",
       focus_keyword: post?.focus_keyword ?? "",
-      secondary_keywords: post?.secondary_keywords ?? [],
+      secondary_keywords: secondaryKeywords,
       canonical_url: post?.canonical_url ?? "",
       robots_index: post?.robots_index ?? true,
       og_title: post?.og_title ?? "",
@@ -126,7 +140,7 @@ function toFormState(post?: BlogFormPost | null): FormState {
       twitter_description: post?.twitter_description ?? "",
       twitter_image: post?.twitter_image ?? "",
       json_ld_override: post?.json_ld_override ?? "",
-      faq_schema: post?.faq_schema ?? [],
+      faq_schema: Array.isArray(post?.faq_schema) ? post.faq_schema : [],
       breadcrumb_title: post?.breadcrumb_title ?? "",
     },
   };
@@ -146,7 +160,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [images, setImages] = useState<UploadedImage[]>(
-    (post?.images ?? []).map((img) => ({ id: img.id, url: img.webp_url || img.url, alt_text: img.alt_text, caption: img.caption, credit: img.credit }))
+    Array.isArray(post?.images) ? post.images.map((img) => ({ id: img.id, url: img.webp_url || img.url, alt_text: img.alt_text, caption: img.caption, credit: img.credit })) : []
   );
   const [revisions, setRevisions] = useState<Revision[] | null>(null);
   const [showRevisions, setShowRevisions] = useState(false);
