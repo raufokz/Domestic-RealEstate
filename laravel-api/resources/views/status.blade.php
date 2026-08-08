@@ -71,6 +71,7 @@
                 <div class="label">Response Time</div>
                 <div class="value">{{ $responseMs }} ms</div>
             </div>
+            @if($showDetails)
             <div class="item">
                 <div class="label">Server Load (1 min)</div>
                 <div class="value">{{ $load1 !== null ? $load1 : 'N/A on this OS' }}</div>
@@ -87,6 +88,7 @@
                 <div class="label">Environment</div>
                 <div class="value">{{ ucfirst($env) }}</div>
             </div>
+            @endif
         </div>
 
         <div class="footer">

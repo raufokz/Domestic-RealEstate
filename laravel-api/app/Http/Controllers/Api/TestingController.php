@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Services\IntegrationGate;
@@ -132,7 +133,9 @@ class TestingController extends Controller
     }
 
     public function sendTestEmail(Request $request): JsonResponse {
-        $to = $request->input('to', Auth::user()?->email ?? 'info@domesticrealestate.us');
+        // Always send to the acting admin's own address — accepting an
+        // arbitrary `to` here would turn this into an open email relay.
+        $to = Auth::user()?->email ?? 'info@domesticrealestate.us';
         try {
             Mail::raw('This is a test email from Domestic Real Estate Platform Testing Center.', function ($msg) use ($to) {
                 $msg->to($to)->subject('DomesticRE — SMTP Test Email');
@@ -190,25 +193,46 @@ class TestingController extends Controller
     }
 
     public function simulatePayment(Request $request): JsonResponse {
+        // Marking invoices paid is a financial action — require admin+, not
+        // just staff, and demand an explicit confirmation to avoid accidental
+        // (or scripted) invocation.
+        $role = Auth::user()?->role;
+        if (!in_array($role, ['admin', 'super_admin'], true)) {
+            return ApiResponse::fail('Only admins can simulate a payment.', 'forbidden', 403);
+        }
+        if (!$request->boolean('confirm')) {
+            return ApiResponse::fail(
+                'Pass confirm=true to acknowledge this marks a real invoice as paid for testing purposes.',
+                'confirmation_required',
+                422
+            );
+        }
+
         $invoiceId = $request->input('invoice_id');
-        if ($invoiceId) {
-            $invoice = Invoice::find($invoiceId);
-            if ($invoice) {
-                $invoice->update([
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                ]);
-                return ApiResponse::ok(['invoice' => $invoice->fresh()], 'Invoice marked as paid via test simulation');
-            }
+        $invoice = $invoiceId ? Invoice::find($invoiceId) : null;
+        if (!$invoice) {
+            $invoice = Invoice::whereIn('status', ['draft', 'sent'])->latest()->first();
+        }
+        if (!$invoice) {
+            return ApiResponse::fail('No unpaid invoice found to simulate payment.', 'no_unpaid_invoice', 400);
         }
 
-        $latest = Invoice::whereIn('status', ['draft', 'sent'])->latest()->first();
-        if ($latest) {
-            $latest->update(['status' => 'paid', 'paid_at' => now()]);
-            return ApiResponse::ok(['invoice' => $latest->fresh()], 'Latest unpaid invoice #'.$latest->invoice_number.' marked as paid');
-        }
+        $invoice->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+            'payment_gateway' => 'test_simulation',
+        ]);
 
-        return ApiResponse::fail('No unpaid invoice found to simulate payment.', 'no_unpaid_invoice', 400);
+        AdminActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'invoice_test_payment_simulated',
+            'subject_type' => Invoice::class,
+            'subject_id' => $invoice->id,
+            'details' => ['invoice_number' => $invoice->invoice_number, 'note' => 'marked as paid via test simulation'],
+            'ip_address' => $request->ip(),
+        ]);
+
+        return ApiResponse::ok(['invoice' => $invoice->fresh()], 'Invoice #'.$invoice->invoice_number.' marked as paid via test simulation');
     }
 
     public function smsWebhooks(): JsonResponse {
@@ -253,8 +277,22 @@ class TestingController extends Controller
             );
         }
 
+        if ($blockReason = $this->ssrfBlockReason($targetUrl)) {
+            return ApiResponse::fail(
+                message: 'Refusing to dispatch webhook: '.$blockReason,
+                code: 'target_url_blocked',
+                status: 422,
+                feature: 'Webhooks',
+                reason: $blockReason,
+                fix: 'Use a public, externally-reachable HTTPS URL for the test webhook target.',
+                actionUrl: '/admin/testing/webhooks'
+            );
+        }
+
         try {
-            $res = Http::timeout(10)->post($targetUrl, [
+            // Redirects are not followed — a 302 to an internal address would
+            // otherwise bypass the SSRF check above.
+            $res = Http::timeout(10)->withOptions(['allow_redirects' => false])->post($targetUrl, [
                 'event' => 'test.webhook',
                 'timestamp' => now()->toIso8601String(),
                 'data' => ['message' => 'DomesticRE test webhook delivery'],
@@ -276,6 +314,38 @@ class TestingController extends Controller
                 actionUrl: '/admin/testing/webhooks'
             );
         }
+    }
+
+    /**
+     * Returns a human-readable reason the URL is unsafe to request server-side,
+     * or null if it's safe. Blocks non-http(s) schemes and any hostname that
+     * resolves to a private/loopback/link-local/reserved IP (RFC 1918, etc.),
+     * which prevents this endpoint from being used to probe the internal
+     * network or cloud metadata services (e.g. 169.254.169.254).
+     */
+    private function ssrfBlockReason(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!$parts || empty($parts['host'])) {
+            return 'invalid URL';
+        }
+        if (!in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)) {
+            return 'only http/https URLs are allowed';
+        }
+
+        $host = $parts['host'];
+        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
+        if (empty($ips)) {
+            return 'hostname could not be resolved';
+        }
+
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return 'target resolves to a private, loopback, or reserved IP address';
+            }
+        }
+
+        return null;
     }
 
     private function formRules(string $formType): array

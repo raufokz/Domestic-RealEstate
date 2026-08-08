@@ -22,6 +22,8 @@ use App\Models\AdminActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -697,9 +699,13 @@ class AdminController extends Controller
             'status' => 'nullable|string|in:active,inactive,pending,suspended',
             'phone' => 'nullable|string|max:50',
         ]);
-        $validated['password'] = $validated['password'] ?? 'ChangeMe123!';
+        $sendResetLink = empty($validated['password']);
+        $validated['password'] = $validated['password'] ?? Str::random(32);
         $validated['status'] = $validated['status'] ?? 'active';
         $user = User::create($validated);
+        if ($sendResetLink) {
+            Password::sendResetLink(['email' => $user->email]);
+        }
         $this->logActivity('user_created', $user);
         return response()->json(['data' => $user, 'message' => 'User created'], 201);
     }
@@ -711,7 +717,7 @@ class AdminController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,'.$id,
             'password' => 'nullable|string|min:8',
-            'role' => 'sometimes|string',
+            'role' => 'sometimes|string|in:super_admin,admin,staff,agent,broker,buyer,seller,lender,title_company,investor,vendor',
             'status' => 'sometimes|string|in:active,inactive,pending,suspended',
             'phone' => 'nullable|string|max:50',
             'budget_min' => 'nullable|numeric',
