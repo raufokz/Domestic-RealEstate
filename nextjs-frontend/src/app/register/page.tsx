@@ -703,7 +703,7 @@ function RegisterForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold text-[#0A2647]">
-                      Monthly Marketing Budget
+                      Target Budget (Annual / One-Time)
                     </label>
                     <select
                       value={form.monthly_budget}
@@ -711,11 +711,10 @@ function RegisterForm() {
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none transition text-slate-800 bg-white"
                     >
                       <option value="">Select budget range...</option>
-                      <option value="Under $500/mo">Under $500/mo</option>
-                      <option value="$500 - $1,000/mo">$500 - $1,000/mo</option>
-                      <option value="$1,000 - $2,500/mo">$1,000 - $2,500/mo</option>
-                      <option value="$2,500 - $5,000/mo">$2,500 - $5,000/mo</option>
-                      <option value="$5,000+/mo">$5,000+/mo</option>
+                      <option value="Under $2,000 / year or One-Time">Under $2,000 / year (or One-Time Package)</option>
+                      <option value="$2,000 - $5,000 / year">$2,000 - $5,000 / year</option>
+                      <option value="$5,000 - $10,000 / year">$5,000 - $10,000 / year</option>
+                      <option value="$10,000+ / year">$10,000+ / year (Enterprise / High Volume)</option>
                     </select>
                   </div>
 
