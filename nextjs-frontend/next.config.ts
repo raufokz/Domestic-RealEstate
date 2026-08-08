@@ -28,9 +28,8 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   compress: true,
-  // @ts-ignore - turbopack config not typed in NextConfig
   turbopack: {
-    root: "./",
+    root: "../",
   },
   experimental: {
     optimizePackageImports: ["framer-motion", "recharts", "leaflet"],

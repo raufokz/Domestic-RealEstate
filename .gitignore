@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+node_modules_old/
+node_modules_*/
 
 # Build outputs
 .next/
