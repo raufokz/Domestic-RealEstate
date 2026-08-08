@@ -539,12 +539,12 @@ export function extractToc(html: string | null | undefined): { html: string; toc
     /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi,
     (match, level, attrs, inner) => {
       const text = inner.replace(/<[^>]*>/g, "").trim();
-      if (!text) return match;
+      if (!text) return match.replace(/\$/g, "$$$$");
       const existingId = /\bid=["']([^"']+)["']/.exec(attrs)?.[1];
       const id = existingId || slugifyHeading(text, seen);
       toc.push({ id, text, level: Number(level) as 2 | 3 });
       const newAttrs = existingId ? attrs : ` id="${id}"${attrs}`;
-      return `<h${level}${newAttrs}>${inner}</h${level}>`;
+      return `<h${level}${newAttrs}>${inner}</h${level}>`.replace(/\$/g, "$$$$");
     }
   );
   return { html: patched, toc };

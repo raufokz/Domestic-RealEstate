@@ -36,6 +36,24 @@ function plainTextToHtml(text: string): string {
     .join("");
 }
 
+export async function generateStaticParams() {
+  return [
+    { slug: "where-to-buy-real-estate-in-nyc-guide" },
+    { slug: "domestic-vs-international-real-estate-investment" },
+    { slug: "real-estate-investment-process-domestic-vs-foreign" },
+    { slug: "differences-in-real-estate-investment-process-domestic-vs-international" },
+    { slug: "similarities-between-domestic-and-international-real-estate-investment-processes" },
+    { slug: "biggest-domestic-real-estate-investment-companies-in-the-us" },
+    { slug: "biggest-us-domestic-real-estate-investor" },
+    { slug: "largest-domestic-real-estate-companies-in-boston-area" },
+    { slug: "domestic-real-estate-bubble-explained" },
+    { slug: "domestic-real-estate-index-explained" },
+    { slug: "domestic-real-estate-stocks-guide" },
+    { slug: "how-domestic-real-estate-values-are-determined" },
+    { slug: "real-estate-generates-over-percent-of-us-gross-domestic-product" },
+  ];
+}
+
 export async function generateMetadata({
   params,
 }: {
