@@ -435,6 +435,13 @@ Route::post('/leads', [LeadController::class, 'capture']);
     Route::post('/documents', [AgentController::class, 'storeMyDocument']);
     Route::get('/documents/{id}/download', [AgentController::class, 'downloadMyDocument']);
     Route::delete('/documents/{id}', [AgentController::class, 'destroyMyDocument']);
+
+    // Custom Form Fields
+    Route::get('/forms/fields', [FormSubmissionController::class, 'indexCustomFields']);
+    Route::post('/forms/fields', [FormSubmissionController::class, 'storeCustomField']);
+    Route::put('/forms/fields/{id}', [FormSubmissionController::class, 'updateCustomField']);
+    Route::put('/forms/fields/{id}/toggle', [FormSubmissionController::class, 'toggleCustomField']);
+    Route::delete('/forms/fields/{id}', [FormSubmissionController::class, 'destroyCustomField']);
 });
 
 /*

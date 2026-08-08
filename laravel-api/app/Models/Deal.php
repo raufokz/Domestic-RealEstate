@@ -15,6 +15,8 @@ class Deal extends Model
         'deal_number', 'pipeline_id', 'stage_id', 'lead_id', 'contact_id',
         'assigned_to', 'title', 'value', 'currency', 'status',
         'expected_close_date', 'closed_at', 'notes', 'metadata',
+        'referral_fee_pct', 'referral_fee_amount', 'referral_agent_id',
+        'referral_paid_at', 'referral_status',
     ];
 
     protected function casts(): array {
@@ -23,6 +25,9 @@ class Deal extends Model
             'expected_close_date' => 'date',
             'closed_at' => 'date',
             'metadata' => 'array',
+            'referral_fee_pct' => 'decimal:2',
+            'referral_fee_amount' => 'decimal:2',
+            'referral_paid_at' => 'datetime',
         ];
     }
 
@@ -40,4 +45,5 @@ class Deal extends Model
     public function lead() { return $this->belongsTo(Lead::class); }
     public function contact() { return $this->belongsTo(Contact::class); }
     public function assignee() { return $this->belongsTo(User::class, 'assigned_to'); }
+    public function referralAgent() { return $this->belongsTo(User::class, 'referral_agent_id'); }
 }

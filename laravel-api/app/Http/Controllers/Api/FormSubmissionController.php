@@ -10,6 +10,7 @@ use App\Models\PipelineStage;
 use App\Models\RealtorApplication;
 use App\Services\AutomationEngine;
 use App\Services\LeadCaptureService;
+use App\Models\CustomFormField;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -749,5 +750,86 @@ class FormSubmissionController extends Controller
         $html .= "<hr>";
         $html .= "<p><strong>Domestic Real Estate</strong><br>Your Key to Home</p>";
         return $html;
+    }
+
+    public function indexCustomFields(Request $request)
+    {
+        $formType = $request->query('form_type');
+        $query = CustomFormField::query();
+        if ($request->user()) {
+            $query->where('user_id', $request->user()->id);
+        }
+        if ($formType) {
+            $query->where('form_type', $formType);
+        }
+        $fields = $query->orderBy('sort_order')->get();
+        return response()->json(['data' => $fields]);
+    }
+
+    public function storeCustomField(Request $request)
+    {
+        $validated = $request->validate([
+            'form_type' => 'required|string|max:100',
+            'field_label' => 'required|string|max:255',
+            'field_type' => 'required|string|max:50',
+            'options' => 'nullable|array',
+            'is_required' => 'boolean',
+            'sort_order' => 'integer',
+        ]);
+
+        $field = CustomFormField::create([
+            'user_id' => $request->user()?->id,
+            'form_type' => $validated['form_type'],
+            'field_label' => $validated['field_label'],
+            'field_type' => $validated['field_type'],
+            'options' => $validated['options'] ?? null,
+            'is_required' => $validated['is_required'] ?? false,
+            'sort_order' => $validated['sort_order'] ?? 0,
+            'is_active' => true,
+        ]);
+
+        return response()->json($field, 201);
+    }
+
+    public function updateCustomField(Request $request, $id)
+    {
+        $field = CustomFormField::findOrFail($id);
+        if ($request->user() && $field->user_id && $field->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'field_label' => 'sometimes|string|max:255',
+            'field_type' => 'sometimes|string|max:50',
+            'options' => 'nullable|array',
+            'is_required' => 'boolean',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ]);
+
+        $field->update($validated);
+        return response()->json($field);
+    }
+
+    public function toggleCustomField(Request $request, $id)
+    {
+        $field = CustomFormField::findOrFail($id);
+        if ($request->user() && $field->user_id && $field->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $field->update(['is_active' => !$field->is_active]);
+        return response()->json($field);
+    }
+
+    public function destroyCustomField(Request $request, $id)
+    {
+        $field = CustomFormField::findOrFail($id);
+        if ($request->user() && $field->user_id && $field->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $field->delete();
+        return response()->json(['message' => 'Field deleted']);
     }
 }

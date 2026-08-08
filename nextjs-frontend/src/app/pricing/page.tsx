@@ -281,19 +281,43 @@ export default function PricingPage() {
                     {plan.tagline}
                   </p>
 
-                  <div className="flex items-baseline gap-1.5 mb-8">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">from</span>
-                    <span className="text-4xl font-black text-[#0a2647] font-heading tracking-tight">
-                      ${price}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500">
-                      /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
-                    </span>
+                  <div className="mb-8">
+                    <motion.div
+                      key={`${plan.name}-${billingPeriod}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-baseline gap-1.5"
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">from</span>
+                      <span className="text-4xl font-black text-[#0a2647] font-heading tracking-tight">
+                        ${price}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
+                      </span>
+                    </motion.div>
+
+                    {billingPeriod === "annually" && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        transition={{ duration: 0.25 }}
+                        className="mt-2 space-y-1"
+                      >
+                        <span className="text-xs font-bold text-slate-600 font-mono">
+                          ${(plan.annualPrice * 12).toLocaleString()}/year total
+                        </span>
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-extrabold rounded-full">
+                          💰 Save ${((plan.monthlyPrice - plan.annualPrice) * 12).toLocaleString()}/yr
+                        </span>
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Service Limit Badge */}
                   <div className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-extrabold text-[#0a2647] mb-6">
-                    ⚡ Capacity: Up to {plan.cap} Services
+                    ⚡ Capacity: Up to {plan.cap ?? "Unlimited"} Services
                   </div>
 
                   {/* Features list */}
