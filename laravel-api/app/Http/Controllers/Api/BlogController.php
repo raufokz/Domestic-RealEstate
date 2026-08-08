@@ -24,7 +24,7 @@ class BlogController extends Controller
     private function checkAdmin(): void
     {
         $user = Auth::user();
-        if (!$user || !in_array($user->role, ['admin', 'super_admin'])) {
+        if (!$user || !in_array($user->role, ['admin', 'super_admin', 'staff'])) {
             abort(403, 'Unauthorized. Admin access required.');
         }
     }
@@ -41,7 +41,12 @@ class BlogController extends Controller
     }
 
     public function show($slug) {
-        $blog = Blog::where('slug', $slug)
+        $blog = Blog::where(function ($q) use ($slug) {
+                $q->where('slug', $slug);
+                if (is_numeric($slug)) {
+                    $q->orWhere('id', (int) $slug);
+                }
+            })
             ->where('status', 'published')
             ->with(['category', 'categories', 'author', 'coAuthor', 'images'])
             ->firstOrFail();
@@ -49,7 +54,12 @@ class BlogController extends Controller
     }
 
     public function incrementView($slug) {
-        Blog::where('slug', $slug)->where('status', 'published')->increment('view_count');
+        Blog::where(function ($q) use ($slug) {
+            $q->where('slug', $slug);
+            if (is_numeric($slug)) {
+                $q->orWhere('id', (int) $slug);
+            }
+        })->where('status', 'published')->increment('view_count');
         return response()->json(['message' => 'ok']);
     }
 
@@ -67,7 +77,7 @@ class BlogController extends Controller
         $sometimes = $partial ? 'sometimes' : 'required';
         return [
             'title' => "{$sometimes}|string|max:255",
-            'slug' => 'nullable|string|max:255|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+            'slug' => 'nullable|string|max:255',
             'content' => "{$sometimes}|string",
             'excerpt' => 'nullable|string|max:500',
             'category_id' => 'nullable|exists:blog_categories,id',
@@ -80,7 +90,7 @@ class BlogController extends Controller
             'featured_image_caption' => 'nullable|string|max:255',
             'featured_image_credit' => 'nullable|string|max:255',
             'status' => 'in:draft,review,published,archived,scheduled',
-            'scheduled_at' => 'nullable|date|required_if:status,scheduled|after:now',
+            'scheduled_at' => 'nullable|date',
             'tags' => 'nullable|array',
             'is_featured' => 'boolean',
             'is_trending' => 'boolean',
@@ -100,8 +110,8 @@ class BlogController extends Controller
             'twitter_image' => 'nullable|string',
             'json_ld_override' => 'nullable|string',
             'faq_schema' => 'nullable|array',
-            'faq_schema.*.question' => 'required_with:faq_schema|string',
-            'faq_schema.*.answer' => 'required_with:faq_schema|string',
+            'faq_schema.*.question' => 'nullable|string',
+            'faq_schema.*.answer' => 'nullable|string',
             'breadcrumb_title' => 'nullable|string|max:255',
         ];
     }
@@ -181,6 +191,10 @@ class BlogController extends Controller
         $content = $data['content'];
         $status = $data['status'] ?? 'draft';
 
+        if (isset($data['faq_schema']) && is_array($data['faq_schema'])) {
+            $data['faq_schema'] = array_values(array_filter($data['faq_schema'], fn ($item) => !empty($item['question']) && !empty($item['answer'])));
+        }
+
         $post = Blog::create([
             'title' => $data['title'],
             'slug' => $slug,
@@ -195,7 +209,7 @@ class BlogController extends Controller
             'featured_image_credit' => $data['featured_image_credit'] ?? null,
             'status' => $status,
             'published_at' => $status === 'published' ? now() : null,
-            'scheduled_at' => $status === 'scheduled' ? $data['scheduled_at'] : null,
+            'scheduled_at' => $status === 'scheduled' ? ($data['scheduled_at'] ?? null) : null,
             'seo_title' => $data['seo_title'] ?? $data['title'],
             'meta_description' => $data['meta_description'] ?? substr(strip_tags($content), 0, 160),
             'reading_time' => max(1, (int) ceil($this->computeWordCount($content) / 200)),
@@ -227,7 +241,8 @@ class BlogController extends Controller
 
     public function showAdmin($id) {
         $this->checkAdmin();
-        $post = Blog::with(['category', 'categories', 'author', 'coAuthor', 'images'])
+        $post = Blog::withTrashed()
+            ->with(['category', 'categories', 'author', 'coAuthor', 'images'])
             ->withCount('revisions')
             ->findOrFail($id);
         return response()->json($post);
@@ -235,7 +250,7 @@ class BlogController extends Controller
 
     public function update(Request $request, $id) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         $data = $request->validate($this->validationRules(partial: true));
 
         if (array_key_exists('slug', $data) && $data['slug']) {
@@ -260,6 +275,10 @@ class BlogController extends Controller
             }
         }
 
+        if (isset($data['faq_schema']) && is_array($data['faq_schema'])) {
+            $data['faq_schema'] = array_values(array_filter($data['faq_schema'], fn ($item) => !empty($item['question']) && !empty($item['answer'])));
+        }
+
         $categoryIds = $data['category_ids'] ?? null;
         unset($data['category_ids']);
 
@@ -267,7 +286,7 @@ class BlogController extends Controller
         $this->syncSecondaryCategories($post, $categoryIds);
         Cache::forget('blog:tags');
 
-        return response()->json($post->fresh(['category', 'categories', 'author', 'coAuthor', 'images']));
+        return response()->json($post->load(['category', 'categories', 'author', 'coAuthor', 'images']));
     }
 
     public function duplicatePost($id) {

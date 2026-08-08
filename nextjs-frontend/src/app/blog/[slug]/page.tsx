@@ -71,8 +71,19 @@ export default async function BlogPostPage({
   // Unknown or unpublished slug renders the real 404 page
   if (!post) notFound();
 
-  const related = await getRelatedPosts(post);
-  const { prev, next } = await getAdjacentPosts(post);
+  let related: typeof post[] = [];
+  let prev: typeof post | null = null;
+  let next: typeof post | null = null;
+
+  try {
+    related = await getRelatedPosts(post);
+    const adjacent = await getAdjacentPosts(post);
+    prev = adjacent.prev;
+    next = adjacent.next;
+  } catch {
+    // Graceful fallback if related/adjacent queries fail
+  }
+
   const safeContent = typeof post.content === "string" ? post.content : "";
   const { html: contentHtml, toc } = extractToc(safeContent);
   const date = formatBlogDate(post.published_at ?? post.created_at);
@@ -98,12 +109,19 @@ export default async function BlogPostPage({
     ...(tags.length ? { keywords: tags.join(", ") } : {}),
   };
 
+  const validFaqItems = Array.isArray(post.faq_schema)
+    ? post.faq_schema.filter(
+        (item): item is { question: string; answer: string } =>
+          !!item && typeof item === "object" && typeof item.question === "string" && typeof item.answer === "string" && item.question.trim().length > 0
+      )
+    : [];
+
   const faqLd =
-    post.faq_schema && Array.isArray(post.faq_schema) && post.faq_schema.length > 0
+    validFaqItems.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: post.faq_schema.map((item) => ({
+          mainEntity: validFaqItems.map((item) => ({
             "@type": "Question",
             name: item.question,
             acceptedAnswer: { "@type": "Answer", text: item.answer },
@@ -113,10 +131,13 @@ export default async function BlogPostPage({
 
   // Admin-authored raw JSON-LD, additive alongside the auto-generated schema above
   // (not a replacement — a malformed override should never take down the good schema).
-  let overrideLd: unknown = null;
+  let overrideLd: Record<string, unknown> | null = null;
   if (post.json_ld_override) {
     try {
-      overrideLd = JSON.parse(post.json_ld_override);
+      const parsed = JSON.parse(post.json_ld_override);
+      if (parsed && typeof parsed === "object") {
+        overrideLd = parsed as Record<string, unknown>;
+      }
     } catch {
       overrideLd = null;
     }
