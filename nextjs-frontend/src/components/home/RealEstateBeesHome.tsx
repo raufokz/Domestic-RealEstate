@@ -1078,34 +1078,15 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             Get a dedicated Virtual Assistant team handling your listings, marketing, tech, and admin work — pick from 21 done-for-you services. Prices below are starting points; your exact rate is confirmed once we review what you select.
           </p>
 
-          {/* Billing Switcher Toggle */}
-          <div className="flex items-center justify-center gap-3.5 mb-14">
-            <span className={`text-sm font-semibold transition-colors duration-200 ${billingPeriod === "monthly" ? "text-[#0A2647] font-bold" : "text-slate-400"}`}>
-              Monthly Billing
-            </span>
-            <button
-              onClick={() => setBillingPeriod(b => b === "monthly" ? "annually" : "monthly")}
-              className="w-14 h-8 bg-[#0A2647] rounded-full p-1 transition-all duration-300 relative focus:outline-none ring-2 ring-[#C9A227]/30"
-              aria-label="Toggle billing duration"
-            >
-              <div
-                className={`w-6 h-6 bg-[#C9A227] rounded-full shadow-md transition-transform duration-300 transform ${
-                  billingPeriod === "annually" ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-semibold transition-colors duration-200 flex items-center gap-1.5 ${billingPeriod === "annually" ? "text-[#0A2647] font-bold" : "text-slate-400"}`}>
-              Annual Billing
-              <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-                Save 20%
-              </span>
-            </span>
+          {/* Annual Plans Subtitle Banner */}
+          <div className="inline-flex items-center gap-2 bg-[#0A2647] text-[#C9A227] px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider mb-12 shadow-md">
+            <span>✨ ALL PLANS BILLED ANNUALLY WITH 20% SAVINGS INCLUDED</span>
           </div>
 
           {/* Pricing Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {AGENT_PLAN_TIERS.map((plan) => {
-              const price = planPrice(plan, billingPeriod === "annually" ? "annual" : "monthly");
+              const price = plan.annualPrice;
               const isPopular = !!plan.popular;
               const style = planBackgrounds[plan.name] || planBackgrounds.Solo;
 
@@ -1133,7 +1114,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                             Domestic Real Estate
                           </span>
                           <span className="text-[7px] font-mono tracking-wider opacity-60">
-                            PLATFORM MEMBER ID
+                            ANNUAL MEMBER PASS
                           </span>
                         </div>
                         <svg className="w-5 h-5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -1156,7 +1137,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                             <svg className="w-3.5 h-3.5 text-[#C9A227] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m-3.418-4.418A3 3 0 1112.582 7H13a2 2 0 012 2v3.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 01-1.414 0L3.293 16.12a1 1 0 010-1.414l6.414-6.414A1 1 0 0110.414 8h3.172v.005z" />
                             </svg>
-                            EXCLUSIVE KEY
+                            ANNUAL PASS
                           </span>
                         </div>
                         <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
@@ -1170,17 +1151,16 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                     </p>
 
                     <div className="flex items-baseline gap-1 mb-8">
-                      <span className="text-[10px] font-bold uppercase font-mono text-slate-400">from</span>
                       <span className="text-4xl font-extrabold font-heading text-[#0A2647]">
                         ${price}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">
-                        /{billingPeriod === "monthly" ? "mo" : "mo, billed annually"}
+                        /mo (billed annually)
                       </span>
                     </div>
 
                     <div className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-extrabold text-[#0a2647] mb-6">
-                      ⚡ Capacity: Up to {plan.cap} Services
+                      ⚡ Capacity: Up to {plan.cap ?? "Unlimited"} Services
                     </div>
 
                     <ul className="space-y-3.5 mb-8 text-[11px] font-semibold leading-relaxed text-slate-700">
@@ -1198,7 +1178,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                   </div>
 
                   <Link
-                    href={`/register?role=agent&plan=${encodeURIComponent(plan.name)}&billing=${billingPeriod === "annually" ? "annual" : "monthly"}`}
+                    href={`/register?role=agent&plan=${encodeURIComponent(plan.name)}&billing=annual`}
                     className={`block w-full text-center py-4 rounded-xl text-xs font-bold transition-all ${
                       isPopular
                         ? "bg-[#0A2647] hover:bg-[#0c2e56] text-white shadow-premium"

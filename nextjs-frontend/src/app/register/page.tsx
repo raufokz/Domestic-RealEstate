@@ -130,7 +130,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") || "";
   const initialPlan = searchParams.get("plan") || "";
-  const initialBilling = searchParams.get("billing") === "annual" ? "annual" : "monthly";
+  const initialBilling = searchParams.get("billing") === "one-time" ? "one-time" : "annual";
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -155,7 +155,7 @@ function RegisterForm() {
     preferred_leads: [] as string[],
     service_areas_zipcodes: "",
     pricing_plan: initialPlan || "Solo",
-    billing_cycle: initialBilling as "monthly" | "annual",
+    billing_cycle: initialBilling as "annual" | "one-time",
   });
 
   useEffect(() => {
@@ -187,7 +187,7 @@ function RegisterForm() {
       preferred_leads: ["Sellers", "Buyers"],
       service_areas_zipcodes: "33139, 33140",
       pricing_plan: role === "agent" || role === "broker" ? "Elite" : "Solo",
-      billing_cycle: "monthly",
+      billing_cycle: "annual",
     });
     setStep(2);
   };
@@ -572,29 +572,28 @@ function RegisterForm() {
                         Select Your Preferred Agent Plan
                       </label>
                       <div className="flex items-center gap-2.5">
-                        <span className={`text-xs font-bold ${form.billing_cycle === "monthly" ? "text-[#0A2647]" : "text-slate-400"}`}>
-                          Monthly
+                        <span className={`text-xs font-bold ${form.billing_cycle === "annual" ? "text-[#0A2647]" : "text-slate-400"}`}>
+                          Annual Plan
                         </span>
                         <button
                           type="button"
-                          onClick={() => updateForm("billing_cycle", form.billing_cycle === "monthly" ? "annual" : "monthly")}
+                          onClick={() => updateForm("billing_cycle", form.billing_cycle === "annual" ? "one-time" : "annual")}
                           className="w-11 h-6 bg-[#0A2647] rounded-full p-1 transition-all relative focus:outline-none ring-2 ring-[#C9A227]/30"
                           aria-label="Toggle billing cycle"
                         >
                           <div
                             className={`w-4 h-4 bg-[#C9A227] rounded-full shadow-md transition-transform transform ${
-                              form.billing_cycle === "annual" ? "translate-x-5" : "translate-x-0"
+                              form.billing_cycle === "one-time" ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
                         </button>
-                        <span className={`text-xs font-bold flex items-center gap-1 ${form.billing_cycle === "annual" ? "text-[#0A2647]" : "text-slate-400"}`}>
-                          Annual
-                          <span className="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Save 20%</span>
+                        <span className={`text-xs font-bold flex items-center gap-1 ${form.billing_cycle === "one-time" ? "text-[#0A2647]" : "text-slate-400"}`}>
+                          One-Time Package
                         </span>
                       </div>
                     </div>
                     <p className="text-[11px] text-slate-400 mb-3">
-                      Every plan is priced from a real starting point — your VA's exact monthly rate is confirmed with you once we review the services you request.
+                      Select between an Annual subscription pass or a One-Time setup package tailored to your brokerage goals.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                       {AGENT_PLAN_TIERS.map((plan) => {
@@ -623,10 +622,9 @@ function RegisterForm() {
                               <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.tagline}</p>
 
                               <div className="flex items-baseline gap-1 mb-4">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase font-mono">from</span>
                                 <span className="text-2xl font-black text-[#0A2647]">${price}</span>
                                 <span className="text-[10px] text-slate-500 font-bold uppercase font-mono">
-                                  /{form.billing_cycle === "monthly" ? "mo" : "mo, billed annually"}
+                                  /{form.billing_cycle === "annual" ? "mo (billed annually)" : "one-time"}
                                 </span>
                               </div>
 

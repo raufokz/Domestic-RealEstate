@@ -1,15 +1,17 @@
-/** Preferred Agent pricing tiers — the services-based ladder that replaced the
- * old zip-code-exclusivity plans (Free Partner / Zip Code Specialist / Elite
- * Exclusive Specialist / Brokerage Partner). Single source of truth shared by
- * the home page pricing section and the registration flow so the two never
- * drift. Mirrors `AgentProfile::PLAN_TIERS` on the backend, which enforces the
- * same cap/category rules server-side. */
+/** Preferred Agent pricing tiers — updated to support Annual plans, One-Time packages, and Custom tailored plan builder.
+ * Monthly subscriptions have been removed per user requirements.
+ */
+
 export interface AgentPlanTier {
   name: string;
   icon: string;
   tagline: string;
-  monthlyPrice: number;
+  /** Annual total price in USD */
+  annualTotalPrice: number;
+  /** Monthly equivalent price when paid annually */
   annualPrice: number;
+  /** Optional one-time package price */
+  oneTimePrice?: number;
   /** Max number of services selectable. null = unlimited. */
   cap: number | null;
   /** Service-catalog category names this plan may pick from. null = any category. */
@@ -19,68 +21,170 @@ export interface AgentPlanTier {
   cta: string;
 }
 
+export interface OneTimePackage {
+  id: string;
+  name: string;
+  icon: string;
+  tagline: string;
+  price: number;
+  deliverables: string[];
+  popular?: boolean;
+  cta: string;
+}
+
 export const AGENT_PLAN_TIERS: AgentPlanTier[] = [
   {
     name: "Solo",
     icon: "🌱",
-    tagline: "For individual agents testing the waters.",
-    monthlyPrice: 149,
+    tagline: "For individual agents testing the waters (Annual Commitment).",
+    annualTotalPrice: 1428,
     annualPrice: 119,
+    oneTimePrice: 499,
     cap: 2,
     categories: null,
-    features: ["Pick up to 2 services (any category)", "Standard Agent Directory Listing", "Email support"],
-    cta: "Start Solo",
+    features: [
+      "Pick up to 2 services (any category)",
+      "Standard Agent Directory Listing",
+      "Annual Platform Pass & Priority Indexing",
+      "Standard Email Support",
+    ],
+    cta: "Start Annual Solo",
   },
   {
     name: "Starter",
     icon: "★",
-    tagline: "Most popular — small team support.",
-    monthlyPrice: 299,
+    tagline: "Most popular — small team support & lead generation.",
+    annualTotalPrice: 2868,
     annualPrice: 239,
+    oneTimePrice: 899,
     cap: 5,
     categories: ["Core Services", "Web & Tech"],
     popular: true,
-    features: ["Pick up to 5 services (Core + Web & Tech)", "★ Preferred Partner Badge", "Priority email support"],
-    cta: "Select Starter",
+    features: [
+      "Pick up to 5 services (Core + Web & Tech)",
+      "★ Preferred Partner Badge & Directory Placement",
+      "Annual Exclusive Zip Code Routing",
+      "Priority Email & CRM Support",
+    ],
+    cta: "Select Annual Starter",
   },
   {
     name: "Professional",
     icon: "👑",
-    tagline: "Dedicated VA, priority turnaround.",
-    monthlyPrice: 599,
+    tagline: "Dedicated VA & full transaction pipeline management.",
+    annualTotalPrice: 5748,
     annualPrice: 479,
+    oneTimePrice: 1799,
     cap: 10,
     categories: null,
-    features: ["Pick up to 10 services (all categories)", "Dedicated Virtual Assistant", "Priority turnaround"],
-    cta: "Go Professional",
+    features: [
+      "Pick up to 10 services (all categories)",
+      "Dedicated Virtual Assistant Allocated",
+      "Custom IDX Website & SEO Infrastructure",
+      "Priority 4h Support SLA Guarantee",
+    ],
+    cta: "Go Annual Professional",
   },
   {
     name: "Elite",
     icon: "🏢",
-    tagline: "Unlimited services, all categories.",
-    monthlyPrice: 999,
+    tagline: "Unlimited services, dedicated VA team & brokerage scale.",
+    annualTotalPrice: 9588,
     annualPrice: 799,
+    oneTimePrice: 2999,
     cap: null,
     categories: null,
-    features: ["Unlimited services (all categories)", "Dedicated VA team + account manager", "24/7 priority support"],
-    cta: "Claim Elite",
+    features: [
+      "Unlimited services (all categories)",
+      "Dedicated VA team + account manager",
+      "Automated MLS feed sync API & CRM webhooks",
+      "24/7 Priority Support SLA",
+    ],
+    cta: "Claim Annual Elite",
   },
 ];
 
-/** Sales-assisted tier with no listed price — not self-serve, so it's kept
- * separate from AGENT_PLAN_TIERS rather than given a fake cap/price. */
+export const ONE_TIME_PACKAGES: OneTimePackage[] = [
+  {
+    id: "kickstart",
+    name: "Agent Launch Kickstart",
+    icon: "🚀",
+    tagline: "One-time setup for new or expanding real estate agents.",
+    price: 499,
+    deliverables: [
+      "Custom Realtor Profile & SEO Indexing",
+      "Social Media Brand Kit Setup",
+      "Custom Lead Capture Form",
+      "1-on-1 CRM Integration Onboarding",
+    ],
+    cta: "Get Kickstart Setup",
+  },
+  {
+    id: "idx-growth",
+    name: "IDX Website & Lead Accelerator",
+    icon: "⚡",
+    tagline: "Turnkey luxury agent website + 25 verified lead package.",
+    price: 999,
+    popular: true,
+    deliverables: [
+      "Custom Luxury Glass Agent Website",
+      "IDX MLS Property Search Integration",
+      "25 Exclusive Regional Lead Allocation",
+      "Social Media Post Scheduler Setup",
+    ],
+    cta: "Get Growth Package",
+  },
+  {
+    id: "full-va-suite",
+    name: "Done-for-You VA & Automation Suite",
+    icon: "💎",
+    tagline: "Complete 1-year automation & VA workflow setup.",
+    price: 1999,
+    deliverables: [
+      "Dedicated Virtual Assistant Onboarding (1-Year System)",
+      "Automated Email & SMS Follow-Up Drip Pipelines",
+      "Custom Lead Form Builder & Dynamic CRM Sync",
+      "Closing Referral Fee Tracking Portal Setup",
+      "Dedicated Account Specialist & Priority Support",
+    ],
+    cta: "Get Full VA Suite",
+  },
+];
+
 export const ENTERPRISE_PLAN = {
   name: "Enterprise Custom",
   icon: "🏛️",
-  tagline: "Bespoke high-volume solutions.",
-  features: ["Unlimited seats & services", "Automated MLS feed sync API", "Custom CRM trigger webhooks", "Pre-negotiated bulk rates", "Dedicated 24/7 support SLA"],
-  cta: "Talk to Us",
+  tagline: "Bespoke high-volume solutions tailored to your exact budget & team size.",
+  features: [
+    "Unlimited seats & services",
+    "Automated MLS feed sync API",
+    "Custom CRM trigger webhooks",
+    "Pre-negotiated bulk rates",
+    "Dedicated 24/7 support SLA",
+  ],
+  cta: "Build Custom Plan",
 };
+
+export const CUSTOM_PLAN_SERVICES = [
+  { id: "va_exec", name: "Executive Virtual Assistant", priceEst: 200, category: "Core Services" },
+  { id: "lead_gen", name: "Exclusive Lead Generation", priceEst: 300, category: "Core Services" },
+  { id: "cold_call", name: "Cold Calling & Lead Qualification", priceEst: 250, category: "Core Services" },
+  { id: "crm_mgmt", name: "CRM Setup & Pipeline Drips", priceEst: 150, category: "Core Services" },
+  { id: "mls_list", name: "MLS & Property Listing Entry", priceEst: 150, category: "Core Services" },
+  { id: "idx_web", name: "Custom IDX Agent Website", priceEst: 400, category: "Web & Tech" },
+  { id: "social_mgr", name: "Social Media Post Manager", priceEst: 200, category: "Web & Tech" },
+  { id: "form_builder", name: "Custom Lead Form Builder", priceEst: 150, category: "Web & Tech" },
+  { id: "seo_opt", name: "Local Real Estate SEO Optimization", priceEst: 250, category: "Marketing" },
+  { id: "ai_workflows", name: "AI Drip Automation & Chatbots", priceEst: 200, category: "AI & Automation" },
+];
 
 export function planByName(name?: string | null): AgentPlanTier | undefined {
   return AGENT_PLAN_TIERS.find((p) => p.name === name);
 }
 
-export function planPrice(plan: AgentPlanTier, billing: "monthly" | "annual"): number {
-  return billing === "annual" ? plan.annualPrice : plan.monthlyPrice;
+export function planPrice(plan: AgentPlanTier, billing: "annual" | "one-time" = "annual"): number {
+  if (billing === "one-time") {
+    return plan.oneTimePrice ?? plan.annualPrice;
+  }
+  return plan.annualPrice;
 }
