@@ -25,6 +25,17 @@ function normalizeTags(rawTags: string[] | string | null | undefined): string[] 
   return [];
 }
 
+function plainTextToHtml(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return escaped
+    .split(/\n\s*\n/)
+    .map((block) => `<p>${block.replace(/\n/g, "<br>")}</p>`)
+    .join("");
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -85,7 +96,9 @@ export default async function BlogPostPage({
   }
 
   const safeContent = typeof post.content === "string" ? post.content : "";
-  const { html: contentHtml, toc } = extractToc(safeContent);
+  const hasHtml = /<[a-z][\s\S]*>/i.test(safeContent);
+  const rawHtml = hasHtml ? safeContent : plainTextToHtml(safeContent);
+  const { html: contentHtml, toc } = extractToc(rawHtml);
   const date = formatBlogDate(post.published_at ?? post.created_at);
   const readTime = formatReadingTime(post.reading_time);
   const authorName = post.author?.name ?? "Domestic RE Editorial Board";

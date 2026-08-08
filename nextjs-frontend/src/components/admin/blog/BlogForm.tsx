@@ -7,9 +7,9 @@ import { apiGet, apiPost, apiPut, apiDelete, ApiError, API_BASE } from "@/lib/ap
 import { useToast } from "@/components/Toast";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import HtmlBlogViewer from "@/components/blog/HtmlBlogViewer";
-import SeoFieldsPanel, { SeoFieldsValue } from "@/components/admin/SeoFieldsPanel";
 import ImageUploader, { UploadedImage } from "@/components/admin/ImageUploader";
 import MediaPicker from "@/components/admin/MediaPicker";
+import SeoFieldsPanel, { SeoFieldsValue } from "@/components/admin/SeoFieldsPanel";
 
 interface Category {
   id: number;
@@ -412,7 +412,12 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
             </div>
 
             {editorTab === "edit" ? (
-              <RichTextEditor value={form.content} onChange={(content) => patch({ content })} placeholder="Write your article…" />
+              <textarea
+                value={form.content}
+                onChange={(e) => patch({ content: e.target.value })}
+                placeholder="Write your article…"
+                className="w-full h-[350px] px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#C9A227] resize-y"
+              />
             ) : (
               <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-6 sm:p-8 min-h-[350px]">
                 <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#8C6D27] mb-4 pb-2 border-b border-[#EBE6DD] flex items-center justify-between">

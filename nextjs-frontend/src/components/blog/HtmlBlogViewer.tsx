@@ -105,49 +105,24 @@ function isTrustedIframeUrl(urlStr: string): boolean {
 function sanitizeAndTransformHtml(rawHtml: string): string {
   if (!rawHtml) return "";
 
-  let clean = rawHtml;
-
-  // 1. DOMPurify pass with graceful fallback for Node.js / Vercel Serverless environment
-  try {
-    clean = DOMPurify.sanitize(rawHtml, {
-      ALLOWED_TAGS,
-      ALLOWED_ATTR,
-      ADD_ATTR: ["target", "rel", "loading", "decoding"],
-      ALLOW_DATA_ATTR: false,
-    });
-  } catch {
-    // Fallback if isomorphic-dompurify crashes or cannot run in Node serverless env
-    clean = rawHtml
+  // 1. SSR mode (Node / Serverless): perform lightweight, zero-dependency string cleanup.
+  // Never instantiate heavy DOMPurify/JSDOM parsers on the server to prevent SSR 500 crashes.
+  if (typeof window === "undefined") {
+    return rawHtml
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
       .replace(/\son\w+=["'][^"']*["']/gi, "")
       .replace(/href=["']javascript:[^"']*["']/gi, 'href="#"');
   }
 
-  if (typeof window === "undefined") {
-    // Basic string-based regex transformations for SSR fallback
-    return clean
-      .replace(/<table([\s\S]*?)<\/table>/gi, (match, inner) =>
-        `<div class="blog-viewer-table-wrapper"><table${inner}</table></div>`.replace(/\$/g, "$$$$")
-      )
-      .replace(/<iframe([\s\S]*?)src=["']([^"']+)["']([\s\S]*?)<\/iframe>/gi, (match, before, src) => {
-        if (isTrustedIframeUrl(src)) {
-          return `<div class="blog-viewer-iframe-wrapper"><iframe${before}src="${src}" allowfullscreen></iframe></div>`.replace(/\$/g, "$$$$");
-        }
-        return "";
-      })
-      .replace(/<a\s+([^>]*href=["'](https?:\/\/[^"']+)["'][^>]*)>/gi, (match, inner, url) => {
-        if (!url.includes("domesticrealestate.us")) {
-          let updated = match;
-          if (!/rel=["']/.test(updated)) updated = updated.replace("<a ", '<a rel="noopener noreferrer" ');
-          if (!/target=["']/.test(updated)) updated = updated.replace("<a ", '<a target="_blank" ');
-          return updated.replace(/\$/g, "$$$$");
-        }
-        return match.replace(/\$/g, "$$$$");
-      });
-  }
-
-  // 2. Client DOM parser for precision transformations
+  // 2. Client mode (Browser): use full DOMPurify sanitization
   try {
+    const clean = DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS,
+      ALLOWED_ATTR,
+      ADD_ATTR: ["target", "rel", "loading", "decoding"],
+      ALLOW_DATA_ATTR: false,
+    });
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(clean, "text/html");
 
@@ -208,7 +183,10 @@ function sanitizeAndTransformHtml(rawHtml: string): string {
 
     return doc.body.innerHTML;
   } catch {
-    return clean;
+    return rawHtml
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/\son\w+=["'][^"']*["']/gi, "")
+      .replace(/href=["']javascript:[^"']*["']/gi, 'href="#"');
   }
 }
 
