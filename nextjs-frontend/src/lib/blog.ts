@@ -67,6 +67,7 @@ export async function getBlogPosts(perPage = 12): Promise<BlogListResult> {
     const res = await fetch(`${API_BASE}/blogs?per_page=${perPage}`, {
       headers: { Accept: "application/json" },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) {
       return { posts: [], error: `Could not load articles (server responded ${res.status}).` };
@@ -349,6 +350,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     const res = await fetch(`${API_BASE}/blogs/${encodeURIComponent(slug)}`, {
       headers: { Accept: "application/json" },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10000),
     });
     if (res.ok) {
       const data = await res.json();

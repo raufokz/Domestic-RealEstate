@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
+  getBlogPosts,
   getBlogPostBySlug,
   getRelatedPosts,
   getAdjacentPosts,

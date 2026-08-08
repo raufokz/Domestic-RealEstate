@@ -291,7 +291,7 @@ class BlogController extends Controller
 
     public function duplicatePost($id) {
         $this->checkAdmin();
-        $original = Blog::with('images')->findOrFail($id);
+        $original = Blog::withTrashed()->with('images')->findOrFail($id);
 
         $copy = $original->replicate(['view_count', 'like_count', 'share_count']);
         $copy->title = $original->title . ' (Copy)';
@@ -323,7 +323,7 @@ class BlogController extends Controller
 
     public function destroy($id) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         $post->delete();
         Cache::forget('blog:tags');
         return response()->json(['message' => 'Post moved to trash']);
@@ -351,7 +351,7 @@ class BlogController extends Controller
 
     public function togglePublish($id) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         $post->status = $post->status === 'published' ? 'draft' : 'published';
         if ($post->status === 'published' && !$post->published_at) {
             $post->published_at = now();
@@ -373,7 +373,7 @@ class BlogController extends Controller
         $ids = $this->bulkIds($request);
         $count = 0;
         DB::transaction(function () use ($ids, &$count) {
-            foreach (Blog::whereIn('id', $ids)->get() as $post) {
+            foreach (Blog::withTrashed()->whereIn('id', $ids)->get() as $post) {
                 $post->delete();
                 $count++;
             }
@@ -397,7 +397,7 @@ class BlogController extends Controller
         $this->checkAdmin();
         $ids = $this->bulkIds($request);
         $count = 0;
-        foreach (Blog::whereIn('id', $ids)->get() as $post) {
+        foreach (Blog::withTrashed()->whereIn('id', $ids)->get() as $post) {
             $post->status = 'published';
             if (!$post->published_at) $post->published_at = now();
             $post->scheduled_at = null;
@@ -411,7 +411,7 @@ class BlogController extends Controller
         $this->checkAdmin();
         $ids = $this->bulkIds($request);
         $count = 0;
-        foreach (Blog::whereIn('id', $ids)->get() as $post) {
+        foreach (Blog::withTrashed()->whereIn('id', $ids)->get() as $post) {
             $post->status = 'draft';
             $post->save();
             $count++;
@@ -434,7 +434,7 @@ class BlogController extends Controller
 
     public function storeImage(Request $request, $id) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         $request->validate(['image' => 'required|image|max:8192']);
 
         $file = $request->file('image');
@@ -485,7 +485,7 @@ class BlogController extends Controller
 
     public function reorderImages(Request $request, $id) {
         $this->checkAdmin();
-        Blog::findOrFail($id);
+        Blog::withTrashed()->findOrFail($id);
         $order = $request->validate(['order' => 'required|array', 'order.*' => 'integer'])['order'];
 
         DB::transaction(function () use ($id, $order) {
@@ -503,13 +503,13 @@ class BlogController extends Controller
 
     public function revisions($id) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         return response()->json($post->revisions()->with('author:id,name')->get());
     }
 
     public function restoreRevision($id, $revisionId) {
         $this->checkAdmin();
-        $post = Blog::findOrFail($id);
+        $post = Blog::withTrashed()->findOrFail($id);
         $post->restoreRevision((int) $revisionId);
         return response()->json($post->fresh(['category', 'categories', 'author', 'images']));
     }

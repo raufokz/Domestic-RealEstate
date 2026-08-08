@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
   compress: true,
   experimental: {
     optimizePackageImports: ["framer-motion", "recharts", "leaflet"],
+    turbopack: {
+      root: "./"
+    }
   },
 };
 
