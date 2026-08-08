@@ -99,12 +99,14 @@ function toFormState(post?: BlogFormPost | null): FormState {
       ? rawTags
       : "";
 
-  const rawSecondaryKeywords = post?.secondary_keywords;
-  const secondaryKeywords: string[] = Array.isArray(rawSecondaryKeywords)
-    ? rawSecondaryKeywords
-    : typeof rawSecondaryKeywords === "string"
-      ? rawSecondaryKeywords.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
+  const rawSecondaryKeywords: string[] | string | null | undefined = post?.secondary_keywords;
+  let secondaryKeywords: string[] = [];
+  if (Array.isArray(rawSecondaryKeywords)) {
+    secondaryKeywords = rawSecondaryKeywords;
+  } else if (typeof rawSecondaryKeywords === "string") {
+    // @ts-expect-error secondary_keywords may be string or array from API
+    secondaryKeywords = rawSecondaryKeywords.split(",").map((s) => s.trim()).filter(Boolean);
+  }
 
   return {
     title: post?.title ?? "",
