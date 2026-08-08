@@ -126,10 +126,12 @@ function sanitizeAndTransformHtml(rawHtml: string): string {
   if (typeof window === "undefined") {
     // Basic string-based regex transformations for SSR fallback
     return clean
-      .replace(/<table([\s\S]*?)<\/table>/gi, '<div class="blog-viewer-table-wrapper"><table$1</table></div>')
+      .replace(/<table([\s\S]*?)<\/table>/gi, (match, inner) =>
+        `<div class="blog-viewer-table-wrapper"><table${inner}</table></div>`.replace(/\$/g, "$$$$")
+      )
       .replace(/<iframe([\s\S]*?)src=["']([^"']+)["']([\s\S]*?)<\/iframe>/gi, (match, before, src) => {
         if (isTrustedIframeUrl(src)) {
-          return `<div class="blog-viewer-iframe-wrapper"><iframe${before}src="${src}" allowfullscreen></iframe></div>`;
+          return `<div class="blog-viewer-iframe-wrapper"><iframe${before}src="${src}" allowfullscreen></iframe></div>`.replace(/\$/g, "$$$$");
         }
         return "";
       })
@@ -138,9 +140,9 @@ function sanitizeAndTransformHtml(rawHtml: string): string {
           let updated = match;
           if (!/rel=["']/.test(updated)) updated = updated.replace("<a ", '<a rel="noopener noreferrer" ');
           if (!/target=["']/.test(updated)) updated = updated.replace("<a ", '<a target="_blank" ');
-          return updated;
+          return updated.replace(/\$/g, "$$$$");
         }
-        return match;
+        return match.replace(/\$/g, "$$$$");
       });
   }
 

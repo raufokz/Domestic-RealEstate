@@ -359,7 +359,8 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
   }
 
   // Fallback to static research guide if slug matches one of our 12 educational guides
-  return FALLBACK_RESEARCH_GUIDES[slug] ?? null;
+  const fallback = FALLBACK_RESEARCH_GUIDES[slug];
+  return fallback ? (normalizeBlogPost(fallback, slug) ?? fallback) : null;
 }
 
 function normalizeBlogPost(raw: unknown, fallbackSlug: string = ""): BlogPost | null {
