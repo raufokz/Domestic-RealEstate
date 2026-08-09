@@ -16,7 +16,7 @@ const FEATURES = [
 const TIERS = [
   {
     name: 'Starter Annual',
-    price: '$1,428',
+    price: '$250',
     period: '/year',
     description: 'Perfect for solo agents (paid per year)',
     features: ['Up to 50 leads/month', 'AI lead qualification', 'Email notifications', 'Basic analytics', 'Email support'],
@@ -25,7 +25,7 @@ const TIERS = [
   },
   {
     name: 'Professional Annual',
-    price: '$2,868',
+    price: '$450',
     period: '/year',
     description: 'For growing teams & brokerages (paid per year)',
     features: ['Up to 200 leads/month', 'AI lead qualification', 'Auto-assignment', 'CRM integration', 'Advanced analytics', 'Priority support', 'Custom landing pages'],

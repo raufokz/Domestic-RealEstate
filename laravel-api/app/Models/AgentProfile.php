@@ -36,10 +36,10 @@ class AgentProfile extends Model
     // of truth for what's *billed*, so the two must stay in sync. Enterprise
     // Custom has no price — it's sales-assisted, never auto-invoiced.
     public const PLAN_TIERS = [
-        'Solo' => ['cap' => 2, 'categories' => null, 'monthly' => 149, 'annual' => 119],
-        'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech'], 'monthly' => 299, 'annual' => 239],
-        'Professional' => ['cap' => 10, 'categories' => null, 'monthly' => 599, 'annual' => 479],
-        'Elite' => ['cap' => null, 'categories' => null, 'monthly' => 999, 'annual' => 799],
+        'Solo' => ['cap' => 2, 'categories' => null, 'monthly' => 21, 'annual' => 250],
+        'Starter' => ['cap' => 5, 'categories' => ['Core Services', 'Web & Tech'], 'monthly' => 38, 'annual' => 450],
+        'Professional' => ['cap' => 10, 'categories' => null, 'monthly' => 63, 'annual' => 750],
+        'Elite' => ['cap' => null, 'categories' => null, 'monthly' => 83, 'annual' => 990],
         'Enterprise Custom' => ['cap' => null, 'categories' => null, 'monthly' => null, 'annual' => null],
     ];
 

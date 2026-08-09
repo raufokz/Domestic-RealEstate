@@ -72,7 +72,7 @@ export default function PricingPage() {
     "social_mgr",
     "idx_web",
   ]);
-  const [customBudget, setCustomBudget] = useState(1500);
+  const [customBudget, setCustomBudget] = useState(450);
   const [customBillingPref, setCustomBillingPref] = useState<"annual" | "one-time" | "quarterly">("annual");
   const [customZipcodes, setCustomZipcodes] = useState("33139, 33140");
   const [customTargetLeads, setCustomTargetLeads] = useState(30);
@@ -583,9 +583,9 @@ export default function PricingPage() {
                         </label>
                         <input
                           type="range"
-                          min="300"
-                          max="5000"
-                          step="100"
+                          min="250"
+                          max="2500"
+                          step="50"
                           value={customBudget}
                           onChange={(e) => setCustomBudget(Number(e.target.value))}
                           className="w-full accent-[#c9a227] cursor-pointer"
