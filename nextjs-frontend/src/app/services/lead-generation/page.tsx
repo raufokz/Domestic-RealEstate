@@ -33,6 +33,16 @@ const TIERS = [
     popular: true,
   },
   {
+    name: 'Pay-Per-Closing (Success Fee)',
+    price: '$0',
+    period: ' upfront',
+    description: 'Zero risk option. Pay 20-25% referral fee only when escrow closes',
+    features: ['Zero upfront fee', 'AI-verified buyer & seller leads', 'Verified financial pre-approval', 'Payoneer direct payout integration', 'Escrow closing tracking'],
+    cta: 'Claim Success-Fee Leads',
+    popular: false,
+    href: '/agent/dashboard/pay-at-closing',
+  },
+  {
     name: 'Enterprise / One-Time',
     price: 'Custom',
     period: '',
@@ -98,35 +108,37 @@ export default function LeadGenerationPage() {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#0A2647] mb-4">Pricing Plans</h2>
             <p className="font-body text-gray-600 max-w-xl mx-auto">Choose the plan that fits your business. Upgrade or downgrade anytime.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {TIERS.map((tier, i) => (
-              <div key={i} className={`bg-white rounded-2xl p-8 border-2 transition-shadow ${
+              <div key={i} className={`bg-white rounded-2xl p-6 border-2 transition-shadow flex flex-col justify-between ${
                 tier.popular
                   ? 'border-[#C9A227] shadow-lg relative'
                   : 'border-gray-100 hover:shadow-md'
               }`}>
-                {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-[#C9A227] text-[#0A2647] font-heading text-xs font-bold px-4 py-1.5 rounded-full">Most Popular</span>
+                <div>
+                  {tier.popular && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                      <span className="bg-[#C9A227] text-[#0A2647] font-heading text-xs font-bold px-4 py-1 rounded-full">Most Popular</span>
+                    </div>
+                  )}
+                  <h3 className="font-heading text-lg font-bold text-[#0A2647] mb-2">{tier.name}</h3>
+                  <div className="mb-3">
+                    <span className="font-heading text-3xl font-bold text-[#0A2647]">{tier.price}</span>
+                    <span className="font-body text-gray-500 text-sm">{tier.period}</span>
                   </div>
-                )}
-                <h3 className="font-heading text-xl font-bold text-[#0A2647] mb-2">{tier.name}</h3>
-                <div className="mb-4">
-                  <span className="font-heading text-4xl font-bold text-[#0A2647]">{tier.price}</span>
-                  <span className="font-body text-gray-500 text-sm">{tier.period}</span>
+                  <p className="font-body text-gray-500 text-xs mb-5">{tier.description}</p>
+                  <ul className="space-y-2.5 mb-6">
+                    {tier.features.map((f, j) => (
+                      <li key={j} className="flex items-center gap-2.5">
+                        <svg className="w-4 h-4 text-[#C9A227] flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        <span className="font-body text-xs text-gray-600">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <p className="font-body text-gray-500 text-sm mb-6">{tier.description}</p>
-                <ul className="space-y-3 mb-8">
-                  {tier.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-3">
-                      <svg className="w-4 h-4 text-[#C9A227] flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                      <span className="font-body text-sm text-gray-600">{f}</span>
-                    </li>
-                  ))}
-                </ul>
                 <Link
-                  href={tier.cta === 'Contact Sales' ? '/contact' : '/register'}
-                  className={`block text-center w-full font-heading font-semibold py-3 rounded-lg transition-colors ${
+                  href={tier.href || (tier.cta === 'Contact Sales' ? '/contact' : '/register')}
+                  className={`block text-center w-full font-heading font-semibold py-3 rounded-xl transition-colors text-sm ${
                     tier.popular
                       ? 'bg-[#C9A227] text-[#0A2647] hover:bg-[#C9A227]/90'
                       : 'bg-[#0A2647] text-white hover:bg-[#0A2647]/90'

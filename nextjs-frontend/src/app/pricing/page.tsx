@@ -58,7 +58,7 @@ function TiltCard({
 }
 
 export default function PricingPage() {
-  const [pricingType, setPricingType] = useState<"annual" | "one-time" | "custom">("annual");
+  const [pricingType, setPricingType] = useState<"annual" | "one-time" | "pay-per-closing" | "custom">("annual");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [selectedPlanForCal, setSelectedPlanForCal] = useState<string>("Starter");
 
@@ -263,6 +263,20 @@ export default function PricingPage() {
             </button>
 
             <button
+              onClick={() => setPricingType("pay-per-closing")}
+              className={`px-6 py-3 rounded-xl text-xs font-extrabold uppercase transition-all duration-300 flex items-center gap-2 ${
+                pricingType === "pay-per-closing"
+                  ? "bg-[#c9a227] text-[#0a2647] shadow-gold font-black scale-102"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <span>🤝 Pay Per Closing</span>
+              <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+                $0 Upfront
+              </span>
+            </button>
+
+            <button
               onClick={() => setPricingType("custom")}
               className={`px-6 py-3 rounded-xl text-xs font-extrabold uppercase transition-all duration-300 flex items-center gap-2 ${
                 pricingType === "custom"
@@ -282,6 +296,57 @@ export default function PricingPage() {
       {/* ── MAIN CONTENT DISPLAY BASED ON PRICING TYPE ── */}
       <section className="py-20 max-w-7xl mx-auto px-6 -mt-10 relative z-20">
         <AnimatePresence mode="wait">
+          {pricingType === "pay-per-closing" && (
+            <motion.div
+              key="pay-per-closing"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white rounded-3xl border-2 border-[#0a2647] p-8 md:p-12 shadow-premium text-navy max-w-4xl mx-auto"
+            >
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8 pb-8 border-b border-slate-200">
+                <div>
+                  <span className="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+                    Zero Risk · Success Fee Model
+                  </span>
+                  <h2 className="text-3xl font-black text-[#0a2647] mt-3">Pay-at-Closing Lead Partner Program</h2>
+                  <p className="text-slate-600 text-sm mt-2 max-w-lg">
+                    Receive pre-qualified, high-intent buyer & seller leads in your local territory with $0 upfront investment. Pay a 20-25% referral fee only when escrow closes.
+                  </p>
+                </div>
+                <div className="text-center bg-[#0a2647] text-white p-6 rounded-2xl min-w-[220px]">
+                  <span className="text-xs font-bold text-[#c9a227] uppercase tracking-wider">Upfront Fee</span>
+                  <p className="text-5xl font-black mt-1">$0</p>
+                  <p className="text-xs text-slate-300 mt-2">20–25% referral fee at closing</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <h4 className="font-bold text-[#0a2647] text-base mb-2">🎯 Pre-Qualified Lead Matching</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Leads are vetted by AI for budget, pre-approval status, and timeline before assignment to your agent profile.
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <h4 className="font-bold text-[#0a2647] text-base mb-2">💳 Automated Escrow Payouts</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Direct integration with Payoneer and escrow bank transfer logic. Track your earnings seamlessly from your agent portal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Link
+                  href="/agent/dashboard/pay-at-closing"
+                  className="inline-block bg-[#c9a227] text-[#0a2647] font-black text-base px-8 py-4 rounded-xl hover:bg-[#b8911f] transition shadow-gold"
+                >
+                  Access Pay-Per-Closing Dashboard →
+                </Link>
+              </div>
+            </motion.div>
+          )}
           {/* ANNUAL PLANS DISPLAY */}
           {pricingType === "annual" && (
             <motion.div

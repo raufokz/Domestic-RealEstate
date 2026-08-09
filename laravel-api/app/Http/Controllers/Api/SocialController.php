@@ -40,6 +40,20 @@ class SocialController extends Controller
         return response()->json($account, 201);
     }
 
+    public function updateAccount(Request $request, int $id): JsonResponse
+    {
+        $account = SocialAccount::where('user_id', $request->user()->id)->findOrFail($id);
+        $validated = $request->validate([
+            'account_name' => 'sometimes|string|max:255',
+            'account_id' => 'sometimes|string|max:255',
+            'avatar_url' => 'nullable|string',
+            'status' => 'sometimes|string|in:connected,disconnected,pending_verification',
+        ]);
+
+        $account->update($validated);
+        return response()->json($account);
+    }
+
     public function destroyAccount(Request $request, int $id): JsonResponse
     {
         $account = SocialAccount::where('user_id', $request->user()->id)->findOrFail($id);

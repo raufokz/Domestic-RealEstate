@@ -309,6 +309,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('social')->group(function () {
         Route::get('/accounts', [SocialController::class, 'indexAccounts']);
         Route::post('/accounts', [SocialController::class, 'storeAccount']);
+        Route::put('/accounts/{id}', [SocialController::class, 'updateAccount']);
         Route::delete('/accounts/{id}', [SocialController::class, 'destroyAccount']);
         Route::post('/accounts/{id}/test', [SocialController::class, 'testAccount']);
         Route::get('/posts', [SocialController::class, 'indexPosts']);
