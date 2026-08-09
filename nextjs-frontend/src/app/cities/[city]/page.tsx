@@ -5,7 +5,7 @@ import PropertyGrid from "@/components/properties/PropertyGrid";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, faqLd, SITE_URL } from "@/lib/seo";
 
-interface CityData {
+export interface CityData {
   name: string;
   state: string;
   country: string;
@@ -16,6 +16,17 @@ interface CityData {
   neighborhoods: string[];
   schools: { name: string; rating: string; type: string }[];
   faqs: { q: string; a: string }[];
+  avgPricePerSqFt?: string;
+  propertyTaxRate?: string;
+  appreciationRate?: string;
+  marketType?: string;
+  walkScore?: string;
+  bestFor?: string;
+  topEmployers?: string[];
+  investmentInsights?: string;
+  propertyTypes?: { type: string; avgPrice: string; description: string }[];
+  buyingGuide?: { step: string; title: string; text: string }[];
+  livingInCity?: { lifestyle: string; transit: string; climate: string };
 }
 
 export const CITY_DB: Record<string, CityData> = {
