@@ -42,6 +42,7 @@ class ImportColumnMapper
         'bathrooms' => ['bathrooms', 'baths', 'bath', 'ba'],
         'sqft' => ['sqft', 'squarefeet', 'squarefootage', 'area', 'livingarea', 'floorarea'],
         'property_type' => ['propertytype', 'type', 'category', 'hometype'],
+        'photos' => ['photos', 'photo', 'images', 'image', 'picture', 'pictures', 'photourl', 'imageurl', 'img'],
         // Reused generically as "whichever email column this import cares about" —
         // for properties that's the listing realtor/agent's email.
         'email' => ['email', 'realtoremail', 'agentemail', 'listingagentemail', 'contactemail'],

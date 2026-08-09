@@ -228,7 +228,8 @@ class PropertyController extends Controller
         $index = array_flip($headers);
         $imported = 0;
         $failed = 0;
-        $requiredFields = ['title', 'description', 'price', 'address', 'city', 'state', 'zip'];
+        $failed = 0;
+        $requiredFields = ['price', 'address', 'city', 'state', 'zip'];
 
         foreach ($rows as $i => $row) {
             $rowNumber = $i + 2; // +1 for zero-index, +1 for the header row
@@ -255,7 +256,8 @@ class PropertyController extends Controller
                 continue;
             }
 
-            if (!is_numeric($data['price'])) {
+            $cleanPrice = preg_replace('/[^\d.]/', '', (string) $data['price']);
+            if ($cleanPrice === '' || !is_numeric($cleanPrice)) {
                 $failed++;
                 \App\Services\TabularImportService::recordRowError(
                     $batch,
@@ -267,6 +269,15 @@ class PropertyController extends Controller
                 );
                 continue;
             }
+
+            $titleVal = $value($map['title'] ?? null);
+            $descVal = $value($map['description'] ?? null);
+            $title = $titleVal !== null && $titleVal !== ''
+                ? $titleVal
+                : ($data['address'] ? $data['address'].', '.$data['city'].', '.$data['state'] : 'Property Listing');
+            $desc = $descVal !== null && $descVal !== ''
+                ? $descVal
+                : "Imported property listing at {$data['address']}, {$data['city']}, {$data['state']} {$data['zip']}.";
 
             $realtorId = $request->user()->id;
             $emailValue = $value($map['email'] ?? null);
@@ -282,7 +293,6 @@ class PropertyController extends Controller
             $typeText = $value($map['property_type'] ?? null);
             $propertyTypeId = \App\Services\PropertyTypeResolver::resolve($typeText);
             if ($typeText && !$propertyTypeId) {
-                // Soft warning only — the row still imports without a type.
                 \App\Services\TabularImportService::recordRowError(
                     $batch,
                     $rowNumber,
@@ -293,11 +303,25 @@ class PropertyController extends Controller
                 );
             }
 
+            $photosVal = $value($map['photos'] ?? null);
+            $photosArray = [];
+            if ($photosVal !== null && $photosVal !== '') {
+                if (str_starts_with($photosVal, '[') && str_ends_with($photosVal, ']')) {
+                    $decoded = json_decode($photosVal, true);
+                    if (is_array($decoded)) {
+                        $photosArray = array_values(array_filter($decoded, 'is_string'));
+                    }
+                }
+                if (empty($photosArray)) {
+                    $photosArray = array_values(array_filter(array_map('trim', explode(',', $photosVal))));
+                }
+            }
+
             try {
                 Property::create([
-                    'title' => $data['title'],
-                    'description' => $data['description'],
-                    'price' => (float) $data['price'],
+                    'title' => $title,
+                    'description' => $desc,
+                    'price' => (float) $cleanPrice,
                     'address' => $data['address'],
                     'city' => $data['city'],
                     'state' => $data['state'],
@@ -306,8 +330,11 @@ class PropertyController extends Controller
                     'bathrooms' => $this->toNullableFloat($value($map['bathrooms'] ?? null)),
                     'sqft' => $this->toNullableInt($value($map['sqft'] ?? null)),
                     'property_type_id' => $propertyTypeId,
+                    'photos' => $photosArray !== [] ? $photosArray : null,
                     'realtor_id' => $realtorId,
                     'country' => 'US',
+                    'status' => 'active',
+                    'approval_status' => in_array($request->user()->role, ['admin', 'super_admin']) ? 'approved' : 'pending',
                 ]);
                 $imported++;
             } catch (\Throwable $e) {
@@ -428,7 +455,8 @@ class PropertyController extends Controller
                 continue;
             }
 
-            if (!is_numeric($price)) {
+            $cleanPrice = preg_replace('/[^\d.]/', '', (string) $price);
+            if ($cleanPrice === '' || !is_numeric($cleanPrice)) {
                 $failed++;
                 \App\Services\TabularImportService::recordRowError(
                     $batch,
@@ -447,7 +475,7 @@ class PropertyController extends Controller
                 Property::create([
                     'title' => $title !== '' ? $title : $address,
                     'description' => $this->buildPasteDescription($row),
-                    'price' => (float) $price,
+                    'price' => (float) $cleanPrice,
                     'address' => $address,
                     'city' => $city,
                     'state' => $state,
@@ -464,7 +492,7 @@ class PropertyController extends Controller
                     'realtor_id' => $request->user()->id,
                     'country' => 'US',
                     'status' => 'active',
-                    'approval_status' => 'pending',
+                    'approval_status' => in_array($request->user()->role, ['admin', 'super_admin']) ? 'approved' : 'pending',
                 ]);
                 $imported++;
             } catch (\Throwable $e) {

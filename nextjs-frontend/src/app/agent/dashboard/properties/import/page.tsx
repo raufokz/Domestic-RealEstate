@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import AdminLayout from "@/components/admin/AdminLayout";
+import AgentLayout from "@/components/agent/AgentLayout";
 import { useToast } from "@/components/Toast";
 import HowTo from "@/components/ui/HowTo";
 import { API_BASE, apiPost } from "@/lib/api";
@@ -40,7 +40,7 @@ interface ImportPasteResponse {
   errors: number;
 }
 
-export default function ImportPropertiesPage() {
+export default function AgentImportPropertiesPage() {
   const { success, notifyError } = useToast();
   const [mode, setMode] = useState<"file" | "paste">("file");
   const [file, setFile] = useState<File | null>(null);
@@ -79,7 +79,6 @@ export default function ImportPropertiesPage() {
     { key: "sqft", label: "Square Feet", required: false },
     { key: "property_type", label: "Property Type (e.g. House, Condo)", required: false },
     { key: "photos", label: "Photos / Images (URLs)", required: false },
-    { key: "email", label: "Listing Agent Email", required: false },
   ];
 
   const autoDetectMappings = (headers: string[]) => {
@@ -99,7 +98,6 @@ export default function ImportPropertiesPage() {
       sqft: ["sqft", "squarefeet", "squarefootage", "area", "livingarea"],
       property_type: ["propertytype", "type", "category", "hometype"],
       photos: ["photos", "photo", "images", "image", "picture", "pictures", "photourl", "imageurl", "img"],
-      email: ["email", "realtoremail", "agentemail", "listingagentemail", "contactemail"],
     };
 
     PROPERTY_FIELDS.forEach((field) => {
@@ -300,7 +298,7 @@ export default function ImportPropertiesPage() {
   };
 
   return (
-    <AdminLayout title="Import Properties">
+    <AgentLayout title="Import Properties" subtitle="Bulk import listings from CSV/XLSX spreadsheets or paste directly from Zillow">
       <div className="max-w-3xl mx-auto space-y-6">
         <HowTo
           title="How to Import Properties"
@@ -308,22 +306,15 @@ export default function ImportPropertiesPage() {
           defaultOpen={step === "upload" && mode === "file"}
           requirements={[
             "A CSV or XLSX file with one property per row and a header row — or paste listing text from a Zillow search page.",
-            "Title, description, price, address, city, state, and zip are required for every row.",
+            "Price, address, city, state, and zip are required for every row.",
           ]}
           steps={[
             { text: "Choose an import method.", detail: "Upload a CSV/XLSX file, or switch to Paste Listings and copy rows straight from a Zillow search." },
             { text: "Match or review the detected fields.", detail: "File imports map columns; pasted listings are auto-parsed from the Zillow text." },
             { text: "Review the preview.", detail: "Rows missing a required field are skipped and listed with a reason after import." },
-            "Confirm the import and review the summary.",
+            "Confirm the import and review your updated listings.",
           ]}
-        >
-          <p className="rounded-lg bg-white/70 p-3 text-xs text-slate-600">
-            <strong className="text-[#0A2647]">Property type text (e.g. &quot;House&quot;, &quot;Condo&quot;)</strong> is
-            matched to your existing property types automatically. Imported listings land as drafts
-            in <a href="/admin/properties/pending" className="underline">Pending Review</a> — nothing goes live
-            until you approve it.
-          </p>
-        </HowTo>
+        />
 
         <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
           <button
@@ -341,17 +332,17 @@ export default function ImportPropertiesPage() {
         </div>
 
         {mode === "file" && (
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          {["upload", "mapping", "preview", "done"].map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === s || (["upload", "mapping", "preview", "done"].indexOf(step) > i) ? "bg-[#C9A227] text-[#0A2647]" : "bg-slate-200 text-slate-500"}`}>
-                {["upload", "mapping", "preview", "done"].indexOf(step) > i ? "✓" : i + 1}
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            {["upload", "mapping", "preview", "done"].map((s, i) => (
+              <div key={s} className="flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === s || (["upload", "mapping", "preview", "done"].indexOf(step) > i) ? "bg-[#C9A227] text-[#0A2647]" : "bg-slate-200 text-slate-500"}`}>
+                  {["upload", "mapping", "preview", "done"].indexOf(step) > i ? "✓" : i + 1}
+                </div>
+                <span className={`capitalize ${step === s ? "text-[#0A2647] font-semibold" : ""}`}>{s}</span>
+                {i < 3 && <div className="w-8 h-px bg-slate-200" />}
               </div>
-              <span className={`capitalize ${step === s ? "text-[#0A2647] font-semibold" : ""}`}>{s}</span>
-              {i < 3 && <div className="w-8 h-px bg-slate-200" />}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
         )}
 
         {mode === "file" && step === "upload" && (
@@ -436,7 +427,7 @@ export default function ImportPropertiesPage() {
               <table className="w-full">
                 <thead className="bg-[#0A2647] text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Title</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Title / Address</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Price</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">City / State</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
@@ -445,7 +436,9 @@ export default function ImportPropertiesPage() {
                 <tbody className="divide-y divide-slate-100">
                   {previewData.map((row, i) => (
                     <tr key={i} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{mappings.title ? row[mappings.title] : "—"}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        {mappings.title && row[mappings.title] ? row[mappings.title] : (mappings.address ? row[mappings.address] : "—")}
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{mappings.price ? row[mappings.price] : "—"}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {mappings.city ? row[mappings.city] : "—"}{mappings.state ? `, ${row[mappings.state]}` : ""}
@@ -474,10 +467,10 @@ export default function ImportPropertiesPage() {
             </div>
             <h3 className="text-xl font-bold text-[#0A2647] mb-2">Import Complete!</h3>
             <p className="text-slate-500 mb-1">{successCount} properties imported successfully</p>
-            <p className="text-sm text-slate-400 mb-6">{errorCount} rows skipped — see Import History for details</p>
+            <p className="text-sm text-slate-400 mb-6">{errorCount} rows skipped</p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => { setStep("upload"); setFile(null); setProgress(0); }} className="px-6 py-2 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50">Import More</button>
-              <a href="/admin/properties/pending" className="px-6 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3366] transition">Review Imported Properties</a>
+              <a href="/agent/dashboard/properties" className="px-6 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3366] transition">View My Properties</a>
             </div>
           </div>
         )}
@@ -486,7 +479,7 @@ export default function ImportPropertiesPage() {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-bold text-[#0A2647] mb-2">Paste Zillow Listings</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Copy rows straight from a Zillow search results page (each listing with its price,
+              Copy rows straight from a Zillow search results page (each listing with price,
               beds, baths, square feet, address, and photos) and paste them below. Properties are
               auto-detected — one listing per pasted block.
             </p>
@@ -494,12 +487,12 @@ export default function ImportPropertiesPage() {
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
               rows={10}
-              placeholder={"https://www.zillow.com/homedetails/26504-79th-Ave-Glen-Oaks-NY-11004/32102264_zpid/\t$1,888,000\t3\tbds\t4\tba\t2,314\tsqft\tHouse for sale\t265-04 79th Avenue, Glen Oaks, NY 11004\tLISTING BY: BERKSHIRE HATHAWAY\t...\n\nPaste more listings below — each block becomes one property."}
+              placeholder={"https://www.zillow.com/homedetails/26504-79th-Ave-Glen-Oaks-NY-11004/32102264_zpid/\t$1,888,000\t3\tbds\t4\tba\t2,314\tsqft\tHouse for sale\t265-04 79th Avenue, Glen Oaks, NY 11004\t...\n\nPaste more listings below — each block becomes one property."}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#C9A227] outline-none font-mono"
             />
             <div className="flex items-center justify-between mt-4">
               <p className="text-xs text-slate-400">
-                Imports land as <strong className="text-[#0A2647]">pending</strong> listings for review.
+                Listings will be imported directly to your portfolio.
               </p>
               <button
                 onClick={handlePasteDetect}
@@ -596,7 +589,7 @@ export default function ImportPropertiesPage() {
               {pasteResult?.count ?? 0} properties imported successfully
             </p>
             <p className="text-sm text-slate-400 mb-6">
-              {pasteResult?.errors ?? 0} rows skipped — see Import History for details
+              {pasteResult?.errors ?? 0} rows skipped
             </p>
             <div className="flex gap-3 justify-center">
               <button
@@ -605,11 +598,11 @@ export default function ImportPropertiesPage() {
               >
                 Import More
               </button>
-              <a href="/admin/properties/pending" className="px-6 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3366] transition">Review Imported Properties</a>
+              <a href="/agent/dashboard/properties" className="px-6 py-2 bg-[#0A2647] text-white rounded-lg text-sm font-semibold hover:bg-[#0d3366] transition">View My Properties</a>
             </div>
           </div>
         )}
       </div>
-    </AdminLayout>
+    </AgentLayout>
   );
 }
