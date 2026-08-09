@@ -361,19 +361,16 @@ export default function PricingPage() {
                         <div className="mb-6">
                           <div className="flex items-baseline gap-1.5">
                             <span className="text-4xl font-black text-[#0a2647] font-heading tracking-tight">
-                              ${price}
+                              ${plan.annualTotalPrice.toLocaleString()}
                             </span>
-                            <span className="text-xs font-semibold text-slate-500">
-                              /mo (billed annually)
+                            <span className="text-sm font-bold text-slate-600 font-mono">
+                              / year
                             </span>
                           </div>
 
-                          <div className="mt-2 space-y-1">
-                            <span className="text-xs font-bold text-slate-600 font-mono">
-                              ${plan.annualTotalPrice.toLocaleString()}/year total
-                            </span>
-                            <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-extrabold rounded-full">
-                              💰 20% Annual Savings Included
+                          <div className="mt-2">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold rounded-full">
+                              💰 Paid Annually (Save 20%)
                             </span>
                           </div>
                         </div>
@@ -701,13 +698,14 @@ export default function PricingPage() {
 
                       <div className="text-center py-6 border-y border-white/10 mb-6">
                         <span className="text-xs text-slate-300 font-bold block mb-1">
-                          Calculated Monthly Equivalent
+                          Calculated Estimated Plan Value
                         </span>
                         <span className="text-5xl font-black text-[#c9a227] font-mono tracking-tight">
-                          ${calculatedCustomEst.toLocaleString()}
+                          ${(calculatedCustomEst * 12).toLocaleString()}
                         </span>
+                        <span className="text-xs text-slate-300 font-mono block mt-1">/ year (or One-Time Agreement)</span>
                         <span className="text-xs text-slate-400 block mt-2">
-                          Target Budget: ${customBudget.toLocaleString()}/mo
+                          Target Budget: ${customBudget.toLocaleString()} / year
                         </span>
                       </div>
 

@@ -622,9 +622,9 @@ function RegisterForm() {
                               <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.tagline}</p>
 
                               <div className="flex items-baseline gap-1 mb-4">
-                                <span className="text-2xl font-black text-[#0A2647]">${price}</span>
+                                <span className="text-2xl font-black text-[#0A2647]">${price.toLocaleString()}</span>
                                 <span className="text-[10px] text-slate-500 font-bold uppercase font-mono">
-                                  /{form.billing_cycle === "annual" ? "mo (billed annually)" : "one-time"}
+                                  {form.billing_cycle === "annual" ? "/ year" : "one-time"}
                                 </span>
                               </div>
 

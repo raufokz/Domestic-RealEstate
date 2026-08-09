@@ -184,7 +184,7 @@ export function planByName(name?: string | null): AgentPlanTier | undefined {
 
 export function planPrice(plan: AgentPlanTier, billing: "annual" | "one-time" = "annual"): number {
   if (billing === "one-time") {
-    return plan.oneTimePrice ?? plan.annualPrice;
+    return plan.oneTimePrice ?? plan.annualTotalPrice;
   }
-  return plan.annualPrice;
+  return plan.annualTotalPrice;
 }

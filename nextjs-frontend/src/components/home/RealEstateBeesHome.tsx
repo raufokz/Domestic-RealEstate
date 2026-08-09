@@ -1152,10 +1152,10 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
 
                     <div className="flex items-baseline gap-1 mb-8">
                       <span className="text-4xl font-extrabold font-heading text-[#0A2647]">
-                        ${price}
+                        ${plan.annualTotalPrice.toLocaleString()}
                       </span>
-                      <span className="text-xs font-semibold text-slate-500">
-                        /mo (billed annually)
+                      <span className="text-xs font-bold text-slate-600 font-mono">
+                        / year
                       </span>
                     </div>
 

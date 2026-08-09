@@ -203,8 +203,8 @@ export default function VirtualAssistantPage() {
                   <p className="text-xs text-gray-500 mb-4">{plan.tagline}</p>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className="text-[10px] text-gray-400 font-bold uppercase">from</span>
-                    <span className="text-2xl font-extrabold text-[#0A2647]">${plan.annualPrice}</span>
-                    <span className="text-xs text-gray-400">/mo (billed annually)</span>
+                    <span className="text-2xl font-extrabold text-[#0A2647]">${plan.annualTotalPrice.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400">/ year</span>
                   </div>
                   <ul className="space-y-2 text-xs text-gray-600 mb-6">
                     {plan.features.map((f) => (
