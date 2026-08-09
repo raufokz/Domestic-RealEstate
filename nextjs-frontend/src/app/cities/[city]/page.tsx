@@ -1315,19 +1315,37 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 
   const city = CITY_DB[slug] ?? fallbackCity(slug);
   const loc = city.state ? `${city.name}, ${city.state}` : city.name;
+
+  const keywords = [
+    `${city.name.toLowerCase()} real estate`,
+    `real estate in ${city.name.toLowerCase()}`,
+    `${city.name.toLowerCase()} real estate listings`,
+    `houses ${city.name.toLowerCase()}`,
+    `houses in ${city.name.toLowerCase()}`,
+    `${city.name.toLowerCase()} homes`,
+    `${city.name.toLowerCase()} homes for sale`,
+    `property in ${city.name.toLowerCase()}`,
+    `${city.name.toLowerCase()} properties`,
+    `domestic real estate`,
+    `buy house in ${city.name}`,
+    `best neighborhoods in ${city.name}`,
+  ];
+
+  if (slug === "new-york-city") {
+    keywords.push(
+      "nyc real estate",
+      "property in nyc",
+      "houses in nyc",
+      "new york city real estate listings"
+    );
+  }
+
   return buildMetadata({
     title: `${city.name} Real Estate & Homes for Sale | Market Insights`,
     fullTitle: `${city.name} Real Estate & Homes for Sale | Domestic Real Estate`,
-    description: `Explore ${loc} real estate & homes for sale. View market trends, median prices, top neighborhood school ratings, property tax rates, and connect with top local realtors in ${city.name}.`,
+    description: `Browse verified ${loc} real estate & homes for sale. View market trends, median prices, top neighborhood school ratings, property tax rates, and connect with top local realtors in ${city.name}.`,
     path: `/cities/${slug}`,
-    keywords: [
-      `${city.name} real estate`,
-      `${city.name} homes for sale`,
-      `buy house in ${city.name}`,
-      `${city.name} real estate market`,
-      `best neighborhoods in ${city.name}`,
-      `${city.name} property tax rate`,
-    ],
+    keywords,
   });
 }
 
