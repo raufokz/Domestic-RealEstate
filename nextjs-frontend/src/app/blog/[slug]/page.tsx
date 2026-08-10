@@ -9,6 +9,7 @@ import {
   getRelatedPosts,
   getAdjacentPosts,
   extractToc,
+  cleanHtmlDocument,
   formatBlogDate,
   formatReadingTime,
   authorInitials,
@@ -129,9 +130,10 @@ export default async function BlogPostPage({
     // Graceful fallback if related/adjacent queries fail
   }
 
-  const safeContent = typeof post.content === "string" ? post.content : "";
-  const hasHtml = /<[a-z][\s\S]*>/i.test(safeContent);
-  const rawHtml = hasHtml ? safeContent : plainTextToHtml(safeContent);
+  const rawContent = typeof post.content === "string" ? post.content : "";
+  const cleanedContent = cleanHtmlDocument(rawContent);
+  const hasHtml = /<[a-z][\s\S]*>/i.test(cleanedContent);
+  const rawHtml = hasHtml ? cleanedContent : plainTextToHtml(cleanedContent);
   const { html: contentHtml, toc } = extractToc(rawHtml);
   const date = formatBlogDate(post.published_at ?? post.created_at);
   const readTime = formatReadingTime(post.reading_time);

@@ -342,6 +342,248 @@ const FALLBACK_RESEARCH_GUIDES: Record<string, BlogPost> = {
     category: { id: 12, name: "Macroeconomics", slug: "macroeconomics" },
     author: { id: 1, name: "Domestic RE Economic Research", email: "info@domesticrealestate.us" },
   },
+  "new-york-city-real-estate-guide-2026": {
+    id: 1013,
+    slug: "new-york-city-real-estate-guide-2026",
+    title: "New York City Real Estate: Complete Guide to Buying, Selling & Investing in NYC (2026)",
+    excerpt: "Explore New York City real estate in 2026. Discover NYC homes for sale, investment opportunities, neighborhoods, market trends, and expert buying and selling tips.",
+    content: `<h2>New York City Real Estate: Complete Guide to Buying, Selling & Investing in NYC (2026)</h2>
+
+<p>
+New York City continues to be one of the world's most exciting real estate markets. Whether you're looking for a luxury condo in Manhattan, a family home in Queens, or an investment property in Brooklyn, NYC offers opportunities for every buyer and investor.
+</p>
+
+<p>
+Browse the latest
+<a href="https://domesticrealestate.us/properties" target="_blank">
+New York City real estate listings
+</a>
+to discover homes, condos, apartments, and investment opportunities available across the United States.
+</p>
+
+<hr>
+
+<h2>Why Invest in New York City Real Estate?</h2>
+
+<p>
+New York City remains one of the strongest long-term real estate markets because of its growing economy, strong rental demand, excellent transportation, and international appeal.
+</p>
+
+<ul>
+<li>Strong property appreciation</li>
+<li>High rental demand</li>
+<li>Global financial center</li>
+<li>Excellent investment opportunities</li>
+<li>Growing luxury housing market</li>
+</ul>
+
+<p>
+If you're searching for investment opportunities, explore our
+<a href="https://domesticrealestate.us/properties/for-sale" target="_blank">
+Homes for Sale
+</a>
+section.
+</p>
+
+<hr>
+
+<h2>Popular NYC Neighborhoods</h2>
+
+<h3>Manhattan</h3>
+
+<p>
+Manhattan is home to luxury condos, high-rise apartments, and world-famous neighborhoods such as Tribeca, SoHo, Chelsea, and the Upper East Side.
+</p>
+
+<h3>Brooklyn</h3>
+
+<p>
+Brooklyn continues attracting young professionals and investors thanks to neighborhoods like Williamsburg, DUMBO, and Park Slope.
+</p>
+
+<h3>Queens</h3>
+
+<p>
+Queens offers affordability, diversity, and excellent transportation, making it ideal for families and first-time buyers.
+</p>
+
+<h3>The Bronx</h3>
+
+<p>
+The Bronx provides attractive investment opportunities with relatively affordable housing and continued development.
+</p>
+
+<h3>Staten Island</h3>
+
+<p>
+Buyers seeking larger homes and quieter neighborhoods often choose Staten Island.
+</p>
+
+<hr>
+
+<h2>Types of Properties Available</h2>
+
+<ul>
+<li>Luxury Condominiums</li>
+<li>Single Family Homes</li>
+<li>Townhouses</li>
+<li>Multi-Family Properties</li>
+<li>Investment Properties</li>
+<li>Apartments</li>
+<li>Rental Homes</li>
+</ul>
+
+<p>
+Looking for rental opportunities?
+Visit our
+<a href="https://domesticrealestate.us/properties/for-rent" target="_blank">
+Properties for Rent
+</a>
+page.
+</p>
+
+<hr>
+
+<h2>Buying Property in NYC</h2>
+
+<p>
+Before purchasing a home, you should:
+</p>
+
+<ul>
+<li>Get mortgage pre-approval.</li>
+<li>Research neighborhoods.</li>
+<li>Compare property prices.</li>
+<li>Schedule home tours.</li>
+<li>Work with an experienced Realtor.</li>
+</ul>
+
+<p>
+Our experienced
+<a href="https://domesticrealestate.us/realtors" target="_blank">
+New York City Realtors
+</a>
+can help you throughout the buying process.
+</p>
+
+<hr>
+
+<h2>Open Houses in New York City</h2>
+
+<p>
+Attending open houses is one of the best ways to compare neighborhoods and properties before making an offer.
+</p>
+
+<p>
+View upcoming
+<a href="https://domesticrealestate.us/properties/open-houses" target="_blank">
+Open Houses
+</a>
+to schedule your next property tour.
+</p>
+
+<hr>
+
+<h2>Current Market Trends</h2>
+
+<ul>
+<li>Growing inventory</li>
+<li>Stable mortgage rates</li>
+<li>Strong rental demand</li>
+<li>Continued luxury market growth</li>
+<li>High investor activity</li>
+</ul>
+
+<hr>
+
+<h2>Frequently Asked Questions</h2>
+
+<h3>Is New York City a good place to invest?</h3>
+
+<p>
+Yes. NYC remains one of the strongest long-term real estate markets due to its strong economy, rental demand, and international investment appeal.
+</p>
+
+<h3>Should I buy or rent?</h3>
+
+<p>
+The right decision depends on your financial goals, budget, and how long you plan to stay in New York City.
+</p>
+
+<h3>Where can I find experienced agents?</h3>
+
+<p>
+Visit our
+<a href="https://domesticrealestate.us/agents" target="_blank">
+Real Estate Agents Directory
+</a>
+to connect with experienced professionals.
+</p>
+
+<hr>
+
+<h2>Helpful Resources</h2>
+
+<ul>
+<li>
+<a href="https://www.consumerfinance.gov/" target="_blank" rel="noopener noreferrer">
+Consumer Financial Protection Bureau
+</a>
+</li>
+<li>
+<a href="https://www.fhfa.gov/" target="_blank" rel="noopener noreferrer">
+Federal Housing Finance Agency
+</a>
+</li>
+<li>
+<a href="https://www.nyc.gov/site/finance" target="_blank" rel="noopener noreferrer">
+NYC Department of Finance
+</a>
+</li>
+<li>
+<a href="https://www.nyc.gov/site/hpd" target="_blank" rel="noopener noreferrer">
+NYC Housing Preservation & Development
+</a>
+</li>
+</ul>
+
+<hr>
+
+<h2>Ready to Find Your Dream Home?</h2>
+
+<p>
+Whether you're buying your first home, searching for a luxury condo, or expanding your investment portfolio, Domestic Real Estate is here to help.
+</p>
+
+<p>
+<a href="https://domesticrealestate.us/properties">
+Browse Properties
+</a>
+|
+<a href="https://domesticrealestate.us/realtors">
+Find a Realtor
+</a>
+|
+<a href="https://domesticrealestate.us/contact">
+Contact Domestic Real Estate
+</a>
+</p>`,
+    status: "published",
+    published_at: "2026-08-10T12:00:00Z",
+    created_at: "2026-08-10T12:00:00Z",
+    seo_title: "New York City Real Estate Guide 2026 | Homes, Condos & Investment Properties",
+    meta_description: "Explore New York City real estate in 2026. Discover NYC homes for sale, investment opportunities, neighborhoods, market trends, and expert buying and selling tips.",
+    reading_time: 8,
+    tags: ["New York City Real Estate", "NYC Real Estate", "New York City Homes", "Houses in NYC", "Property in NYC", "NYC Homes for Sale", "Real Estate in New York City"],
+    canonical_url: "https://domesticrealestate.us/blog/new-york-city-real-estate-guide-2026",
+    category: { id: 1, name: "Buyer Guide", slug: "buyer-guide" },
+    author: { id: 1, name: "Domestic RE Editorial Board", email: "editor@domesticrealestate.us" },
+    faq_schema: [
+      { question: "Is New York City a good place to invest?", answer: "Yes. NYC remains one of the strongest long-term real estate markets due to its strong economy, rental demand, and international investment appeal." },
+      { question: "Should I buy or rent?", answer: "The right decision depends on your financial goals, budget, and how long you plan to stay in New York City." },
+      { question: "Where can I find experienced agents?", answer: "Visit our Real Estate Agents Directory to connect with experienced professionals." }
+    ],
+  },
 };
 
 /** Fetch one published post by slug. Returns null when missing (→ 404). */
@@ -498,6 +740,91 @@ export function authorInitials(name?: string | null): string {
     .join("");
 }
 
+/**
+ * Strips document wrappers (<!DOCTYPE html>, <html>, <head>...</head>, <body>, </body>, </html>)
+ * and unescapes entity-encoded HTML so blog posts always render as clean, formatted rich body HTML.
+ */
+export function cleanHtmlDocument(raw: string | null | undefined): string {
+  if (!raw) return "";
+  let content = raw.trim();
+
+  // Unescape HTML entities if double-encoded (e.g. &lt;h1&gt;)
+  if (/&lt;[a-z!]/i.test(content)) {
+    content = content
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, "&");
+  }
+
+  // Strip script and style blocks completely
+  content = content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "");
+
+  // Strip entire <head>...</head> section so title/meta text does not leak into body text
+  content = content.replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, "");
+
+  // If <body>...</body> exists, extract only the inner body HTML
+  const bodyMatch = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(content);
+  if (bodyMatch && bodyMatch[1]) {
+    content = bodyMatch[1];
+  }
+
+  // Remove leftover document wrapper tags
+  content = content
+    .replace(/<!DOCTYPE[^>]*>/gi, "")
+    .replace(/<\/?html\b[^>]*>/gi, "")
+    .replace(/<\/?body\b[^>]*>/gi, "");
+
+  return content.trim();
+}
+
+/**
+ * Extracts SEO metadata (<title>, <meta description>, <meta keywords>, <link canonical>)
+ * when a user pastes a complete HTML document into a post.
+ */
+export function extractHtmlMetadata(fullHtml: string) {
+  const result: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    canonical?: string;
+    bodyHtml: string;
+  } = {
+    bodyHtml: cleanHtmlDocument(fullHtml),
+  };
+
+  const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(fullHtml);
+  if (titleMatch && titleMatch[1]) {
+    result.title = titleMatch[1].replace(/<[^>]*>/g, "").trim();
+  }
+
+  const descMatch =
+    /<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i.exec(fullHtml) ||
+    /<meta\s+content=["']([^"']+)["']\s+name=["']description["']/i.exec(fullHtml);
+  if (descMatch && descMatch[1]) {
+    result.description = descMatch[1].trim();
+  }
+
+  const keysMatch =
+    /<meta\s+name=["']keywords["']\s+content=["']([^"']+)["']/i.exec(fullHtml) ||
+    /<meta\s+content=["']([^"']+)["']\s+name=["']keywords["']/i.exec(fullHtml);
+  if (keysMatch && keysMatch[1]) {
+    result.keywords = keysMatch[1].split(",").map((k) => k.trim()).filter(Boolean);
+  }
+
+  const canonMatch =
+    /<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i.exec(fullHtml) ||
+    /<link\s+href=["']([^"']+)["']\s+rel=["']canonical["']/i.exec(fullHtml);
+  if (canonMatch && canonMatch[1]) {
+    result.canonical = canonMatch[1].trim();
+  }
+
+  return result;
+}
+
 /** Fire-and-forget view counter increment — called client-side so it only fires for real readers, not SSR/crawler fetches. */
 export function incrementBlogView(slug: string): void {
   fetch(`${API_BASE}/blogs/${encodeURIComponent(slug)}/view`, { method: "POST", keepalive: true }).catch(() => {});
@@ -506,7 +833,8 @@ export function incrementBlogView(slug: string): void {
 /** Short teaser: the stored excerpt, or the first 180 chars of the body text. */
 export function postExcerpt(post: BlogPost): string {
   if (post.excerpt) return post.excerpt;
-  const text = typeof post.content === "string" ? post.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() : "";
+  const cleanBody = cleanHtmlDocument(typeof post.content === "string" ? post.content : "");
+  const text = cleanBody.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return text.length > 180 ? `${text.slice(0, 180)}…` : text;
 }
 
@@ -535,9 +863,10 @@ function slugifyHeading(text: string, seen: Map<string, number>): string {
  */
 export function extractToc(html: string | null | undefined): { html: string; toc: TocItem[] } {
   if (!html) return { html: "", toc: [] };
+  const cleanHtml = cleanHtmlDocument(html);
   const toc: TocItem[] = [];
   const seen = new Map<string, number>();
-  const patched = html.replace(
+  const patched = cleanHtml.replace(
     /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi,
     (match, level, attrs, inner) => {
       const text = inner.replace(/<[^>]*>/g, "").trim();
@@ -569,3 +898,4 @@ export async function getAdjacentPosts(
     next: index < posts.length - 1 ? posts[index + 1] : null,
   };
 }
+

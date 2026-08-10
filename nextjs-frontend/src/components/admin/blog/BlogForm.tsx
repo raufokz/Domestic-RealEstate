@@ -10,6 +10,7 @@ import HtmlBlogViewer from "@/components/blog/HtmlBlogViewer";
 import ImageUploader, { UploadedImage } from "@/components/admin/ImageUploader";
 import MediaPicker from "@/components/admin/MediaPicker";
 import SeoFieldsPanel, { SeoFieldsValue } from "@/components/admin/SeoFieldsPanel";
+import { extractHtmlMetadata } from "@/lib/blog";
 
 interface Category {
   id: number;
@@ -182,6 +183,27 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
   }, []);
 
   const patch = (p: Partial<FormState>) => setForm((f) => ({ ...f, ...p }));
+
+  const handleContentChange = (rawHtml: string) => {
+    if (/<(?:doctype|html|head|body)\b/i.test(rawHtml)) {
+      const meta = extractHtmlMetadata(rawHtml);
+      patch({
+        content: meta.bodyHtml,
+        title: form.title || meta.title || "",
+        excerpt: form.excerpt || meta.description || "",
+        tags: form.tags || (meta.keywords ? meta.keywords.join(", ") : ""),
+        seo: {
+          ...form.seo,
+          seo_title: form.seo.seo_title || meta.title || "",
+          meta_description: form.seo.meta_description || meta.description || "",
+          canonical_url: form.seo.canonical_url || meta.canonical || "",
+        },
+      });
+      success("Extracted clean article body and auto-filled SEO metadata from HTML document!");
+    } else {
+      patch({ content: rawHtml });
+    }
+  };
 
   const wc = useMemo(() => wordCount(form.content), [form.content]);
   const readingTime = Math.max(1, Math.ceil(wc / 200));
@@ -414,7 +436,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
             {editorTab === "edit" ? (
               <RichTextEditor
                 value={form.content}
-                onChange={(html) => patch({ content: html })}
+                onChange={handleContentChange}
                 placeholder="Write your article…"
               />
             ) : (

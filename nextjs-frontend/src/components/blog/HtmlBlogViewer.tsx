@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
+import { cleanHtmlDocument } from "@/lib/blog";
 import "./html-blog-viewer.css";
 
 export interface HtmlBlogViewerProps {
@@ -102,8 +103,9 @@ function isTrustedIframeUrl(urlStr: string): boolean {
  * 4. Wraps trusted <iframe> embeds in 16:9 responsive containers.
  * 5. Adds loading="lazy" and decoding="async" to images.
  */
-function sanitizeAndTransformHtml(rawHtml: string): string {
-  if (!rawHtml) return "";
+function sanitizeAndTransformHtml(rawInputHtml: string): string {
+  if (!rawInputHtml) return "";
+  const rawHtml = cleanHtmlDocument(rawInputHtml);
 
   // 1. SSR mode (Node / Serverless): perform lightweight, zero-dependency string cleanup.
   // Never instantiate heavy DOMPurify/JSDOM parsers on the server to prevent SSR 500 crashes.

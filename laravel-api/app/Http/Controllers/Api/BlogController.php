@@ -134,6 +134,49 @@ class BlogController extends Controller
         return str_word_count(strip_tags($html ?? ''));
     }
 
+    private function cleanFullHtmlDocument(?string $html): string {
+        if (!$html) return '';
+        $content = trim($html);
+        if (preg_match('/&lt;[a-z!]/i', $content)) {
+            $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+        $content = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i', '', $content);
+        $content = preg_replace('/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/i', '', $content);
+        $content = preg_replace('/<head\b[^>]*>[\s\S]*?<\/head>/i', '', $content);
+        if (preg_match('/<body\b[^>]*>([\s\S]*?)<\/body>/i', $content, $matches)) {
+            $content = $matches[1];
+        }
+        $content = preg_replace('/<!DOCTYPE[^>]*>/i', '', $content);
+        $content = preg_replace('/<\/?html\b[^>]*>/i', '', $content);
+        $content = preg_replace('/<\/?body\b[^>]*>/i', '', $content);
+        return trim($content);
+    }
+
+    private function processDocumentMetadata(array &$data): void {
+        if (!isset($data['content']) || !is_string($data['content'])) {
+            return;
+        }
+        $raw = $data['content'];
+
+        if (preg_match('/<(?:doctype|html|head|body)\b/i', $raw)) {
+            if (empty($data['seo_title']) && preg_match('/<title[^>]*>([\s\S]*?)<\/title>/i', $raw, $m)) {
+                $data['seo_title'] = trim(strip_tags($m[1]));
+            }
+            if (empty($data['meta_description']) && preg_match('/<meta\s+name=["\']description["\']\s+content=["\']([^"\']+)["\']/i', $raw, $m)) {
+                $data['meta_description'] = trim($m[1]);
+            }
+            if (empty($data['canonical_url']) && preg_match('/<link\s+rel=["\']canonical["\']\s+href=["\']([^"\']+)["\']/i', $raw, $m)) {
+                $data['canonical_url'] = trim($m[1]);
+            }
+            if (empty($data['tags']) && preg_match('/<meta\s+name=["\']keywords["\']\s+content=["\']([^"\']+)["\']/i', $raw, $m)) {
+                $tags = array_map('trim', explode(',', $m[1]));
+                $data['tags'] = array_values(array_filter($tags));
+            }
+        }
+
+        $data['content'] = $this->cleanFullHtmlDocument($raw);
+    }
+
     private function syncSecondaryCategories(Blog $post, ?array $categoryIds): void {
         if ($categoryIds === null) {
             return;
@@ -183,6 +226,7 @@ class BlogController extends Controller
     public function store(Request $request) {
         $this->checkAdmin();
         $data = $request->validate($this->validationRules());
+        $this->processDocumentMetadata($data);
 
         Cache::forget('blog:tags');
 
@@ -252,6 +296,9 @@ class BlogController extends Controller
         $this->checkAdmin();
         $post = Blog::withTrashed()->findOrFail($id);
         $data = $request->validate($this->validationRules(partial: true));
+        if (isset($data['content'])) {
+            $this->processDocumentMetadata($data);
+        }
 
         if (array_key_exists('slug', $data) && $data['slug']) {
             $data['slug'] = $this->uniqueSlug($data['slug'], $post->id);
