@@ -412,11 +412,10 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
             </div>
 
             {editorTab === "edit" ? (
-              <textarea
+              <RichTextEditor
                 value={form.content}
-                onChange={(e) => patch({ content: e.target.value })}
+                onChange={(html) => patch({ content: html })}
                 placeholder="Write your article…"
-                className="w-full h-[350px] px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#C9A227] resize-y"
               />
             ) : (
               <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-6 sm:p-8 min-h-[350px]">
