@@ -52,8 +52,8 @@ export default function AdminServiceRequestsPage() {
   async function loadRequests() {
     setLoading(true);
     try {
-      const data = await apiGet<ServiceRequest[]>("/admin/service-requests");
-      setRequests(Array.isArray(data) ? data : []);
+      const data = await apiGet<{ data: ServiceRequest[] }>("/admin/service-requests");
+      setRequests(Array.isArray(data?.data) ? data.data : []);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load service requests. Please try again.");

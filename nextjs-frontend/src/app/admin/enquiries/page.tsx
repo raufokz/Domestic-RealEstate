@@ -44,8 +44,8 @@ export default function EnquiriesPage() {
   async function loadEnquiries() {
     setLoading(true);
     try {
-      const data = await apiGet<Enquiry[]>("/admin/enquiries");
-      setEnquiries(data || []);
+      const data = await apiGet<{ data: Enquiry[] }>("/admin/enquiries");
+      setEnquiries(data?.data || []);
     } catch (err) {
       notifyError(err, "Enquiries could not be loaded.");
       setEnquiries([]);
