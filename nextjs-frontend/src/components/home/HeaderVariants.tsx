@@ -148,11 +148,8 @@ export default function HeaderVariants() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227] animate-pulse" />
               Pro Network
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1 text-slate-400">
-              <span>📞</span> <span className="text-slate-300 font-medium">+1 (800) 555-REAL</span>
-            </span>
-            <span className="hidden md:inline-flex items-center gap-1 text-slate-400">
-              <span>✉️</span> <span className="text-slate-300 font-medium">info@domesticrealestate.us</span>
+            <span className="inline-flex items-center gap-1 text-slate-400">
+              <span>✉️</span> <a href="mailto:info@domesticrealestate.us" className="text-slate-300 font-medium hover:text-[#C9A227] transition-colors">info@domesticrealestate.us</a>
             </span>
           </div>
 
