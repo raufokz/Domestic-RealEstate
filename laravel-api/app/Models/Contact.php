@@ -16,7 +16,12 @@ class Contact extends Model
     ];
 
     protected function casts(): array {
-        return ['type' => 'array', 'tags' => 'array', 'metadata' => 'array', 'unsubscribed_at' => 'datetime'];
+        return [
+            'type' => \App\Casts\StringArray::class,
+            'tags' => \App\Casts\StringArray::class,
+            'metadata' => 'array',
+            'unsubscribed_at' => 'datetime',
+        ];
     }
 
     public function assignee() { return $this->belongsTo(User::class, 'assigned_to'); }

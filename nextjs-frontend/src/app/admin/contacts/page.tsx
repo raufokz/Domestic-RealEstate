@@ -169,7 +169,7 @@ export default function ContactsPage() {
       last_name: c.last_name,
       email: c.email,
       phone: c.phone || "",
-      type: c.type || [],
+      type: Array.isArray(c.type) ? c.type : [],
       status: c.status || "active",
       source: c.source || "",
       company: c.company || "",
@@ -177,7 +177,7 @@ export default function ContactsPage() {
       city: c.city || "",
       state: c.state || "",
       zip: c.zip || "",
-      tags: c.tags || [],
+      tags: Array.isArray(c.tags) ? c.tags : [],
       group_ids: c.groups?.map((g) => g.id) || [],
     });
     setTagInput("");
@@ -374,7 +374,7 @@ export default function ContactsPage() {
                         <td className="px-4 py-3 text-gray-600 text-sm">{c.phone || "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1 flex-wrap">
-                            {(c.type || []).map((t) => (
+                            {(Array.isArray(c.type) ? c.type : []).map((t) => (
                               <span key={t} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full capitalize">{t}</span>
                             ))}
                           </div>
