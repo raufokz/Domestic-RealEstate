@@ -110,6 +110,24 @@ class LeadCaptureService
             ]);
         }
 
+        try {
+            if (!empty($email)) {
+                \App\Models\Contact::updateOrCreate(
+                    ['email' => $email],
+                    [
+                        'first_name' => $first ?: 'Guest',
+                        'last_name'  => $last ?? '',
+                        'phone'      => $data['phone'] ?? null,
+                        'type'       => [$data['type'] ?? 'buyer'],
+                        'status'     => 'lead',
+                        'source'     => $data['source'] ?? 'website',
+                    ]
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Contact sync skipped: ' . $e->getMessage());
+        }
+
         return $lead->fresh();
     }
 }

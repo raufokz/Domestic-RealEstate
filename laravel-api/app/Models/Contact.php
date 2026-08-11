@@ -20,6 +20,6 @@ class Contact extends Model
     }
 
     public function assignee() { return $this->belongsTo(User::class, 'assigned_to'); }
-    public function groups() { return $this->belongsToMany(ContactGroup::class, 'contact_group_members'); }
+    public function groups() { return $this->belongsToMany(ContactGroup::class, 'contact_group_members', 'contact_id', 'group_id'); }
     public function campaignRecipients() { return $this->hasMany(CampaignRecipient::class); }
 }
