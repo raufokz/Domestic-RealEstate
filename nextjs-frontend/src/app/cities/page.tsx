@@ -74,6 +74,7 @@ const CITY_DATA: Record<string, { state: string; country: string; cities: { name
     cities: [
       { name: 'Charlotte', slug: 'charlotte', properties: 4200, avgPrice: '$350,000' },
       { name: 'Raleigh', slug: 'raleigh', properties: 3600, avgPrice: '$400,000' },
+      { name: 'Castle Hayne', slug: 'castle-hayne', properties: 210, avgPrice: '$385,000' },
     ],
   },
   'Indiana': {

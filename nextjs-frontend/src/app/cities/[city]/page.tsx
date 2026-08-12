@@ -1115,6 +1115,36 @@ export const CITY_DB: Record<string, CityData> = {
       { q: "Is Kitchener more affordable than Toronto real estate?", a: "Yes, Kitchener home prices typically run well below the Greater Toronto Area while offering a roughly 90-minute commute via GO Train for buyers who occasionally need to be in Toronto." },
     ],
   },
+  "castle-hayne": {
+    name: "Castle Hayne",
+    state: "North Carolina",
+    country: "USA",
+    population: "1,495",
+    medianIncome: "$62,400",
+    medianHomePrice: "$385,000",
+    appreciationRate: "+7.1% YoY",
+    marketType: "Riverfront & Land Growth Market",
+    description:
+      "Explore Castle Hayne riverfront home plans and real estate along the Northeast Cape Fear River. Castle Hayne, North Carolina combines rural acreage, custom home plans, and new-construction opportunities minutes from Wilmington — one of the strongest riverfront markets in the Southeast for buyers seeking water views, boat access, and buildable land.",
+    neighborhoods: ["Northeast Cape Fear Riverfront", "Mill Creek", "Piney Woods", "Scotts Hill", "Wilmington North Corridor"],
+    schools: [
+      { name: "Castle Hayne Elementary School", rating: "8/10", type: "Public" },
+      { name: "Roland-Grise Middle School", rating: "8/10", type: "Public" },
+      { name: "E. A. Laney High School", rating: "7/10", type: "Public" },
+    ],
+    faqs: [
+      { q: "What are riverfront home plans in Castle Hayne?", a: "Riverfront home plans in Castle Hayne range from elevated coastal-style designs to one-level ranch plans built on piers, sized for Northeast Cape Fear River lots with flood-compliant foundations, private docks, and screened porches facing the water." },
+      { q: "How much do riverfront properties cost in Castle Hayne?", a: "The median home price in Castle Hayne is approximately $385,000, while riverfront parcels and custom builds with deeded water access typically range from $450,000 to $900,000 depending on acreage and dock rights." },
+      { q: "Can I build a custom home on riverfront land in Castle Hayne?", a: "Yes. Much of Castle Hayne's riverfront inventory is buildable land, and buyers routinely pair purchased lots with custom home plans. Verify FEMA flood elevation requirements, setbacks, and HOA covenants before finalizing a plan." },
+    ],
+    propertyTypes: [
+      { type: "Riverfront Single-Family", avgPrice: "$675,000", description: "Custom homes and established residences with private docks, deep-water access, and elevated, flood-compliant designs." },
+      { type: "Buildable Riverfront Land", avgPrice: "$195,000", description: "Acreage lots along the Northeast Cape Fear River ready for custom home plans, many with deeded water access and clearing." },
+      { type: "New Construction", avgPrice: "$430,000", description: "Builder-offered home plans on dry lots, ideal for buyers who want river-town proximity without the build process." },
+    ],
+    investmentInsights:
+      "Castle Hayne sits on the growth frontier of the Wilmington metro, where waterfront supply is fixed and demand continues to climb. Riverfront lots with dock permits and flood-compliant elevation gain the most value, making custom home plans on buildable land the strongest long-term play.",
+  },
 };
 
 function fallbackCity(slug: string): CityData {
@@ -1145,6 +1175,7 @@ export const CITY_SLUGS = [
   "nashville", "oklahoma-city", "el-paso", "boston", "portland", "las-vegas", "memphis", "louisville", "baltimore", "milwaukee",
   "albuquerque", "tucson", "fresno", "sacramento", "mesa", "kansas-city", "atlanta", "omaha", "colorado-springs", "raleigh",
   "long-beach", "virginia-beach", "miami", "oakland", "minneapolis", "tulsa", "tampa", "arlington", "new-orleans", "wichita",
+  "castle-hayne",
   "toronto", "vancouver", "montreal", "calgary", "edmonton", "ottawa", "winnipeg", "quebec-city", "hamilton", "kitchener",
 ];
 

@@ -161,10 +161,10 @@ export default function VirtualAssistantPage() {
             <Logo />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight max-w-3xl">
-            Focus on What Matters — <span className="text-[#C9A227]">We Handle the Rest</span>
+            Realtor Virtual Assistant Services — <span className="text-[#C9A227]">We Handle the Rest</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl">
-            Professional virtual assistants who seamlessly integrate into your team and take your productivity to the next level.
+            Professional virtual assistants built for real estate teams — lead follow-up, listing coordination, CRM updates, and scheduling, so you focus on showings and closings.
           </p>
           <a
             href="#quote"

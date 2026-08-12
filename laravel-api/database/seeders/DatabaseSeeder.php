@@ -210,5 +210,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── Marketplace Leads (PPL & PPC) ───
         $this->call(MarketplaceSeeder::class);
+
+        $this->call(KeywordContentSeeder::class);
     }
 }
