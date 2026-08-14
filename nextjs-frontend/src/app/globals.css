@@ -226,6 +226,45 @@ select:focus {
   outline: none;
 }
 
+/* ── MOBILE INTERACTION BASELINE ──────────────────────────────────────
+   Scoped to coarse pointers so desktop rendering is completely unchanged.
+   Guarantees the 44px minimum touch target on every control site-wide,
+   instead of relying on each of the ~337 pages to remember it. Inline text
+   links are unaffected: min-height does not apply to non-replaced inline
+   boxes, so prose links stay inline rather than becoming 44px blocks.
+
+   Kept inside @layer base so a component that deliberately asks for a LARGER
+   target (e.g. min-h-[52px]) still wins — an unlayered rule here would beat
+   Tailwind's utilities and silently shrink those back down to 44px. */
+@layer base {
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    select,
+    textarea,
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+      min-height: 44px;
+    }
+
+    /* Grow the hit area of tick boxes without changing how large they look. */
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-width: 20px;
+      min-height: 20px;
+    }
+  }
+}
+
+/* iOS Safari zooms the whole page when a focused field is under 16px.
+   Keeping mobile fields at 16px avoids that jarring jump on every form. */
+@media (max-width: 767px) {
+  input:not([type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 ::selection {
   background-color: rgba(201, 162, 39, 0.25);
   color: #0A2647;

@@ -391,7 +391,7 @@ function RegisterForm() {
                      className={`p-6 rounded-3xl border-2 text-left transition-all duration-300 relative group flex flex-col justify-between hover:scale-[1.02] shadow-sm hover:shadow-md ${
                        isSelected
                          ? "border-[#C9A227] bg-white shadow-md shadow-[#C9A227]/5 ring-2 ring-[#C9A227]/20"
-                         : "border-slate-205 bg-white hover:border-slate-350"
+                         : "border-slate-200 bg-white hover:border-slate-300"
                      }`}
                    >
                      {isSelected && (
@@ -431,7 +431,7 @@ function RegisterForm() {
             <p className="text-slate-500 text-sm mb-6">
               Create your secure login credentials to access the portal
             </p>
-            <div className="bg-white rounded-3xl border border-slate-205/60 p-8 space-y-6 shadow-sm">
+            <div className="bg-white rounded-3xl border border-slate-200/60 p-8 space-y-6 shadow-sm">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[11px] font-heading font-extrabold text-[#0A2647] uppercase tracking-wide mb-2">
@@ -606,7 +606,7 @@ function RegisterForm() {
                             className={`p-5 rounded-3xl border-2 text-left transition-all cursor-pointer relative flex flex-col justify-between hover:shadow-md ${
                               isSelected
                                 ? "border-[#C9A227] bg-[#C9A227]/5 shadow-lg scale-[1.01]"
-                                : "border-slate-200 bg-white hover:border-slate-350"
+                                : "border-slate-200 bg-white hover:border-slate-300"
                             }`}
                           >
                             {plan.popular && (
@@ -619,7 +619,7 @@ function RegisterForm() {
                                 <span className="text-xl">{plan.icon}</span>
                                 <h4 className="font-heading font-extrabold text-sm text-[#0A2647]">{plan.name}</h4>
                               </div>
-                              <p className="text-slate-450 text-[11px] font-semibold leading-relaxed mb-3">{plan.tagline}</p>
+                              <p className="text-slate-400 text-[11px] font-semibold leading-relaxed mb-3">{plan.tagline}</p>
 
                               <div className="flex items-baseline gap-1 mb-4">
                                 <span className="text-2xl font-black text-[#0A2647]">${price.toLocaleString()}</span>
@@ -760,7 +760,7 @@ function RegisterForm() {
                                           isChecked
                                             ? "bg-[#0A2647] text-white border-[#0A2647] shadow-sm cursor-pointer"
                                             : disabled
-                                            ? "border-slate-150 bg-slate-100 text-slate-350 cursor-not-allowed opacity-60"
+                                            ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-60"
                                             : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer"
                                         }`}
                                       >
@@ -769,7 +769,7 @@ function RegisterForm() {
                                           checked={isChecked}
                                           disabled={disabled}
                                           onChange={() => toggleCheckbox("services_needed", svc)}
-                                          className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-350 rounded disabled:cursor-not-allowed"
+                                          className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] border-slate-300 rounded disabled:cursor-not-allowed"
                                         />
                                         <span className="text-[11px] font-semibold">{svc}</span>
                                         {!inAllowedCategory && <span className="text-[9px] ml-auto">🔒</span>}

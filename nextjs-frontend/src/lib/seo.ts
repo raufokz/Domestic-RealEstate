@@ -10,7 +10,7 @@ import type { Metadata } from "next";
  * boilerplate: canonical URL, Open Graph, Twitter card and keywords.
  */
 
-export const SITE_URL = "https://domesticrealestate.us";
+export const SITE_URL = "https://www.domesticrealestate.us";
 export const SITE_NAME = "Domestic Real Estate";
 export const DEFAULT_OG_IMAGE = "/og-image.png";
 

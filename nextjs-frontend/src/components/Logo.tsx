@@ -42,14 +42,15 @@ export default function Logo({
 
   const img = (
     /* flex + items-center keeps the image vertically centred inside any flex parent */
-    <span className={`inline-flex items-center flex-shrink-0 ${className}`}>
+    <span className={`inline-flex items-center min-w-0 ${className}`}>
       <Image
         src="/Domestic-logo.png"
         alt="Domestic Real Estate"
         width={220}
         height={56}
-        className={`${h} w-auto object-contain select-none ${dark ? "brightness-0 invert" : ""}`}
-        style={{ maxWidth: "220px" }}
+        /* max-w-full lets a caller cap the logo width on narrow screens;
+           object-contain keeps the aspect ratio while it scales down. */
+        className={`${h} w-auto max-w-full object-contain select-none ${dark ? "brightness-0 invert" : ""}`}
         draggable={false}
         priority
       />
@@ -58,7 +59,7 @@ export default function Logo({
 
   if (href) {
     return (
-      <Link href={href} className="inline-flex items-center" aria-label="Domestic Real Estate – home">
+      <Link href={href} className="inline-flex items-center min-w-0" aria-label="Domestic Real Estate – home">
         {img}
       </Link>
     );

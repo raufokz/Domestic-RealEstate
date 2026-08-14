@@ -885,7 +885,7 @@ export default function PricingPage() {
                       className={`py-3 px-1 rounded-xl text-xs font-extrabold transition-all border ${
                         selectedPlanForCal === plan.name
                           ? "bg-[#0a2647] text-white border-[#0a2647] shadow-premium"
-                          : "bg-white text-slate-700 border-slate-250 hover:bg-slate-100"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
                       {plan.name}
@@ -1021,7 +1021,7 @@ export default function PricingPage() {
                       {val === "-" ? (
                         <span className="text-slate-300 font-bold">-</span>
                       ) : (
-                        <span className={val.includes("✓") || val.includes("★") || val.includes("Unlimited") ? "text-[#0a2647] font-black" : "text-slate-650"}>
+                        <span className={val.includes("✓") || val.includes("★") || val.includes("Unlimited") ? "text-[#0a2647] font-black" : "text-slate-600"}>
                           {val}
                         </span>
                       )}
@@ -1035,7 +1035,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── FAQ SCHEMAS ACCORDION ── */}
-      <section className="py-24 bg-slate-100 border-t border-slate-250">
+      <section className="py-24 bg-slate-100 border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-left">
           <div className="text-center mb-16">
             <span className="text-[#c9a227] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
@@ -1048,7 +1048,7 @@ export default function PricingPage() {
             {faqItems.map((faq, idx) => {
               const isOpen = openFaqIndex === idx;
               return (
-                <div key={idx} className="bg-white border border-slate-205 rounded-2xl overflow-hidden shadow-sm hover:shadow transition-shadow">
+                <div key={idx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow transition-shadow">
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                     className="w-full p-5 text-left font-bold text-navy flex justify-between items-center cursor-pointer hover:text-[#c9a227] transition-colors"

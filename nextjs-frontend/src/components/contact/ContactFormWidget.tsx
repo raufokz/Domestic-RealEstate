@@ -66,8 +66,12 @@ export default function ContactFormWidget() {
         <form onSubmit={handleSubmit} className="space-y-5 font-body">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Full Name *</label>
+              <label htmlFor="contact-name" className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
+                Full Name <span aria-hidden="true">*</span>
+                <span className="sr-only">(required)</span>
+              </label>
               <input
+                id="contact-name"
                 type="text"
                 required
                 autoComplete="name"
@@ -78,8 +82,12 @@ export default function ContactFormWidget() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Email Address *</label>
+              <label htmlFor="contact-email" className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
+                Email Address <span aria-hidden="true">*</span>
+                <span className="sr-only">(required)</span>
+              </label>
               <input
+                id="contact-email"
                 type="email"
                 required
                 autoComplete="email"
@@ -93,8 +101,11 @@ export default function ContactFormWidget() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Phone Number</label>
+              <label htmlFor="contact-phone" className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
+                Phone Number <span className="normal-case tracking-normal font-medium text-slate-300">(optional)</span>
+              </label>
               <input
+                id="contact-phone"
                 type="tel"
                 autoComplete="tel"
                 value={formData.phone}
@@ -104,8 +115,9 @@ export default function ContactFormWidget() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Inquiry Topic</label>
+              <label htmlFor="contact-subject" className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Inquiry Topic</label>
               <select
+                id="contact-subject"
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 className="w-full bg-white text-slate-900 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/30 transition-colors"
@@ -121,8 +133,12 @@ export default function ContactFormWidget() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Your Message *</label>
+            <label htmlFor="contact-message" className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
+              Your Message <span aria-hidden="true">*</span>
+              <span className="sr-only">(required)</span>
+            </label>
             <textarea
+              id="contact-message"
               rows={5}
               required
               value={formData.message}

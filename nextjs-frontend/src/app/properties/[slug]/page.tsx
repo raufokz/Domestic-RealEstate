@@ -199,7 +199,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Description Card */}
               {prop.description && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-150 shadow-premium-sm">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-premium-sm">
                   <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#0A2647] flex items-center gap-2 mb-4">
                     <span className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
                     Property Description
@@ -212,7 +212,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Amenities Card */}
               {prop.amenities && prop.amenities.length > 0 && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-150 shadow-premium-sm">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-premium-sm">
                   <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#0A2647] flex items-center gap-2 mb-5">
                     <span className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
                     Key Amenities
@@ -232,7 +232,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Property Details Card */}
               {details.length > 0 && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-150 shadow-premium-sm">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-premium-sm">
                   <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#0A2647] flex items-center gap-2 mb-5">
                     <span className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
                     Home Specifications
@@ -250,7 +250,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Location Card */}
               {hasGeo && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-150 shadow-premium-sm">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-premium-sm">
                   <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#0A2647] flex items-center gap-2 mb-2">
                     <span className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
                     Neighborhood Coordinates
@@ -314,13 +314,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Make an Offer — always available regardless of whether the
                   listing has an agent (agent-represented or FSBO seller). */}
-              <div className="bg-white border border-slate-150 p-5 rounded-3xl shadow-premium-sm">
+              <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-premium-sm">
                 <MakeOfferButton propertyId={prop.id} propertyTitle={prop.title} />
               </div>
 
               {/* Monthly Investment Calculator Card */}
               {priceVal && (
-                <div className="bg-white border border-slate-150 p-6 sm:p-7 rounded-3xl shadow-premium-sm">
+                <div className="bg-white border border-slate-200 p-6 sm:p-7 rounded-3xl shadow-premium-sm">
                   <h3 className="font-heading font-extrabold text-[#0A2647] text-base sm:text-lg mb-1 flex items-center gap-2">
                     <span className="select-none">📊</span>
                     Monthly Investment
@@ -359,14 +359,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       </section>
 
       {/* Schedule a Viewing Full Form Section */}
-      <section id="schedule-viewing" className="py-16 md:py-20 bg-slate-50 border-t border-slate-150 scroll-mt-20">
+      <section id="schedule-viewing" className="py-16 md:py-20 bg-slate-50 border-t border-slate-200 scroll-mt-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <span className="text-xs uppercase font-mono font-extrabold text-[#C9A227] tracking-widest bg-[#C9A227]/10 px-3 py-1 rounded-full">Schedule Appointment</span>
             <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#0A2647] mt-3">Book a Tour & Request Information</h2>
             <p className="font-body text-slate-500 text-sm sm:text-base mt-2">Submit your details below to schedule an in-person viewing or query this property.</p>
           </div>
-          <div className="shadow-premium-md rounded-3xl overflow-hidden border border-slate-150">
+          <div className="shadow-premium-md rounded-3xl overflow-hidden border border-slate-200">
             <PropertyInquiryForm propertyId={prop.id} propertyTitle={prop.title} />
           </div>
         </div>

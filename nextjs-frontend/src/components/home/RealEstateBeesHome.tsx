@@ -341,7 +341,10 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
               <p className="text-xs text-slate-200 font-medium">
                 ⚡ Real-time motivated seller inquiries claimed by agents & investors in the last 60 minutes
               </p>
-              <Link href="/register" className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-extrabold px-4 py-2 rounded-lg text-xs transition-all shadow-md shrink-0 text-center">
+              <Link
+                href="/register"
+                className="inline-flex min-h-[44px] items-center justify-center bg-[#C9A227] hover:bg-[#B59123] text-[#0A2647] font-bold px-4 rounded-lg text-sm transition-colors shadow-md shrink-0 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2647]"
+              >
                 Claim All Deals
               </Link>
             </div>
@@ -369,7 +372,11 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 <p className="text-xs text-slate-200 mt-1 font-medium">{lead.type}</p>
                 <div className="mt-3 pt-2 border-t border-slate-700 flex justify-between items-center text-xs">
                   <span className="text-slate-300">Est. ARV: <strong className="text-white font-mono">{lead.arv}</strong></span>
-                  <Link href="/register" className="text-[#C9A227] font-extrabold hover:underline">
+                  <Link
+                    href="/register"
+                    aria-label={`Claim lead in ${lead.loc}`}
+                    className="inline-flex min-h-[44px] items-center px-2 -mr-2 text-[#C9A227] font-bold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] rounded"
+                  >
                     Claim →
                   </Link>
                 </div>
@@ -1066,7 +1073,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── PREFERRED AGENT PREMIUM TIERED PRICING SECTION ── */}
-      <section className="py-24 bg-white border-t border-slate-250/60 relative overflow-hidden">
+      <section className="py-24 bg-white border-t border-slate-200/60 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <span className="text-[#C9A227] text-xs font-mono font-bold uppercase tracking-widest bg-[#C9A227]/10 px-4 py-1.5 rounded-full">
             Pricing Plans

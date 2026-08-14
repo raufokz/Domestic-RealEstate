@@ -266,7 +266,7 @@ export default function PropertySearchClient() {
                     placeholder="Enter city, ZIP, address..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-slate-50 text-slate-900 border border-slate-250 rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20 transition-all font-semibold font-body"
+                    className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20 transition-all font-semibold font-body"
                   />
                   <span className="absolute right-3.5 top-3.5 text-slate-400 text-sm">🔍</span>
                 </div>
@@ -279,7 +279,7 @@ export default function PropertySearchClient() {
                   id="sidebar-type"
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-250 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
+                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
                 >
                   <option value="All">All Property Types</option>
                   {typeOptions.map((t) => (
@@ -295,7 +295,7 @@ export default function PropertySearchClient() {
                   id="sidebar-price"
                   value={selectedPrice}
                   onChange={(e) => setSelectedPrice(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-250 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
+                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
                 >
                   <option value="All">Any Price range</option>
                   <option value="under-1m">Under $1,000,000</option>
@@ -311,7 +311,7 @@ export default function PropertySearchClient() {
                   id="sidebar-beds"
                   value={selectedBeds}
                   onChange={(e) => setSelectedBeds(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-250 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
+                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A227] font-semibold font-body"
                 >
                   <option value="All">Any Bedrooms</option>
                   <option value="2">2+ Bedrooms</option>
@@ -361,11 +361,11 @@ export default function PropertySearchClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="bg-white rounded-3xl border border-slate-200 overflow-hidden animate-pulse">
-                      <div className="h-48 bg-slate-150" />
+                      <div className="h-48 bg-slate-200" />
                       <div className="p-5 space-y-3">
                         <div className="h-4 bg-slate-200 rounded w-3/4" />
                         <div className="h-3 bg-slate-100 rounded w-1/2" />
-                        <div className="h-8 bg-slate-150 rounded" />
+                        <div className="h-8 bg-slate-200 rounded" />
                       </div>
                     </div>
                   ))}

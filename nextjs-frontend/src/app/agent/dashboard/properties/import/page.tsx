@@ -371,7 +371,7 @@ export default function AgentImportPropertiesPage() {
             <div className="space-y-3">
               {PROPERTY_FIELDS.map((col) => (
                 <div key={col.key} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                  <span className="text-sm font-medium text-slate-750 w-52">
+                  <span className="text-sm font-medium text-slate-700 w-52">
                     {col.label} {col.required && <span className="text-red-500">*</span>}
                   </span>
                   <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

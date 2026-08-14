@@ -112,7 +112,7 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
                     y: { duration: 3 + idx, repeat: Infinity, ease: "easeInOut" },
                     scale: { duration: 0.2 },
                   }}
-                  className="bg-slate-800/95 border border-slate-750 hover:border-[#C9A227] rounded-2xl p-5 shadow-xl backdrop-blur-md group cursor-pointer transition-colors"
+                  className="bg-slate-800/95 border border-slate-700 hover:border-[#C9A227] rounded-2xl p-5 shadow-xl backdrop-blur-md group cursor-pointer transition-colors"
                 >
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-[#C9A227] scale-110 inline-block">{renderIcon(item.icon)}</span>

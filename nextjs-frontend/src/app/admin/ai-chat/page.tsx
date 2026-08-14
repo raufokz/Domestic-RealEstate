@@ -405,7 +405,7 @@ export default function AIChatPage() {
 
             {/* Table */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-850 rounded-xl shadow-sm">
+              <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold" />
                 <span className="mt-3 text-xs font-semibold text-slate-500">Loading conversation database records...</span>
               </div>
@@ -548,7 +548,7 @@ export default function AIChatPage() {
                   {faqItems.map((faq) => (
                     <div key={faq.id} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
                       <p className="text-xs font-bold text-[#0A2647] dark:text-[#C9A227]">{faq.question}</p>
-                      <p className="text-xs text-slate-650 dark:text-slate-300 mt-1 leading-relaxed">{faq.answer}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{faq.answer}</p>
                       <div className="flex items-center gap-3 mt-2 text-[10px]">
                         <span className="text-slate-400 font-medium">Source: {faq.source}</span>
                         <div className="ml-auto flex gap-2">
@@ -579,7 +579,7 @@ export default function AIChatPage() {
                     value={newCannedTrigger}
                     onChange={(e) => setNewCannedTrigger(e.target.value)}
                     placeholder="Macro trigger (e.g. /greeting)"
-                    className="w-40 px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-mono bg-white dark:bg-slate-900 text-slate-855 focus:ring-2 focus:ring-gold outline-none"
+                    className="w-40 px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-mono bg-white dark:bg-slate-900 text-slate-900 focus:ring-2 focus:ring-gold outline-none"
                   />
                   <input
                     type="text"
@@ -600,14 +600,14 @@ export default function AIChatPage() {
                   {cannedResponses.map((cr) => (
                     <div key={cr.id} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200/50 dark:border-slate-700/50 flex justify-between gap-3">
                       <div>
-                        <span className="inline-block px-1.5 py-0.5 bg-[#0A2647]/10 dark:bg-slate-750 text-[#0A2647] dark:text-[#C9A227] text-[10px] font-mono font-bold rounded">
+                        <span className="inline-block px-1.5 py-0.5 bg-[#0A2647]/10 dark:bg-slate-700 text-[#0A2647] dark:text-[#C9A227] text-[10px] font-mono font-bold rounded">
                           {cr.trigger}
                         </span>
                         <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">{cr.response}</p>
                       </div>
                       <button
                         onClick={() => setCannedResponses((prev) => prev.filter((c) => c.id !== cr.id))}
-                        className="text-red-400 hover:text-red-650 text-xs font-bold self-start mt-0.5"
+                        className="text-red-400 hover:text-red-600 text-xs font-bold self-start mt-0.5"
                       >
                         ✕
                       </button>
@@ -652,7 +652,7 @@ export default function AIChatPage() {
                       </div>
                       <button 
                         onClick={() => setKbDocs((prev) => prev.filter(k => k.id !== doc.id))}
-                        className="text-red-400 hover:text-red-650 text-xs font-bold"
+                        className="text-red-400 hover:text-red-600 text-xs font-bold"
                       >
                         Delete
                       </button>
@@ -667,22 +667,22 @@ export default function AIChatPage() {
         {/* Detailed Window Drawer overlay */}
         {selectedConversation && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-            <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
               
               {/* Header */}
               <div className="p-6 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-heading font-bold text-[#0A2647] dark:text-white">{selectedConversation.user}</h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-850 dark:text-slate-300 font-semibold">{selectedConversation.session_id}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 dark:text-slate-300 font-semibold">{selectedConversation.session_id}</span>
                   </div>
                   <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
                     <span className="text-xs text-slate-400 font-bold">Referer: <span className="text-slate-600 dark:text-slate-300">{selectedConversation.user_context?.current_page || '/'}</span></span>
-                    <span className="text-slate-350">•</span>
+                    <span className="text-slate-400">•</span>
                     <span className="text-xs text-slate-400 font-bold">CRM Status: <span className="text-slate-600 dark:text-slate-300">{selectedConversation.user_context?.lead_status || 'none'}</span></span>
                     {selectedConversation.lead_id && (
                       <>
-                        <span className="text-slate-355">•</span>
+                        <span className="text-slate-400">•</span>
                         <a 
                           href={`/admin/leads?id=${selectedConversation.lead_id}`} 
                           target="_blank" 
@@ -721,7 +721,7 @@ export default function AIChatPage() {
                           </div>
                           <div className={`px-4 py-2.5 rounded-xl text-xs leading-relaxed ${
                             msg.sender === 'user'
-                              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-750 shadow-sm rounded-tl-none'
+                              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-700 shadow-sm rounded-tl-none'
                               : msg.sender === 'admin'
                                 ? 'bg-[#0A2647] text-white rounded-tr-none'
                                 : 'bg-[#C9A227]/10 dark:bg-[#C9A227]/5 text-[#0A2647] dark:text-white border border-[#C9A227]/20 rounded-tl-none'
@@ -742,7 +742,7 @@ export default function AIChatPage() {
                       onChange={(e) => setAdminMessage(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendAdminMessage()}
                       placeholder="Type agent takeover message..."
-                      className="flex-1 px-4 py-2.5 border border-slate-350 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-gold"
+                      className="flex-1 px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-gold"
                     />
                     <button
                       onClick={handleSendAdminMessage}
@@ -755,7 +755,7 @@ export default function AIChatPage() {
                 </div>
 
                 {/* Metadata Sidebar right */}
-                <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 p-6 space-y-6 overflow-y-auto bg-white dark:bg-slate-850">
+                <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 p-6 space-y-6 overflow-y-auto bg-white dark:bg-slate-800">
                   {/* Qualification Block */}
                   <div>
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lead Qualification</h4>
@@ -815,11 +815,11 @@ export default function AIChatPage() {
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Identity Contact</h4>
                     <div className="text-xs space-y-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                       <div>
-                        <span className="text-slate-450 block font-semibold">Email Address</span>
+                        <span className="text-slate-400 block font-semibold">Email Address</span>
                         <span className="font-bold text-slate-800 dark:text-white break-all">{selectedConversation.email || 'Not captured yet'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-450 block font-semibold">Phone Number</span>
+                        <span className="text-slate-400 block font-semibold">Phone Number</span>
                         <span className="font-bold text-slate-800 dark:text-white">{selectedConversation.phone || 'Not captured yet'}</span>
                       </div>
                     </div>
@@ -834,7 +834,7 @@ export default function AIChatPage() {
                         onChange={(e) => setDetailNotes(e.target.value)}
                         placeholder="Write internal staff follow-up notes..."
                         rows={4}
-                        className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
                       />
                       <button
                         onClick={handleSaveNotes}

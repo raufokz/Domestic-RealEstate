@@ -57,11 +57,11 @@ export const metadata: Metadata = {
   authors: [{ name: "Domestic Real Estate" }],
   creator: "Domestic Real Estate",
   publisher: "Domestic Real Estate",
-  metadataBase: new URL("https://domesticrealestate.us"),
+  metadataBase: new URL("https://www.domesticrealestate.us"),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://domesticrealestate.us",
+    url: "https://www.domesticrealestate.us",
     siteName: "Domestic Real Estate",
     title: "Domestic Real Estate | Your Key to Home",
     description:
@@ -110,8 +110,8 @@ const organizationSchema = {
   "@type": "RealEstateAgent",
   name: "Domestic Real Estate",
   alternateName: ["Domestic Realestate", "DomesticRealEstate", "DomesticRE", "domestic real estate"],
-  url: "https://domesticrealestate.us",
-  logo: "https://domesticrealestate.us/Domestic-logo.png",
+  url: "https://www.domesticrealestate.us",
+  logo: "https://www.domesticrealestate.us/Domestic-logo.png",
   description:
     "Domestic Real Estate (also known as DomesticRealEstate and Domestic Realestate) is the premier AI-powered platform for buying, selling, and investing in residential & commercial properties across North America.",
   email: "info@domesticrealestate.us",

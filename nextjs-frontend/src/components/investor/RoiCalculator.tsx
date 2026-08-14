@@ -154,7 +154,7 @@ export default function RoiCalculator() {
             <span className="text-gray-600">Renovation Budget</span>
             <span className="font-medium text-[#0A2647]">{formatCurrency(renovationBudget)}</span>
           </div>
-          <div className="flex justify-between font-body text-sm border-b border-gray-150 pb-3">
+          <div className="flex justify-between font-body text-sm border-b border-gray-200 pb-3">
             <span className="text-gray-600 font-semibold">Total CapEx Investment</span>
             <span className="font-bold text-[#0A2647]">{formatCurrency(totalInvestment)}</span>
           </div>
@@ -166,7 +166,7 @@ export default function RoiCalculator() {
             <span className="text-gray-600">Holding Costs (est. 3%)</span>
             <span className="font-medium text-gray-700">{formatCurrency(holdingCosts)}</span>
           </div>
-          <div className="flex justify-between font-body text-sm border-b border-gray-150 pb-3">
+          <div className="flex justify-between font-body text-sm border-b border-gray-200 pb-3">
             <span className="text-gray-600">Closing Costs & Fees (est. 4.5%)</span>
             <span className="font-medium text-gray-700">{formatCurrency(closingCosts)}</span>
           </div>

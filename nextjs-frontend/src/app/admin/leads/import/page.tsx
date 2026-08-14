@@ -245,7 +245,7 @@ export default function ImportLeadsPage() {
             <div className="space-y-3">
               {CRM_FIELDS.map((col) => (
                 <div key={col.key} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                  <span className="text-sm font-medium text-slate-750 w-44">
+                  <span className="text-sm font-medium text-slate-700 w-44">
                     {col.label} {col.required && <span className="text-red-500">*</span>}
                   </span>
                   <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@ export default function ImportLeadsPage() {
                 onChange={(e) => setAllowWithoutEmail(e.target.checked)}
                 className="w-4 h-4 text-[#C9A227] focus:ring-[#C9A227] rounded"
               />
-              <label htmlFor="allow_without_email" className="text-xs text-amber-850 font-medium cursor-pointer">
+              <label htmlFor="allow_without_email" className="text-xs text-amber-800 font-medium cursor-pointer">
                 Allow importing leads without a valid email address (e.g. phone-only or notes-only records)
               </label>
             </div>

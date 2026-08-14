@@ -4,7 +4,7 @@ import { getAgents } from "@/lib/agents";
 import { getBlogPosts } from "@/lib/blog";
 import { CITY_DB } from "@/app/cities/[city]/page";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://domesticrealestate.us";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domesticrealestate.us";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

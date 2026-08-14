@@ -187,12 +187,12 @@ export default function MortgageCalculator() {
       </div>
 
       {/* Output Panel */}
-      <div className="bg-gray-50 rounded-3xl p-8 border border-gray-150 shadow-sm text-center">
+      <div className="bg-gray-50 rounded-3xl p-8 border border-gray-200 shadow-sm text-center">
         <p className="font-body text-gray-500 text-sm mb-1 uppercase tracking-wider font-semibold">Estimated Monthly Payment</p>
         <p className="font-heading text-6xl font-bold text-[#0A2647] mb-2">{formatCurrency(totalMonthlyPayment)}</p>
         <p className="font-body text-gray-400 text-sm mb-8">Principal, Interest, Taxes & Insurance</p>
         
-        <div className="space-y-4 text-left border-t border-gray-250 pt-6">
+        <div className="space-y-4 text-left border-t border-gray-200 pt-6">
           <div className="flex justify-between font-body text-sm">
             <span className="text-gray-600">Principal & Interest (P&I)</span>
             <span className="font-medium text-[#0A2647]">{formatCurrency(monthlyPI)}</span>

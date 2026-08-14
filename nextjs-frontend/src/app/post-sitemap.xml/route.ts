@@ -3,7 +3,7 @@ import { getProperties } from "@/lib/properties";
 import { getAgents } from "@/lib/agents";
 import { getBlogPosts } from "@/lib/blog";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://domesticrealestate.us";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domesticrealestate.us";
 
 export async function GET() {
   const now = new Date().toISOString();

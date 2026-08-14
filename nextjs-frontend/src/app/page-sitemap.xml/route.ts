@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { CITY_DB } from "@/app/cities/[city]/page";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://domesticrealestate.us";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domesticrealestate.us";
 
 export async function GET() {
   const now = new Date().toISOString();
