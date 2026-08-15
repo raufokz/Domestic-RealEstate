@@ -56,10 +56,10 @@ export default function HeroVariants({ heroId }: HeroVariantsProps) {
               #1 Domestic Real Estate Company & Platform
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
+            <h2 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
               Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-[#C9A227] to-amber-400">Domestic Real Estate</span> <br />
               Investors & Brokers
-            </h1>
+            </h2>
 
             <p className="mt-5 text-slate-100 text-base sm:text-lg leading-relaxed font-normal drop-shadow-sm">
               As a leading Domestic Real Estate Company, we connect home buyers, sellers, investors, and licensed Domestic Real Estate Brokers with exclusive off-market property deals, AI valuations, and market data.
