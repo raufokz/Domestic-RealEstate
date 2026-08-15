@@ -24,7 +24,10 @@ export interface CityData {
   bestFor?: string;
   topEmployers?: string[];
   investmentInsights?: string;
-  propertyTypes?: { type: string; avgPrice: string; description: string }[];
+  /** avgPrice is optional: it is shown only for cities with hand-entered
+   *  figures. The generated fallback deliberately omits it rather than
+   *  deriving a price from an arbitrary multiplier. */
+  propertyTypes?: { type: string; avgPrice?: string; description: string }[];
   buyingGuide?: { step: string; title: string; text: string }[];
   livingInCity?: { lifestyle: string; transit: string; climate: string };
 }
@@ -1147,24 +1150,41 @@ export const CITY_DB: Record<string, CityData> = {
   },
 };
 
+/**
+ * Shape for a city that has no curated entry in CITY_DB.
+ *
+ * Deliberately carries no statistics. The previous version returned the same
+ * population (350,000), median income ($65,000) and median home price
+ * ($350,000) for every uncurated city, plus invented schools such as
+ * "<City> Central High" with a fabricated "8/10" rating. Those pages are
+ * indexed, and families weigh school ratings when choosing where to buy, so the
+ * made-up values were the most damaging content on the site.
+ *
+ * What remains is true for any city: the name, and real listings pulled from
+ * the API further down the page. Add a CITY_DB entry to enrich a city with
+ * figures that have actually been checked.
+ */
 function fallbackCity(slug: string): CityData {
   const name = slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   return {
     name,
     state: "",
     country: "USA",
-    population: "350,000",
-    medianIncome: "$65,000",
-    medianHomePrice: "$350,000",
-    description: `Explore real estate for sale in ${name}. Browse current homes for sale, analyze neighborhood trends, evaluate local schools, and connect with top real estate agents in ${name}.`,
-    neighborhoods: ["Downtown", "Northside", "East End", "West Park", "South Hill"],
-    schools: [
-      { name: `${name} Central High`, rating: "8/10", type: "Public" },
-      { name: `${name} State University`, rating: "8/10", type: "University" },
-    ],
+    population: "",
+    medianIncome: "",
+    medianHomePrice: "",
+    description: `Browse homes for sale in ${name}. See current listings, compare neighborhoods, and connect with a local real estate agent.`,
+    neighborhoods: [],
+    schools: [],
     faqs: [
-      { q: `What is the average home price in ${name}?`, a: `The median home price in ${name} offers accessible entry points for buyers, with prices varying by neighborhood, school district, and square footage.` },
-      { q: `Is ${name} a good market for real estate investors?`, a: `${name} provides a healthy balance of rental demand, price appreciation, and economic stability for long-term residential real estate investments.` },
+      {
+        q: `How do I find homes for sale in ${name}?`,
+        a: `Use the listings below to browse current ${name} properties. You can filter by price, bedrooms, and property type, or contact an agent to set up alerts for new listings.`,
+      },
+      {
+        q: `Can I speak to an agent about buying or selling in ${name}?`,
+        a: `Yes. Request a callback and we will connect you with an agent who works in ${name} and can advise on pricing, offers, and local market conditions.`,
+      },
     ],
   };
 }
@@ -1200,7 +1220,7 @@ function getCityTaxRate(state: string, country: string): string {
   }
 }
 
-function getCityAppreciation(slug: string): string {
+function getCityAppreciation(slug: string): string | null {
   const map: Record<string, string> = {
     "new-york-city": "+4.8% YoY",
     "los-angeles": "+5.2% YoY",
@@ -1218,24 +1238,32 @@ function getCityAppreciation(slug: string): string {
     "toronto": "+3.8% YoY",
     "vancouver": "+4.1% YoY",
   };
-  return map[slug] || "+5.2% YoY";
+  // No curated figure -> no figure. Returning a blanket "+5.2% YoY" put an
+  // invented appreciation rate on every uncurated city, which readers take as
+  // real market data when deciding whether to buy.
+  return map[slug] ?? null;
 }
 
-function getCityPricePerSqFt(medianPriceStr: string, slug: string): string {
-  if (!medianPriceStr) return "$280 / sq ft";
-  const numeric = parseInt(medianPriceStr.replace(/[^0-9]/g, ""), 10);
-  if (isNaN(numeric) || numeric === 0) return "$280 / sq ft";
-  let estSqFtPrice = Math.round(numeric / 1800);
-  if (slug === "new-york-city") estSqFtPrice = 1450;
-  if (slug === "san-francisco") estSqFtPrice = 1100;
-  if (slug === "los-angeles") estSqFtPrice = 780;
-  if (slug === "vancouver") estSqFtPrice = 1050;
-  if (slug === "toronto") estSqFtPrice = 850;
-  const isCad = medianPriceStr.includes("C$") || medianPriceStr.includes("CAD");
-  return `${isCad ? "C$" : "$"}${estSqFtPrice.toLocaleString()} / sq ft`;
+/**
+ * Only the hand-checked per-city figures are returned. The previous version
+ * derived a price from `median / 1800` — 1800 was an arbitrary constant, so the
+ * output was a made-up number presented to buyers as a market rate.
+ */
+function getCityPricePerSqFt(medianPriceStr: string, slug: string): string | null {
+  const curated: Record<string, number> = {
+    "new-york-city": 1450,
+    "san-francisco": 1100,
+    "los-angeles": 780,
+    vancouver: 1050,
+    toronto: 850,
+  };
+  const value = curated[slug];
+  if (!value) return null;
+  const isCad = (medianPriceStr || "").includes("C$") || (medianPriceStr || "").includes("CAD");
+  return `${isCad ? "C$" : "$"}${value.toLocaleString()} / sq ft`;
 }
 
-function getCityWalkScore(slug: string): string {
+function getCityWalkScore(slug: string): string | null {
   const scores: Record<string, string> = {
     "new-york-city": "88 / 100 (Walker's Paradise)",
     "san-francisco": "86 / 100 (Walker's Paradise)",
@@ -1250,7 +1278,9 @@ function getCityWalkScore(slug: string): string {
     "los-angeles": "68 / 100 (Somewhat Walkable)",
     "miami": "77 / 100 (Very Walkable)",
   };
-  return scores[slug] || "64 / 100 (Somewhat Walkable)";
+  // Walk Score is a licensed third-party metric — publishing an invented score
+  // for an uncurated city misstates someone else's proprietary data.
+  return scores[slug] ?? null;
 }
 
 function getCityMarketType(slug: string): string {
@@ -1275,30 +1305,23 @@ function getCityTopEmployers(state: string, country: string): string[] {
   return ["Healthcare & Life Sciences", "Financial Services", "Technology & Innovation", "Logistics & Higher Education"];
 }
 
-function getCityPropertyTypes(cityName: string, medianPrice: string) {
-  const isCad = medianPrice.includes("C$") || medianPrice.includes("CAD");
-  const currency = isCad ? "C$" : "$";
-  const baseNum = parseInt(medianPrice.replace(/[^0-9]/g, ""), 10) || 450000;
-
+/** Generated property-type cards. Descriptions only — no derived prices. */
+function getCityPropertyTypes(cityName: string): NonNullable<CityData["propertyTypes"]> {
   return [
     {
       type: `Single-Family Detached Homes`,
-      avgPrice: `${currency}${Math.round(baseNum * 1.15).toLocaleString()}`,
       description: `Spacious 3-5 bedroom homes with private yards, garages, and access to top neighborhood schools in ${cityName}.`,
     },
     {
       type: `Luxury Condos & High-Rises`,
-      avgPrice: `${currency}${Math.round(baseNum * 0.88).toLocaleString()}`,
       description: `Modern condominiums offering panoramic skyline views, concierge services, fitness centers, and prime urban center access.`,
     },
     {
       type: `Townhomes & Modern Rowhouses`,
-      avgPrice: `${currency}${Math.round(baseNum * 0.76).toLocaleString()}`,
       description: `Multi-level residences blending urban convenience, private outdoor patios, and lower maintenance fees.`,
     },
     {
       type: `Multi-Family & Investment Assets`,
-      avgPrice: `${currency}${Math.round(baseNum * 1.48).toLocaleString()}`,
       description: `Duplexes and multi-unit residential assets producing high passive rental income and long-term equity growth in ${cityName}.`,
     },
   ];
@@ -1393,18 +1416,20 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
   const walkScore = city.walkScore || getCityWalkScore(slug);
   const marketType = city.marketType || getCityMarketType(slug);
   const topEmployers = city.topEmployers || getCityTopEmployers(city.state, city.country);
-  const propertyTypes = city.propertyTypes || getCityPropertyTypes(city.name, city.medianHomePrice);
+  const propertyTypes = city.propertyTypes || getCityPropertyTypes(city.name);
   const buyingGuide = city.buyingGuide || getCityBuyingGuide(city.name, city.state);
   const relatedCities = getRelatedCities(slug, city.state, city.country);
 
+  /* Every tile is conditional: a city we have no verified figure for simply
+     shows fewer stats rather than a plausible-looking invented one. */
   const stats = [
     city.medianHomePrice ? { label: "Median Home Price", value: city.medianHomePrice } : null,
-    { label: "Est. Price / Sq Ft", value: pricePerSqFt },
-    { label: "YoY Price Growth", value: appreciation },
+    pricePerSqFt ? { label: "Est. Price / Sq Ft", value: pricePerSqFt } : null,
+    appreciation ? { label: "YoY Price Growth", value: appreciation } : null,
     city.population ? { label: "Population", value: city.population } : null,
     city.medianIncome ? { label: "Median Household Income", value: city.medianIncome } : null,
-    { label: "Property Tax Est.", value: taxRate },
-    { label: "Walkability Index", value: walkScore },
+    taxRate ? { label: "Property Tax Est.", value: taxRate } : null,
+    walkScore ? { label: "Walkability Index", value: walkScore } : null,
   ].filter((s): s is { label: string; value: string } => !!s);
 
   const cityLd = {
@@ -1536,15 +1561,42 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
                 {city.name} Housing Market Trends & Growth Factors
               </h2>
               <div className="font-body text-slate-700 leading-relaxed space-y-4">
+                {/* The figures are woven in only when we hold them. Without
+                    this guard an uncurated city rendered a sentence with an
+                    empty appreciation rate, or worse, an invented one. */}
                 <p>
-                  The real estate market in <strong>{city.name}</strong> represents one of the region&apos;s most active property landscapes. With a median home price of <strong>{city.medianHomePrice}</strong> and steady year-over-year appreciation averaging <strong>{appreciation}</strong>, buyers and investors find compelling opportunities across both single-family neighborhoods and urban high-rises.
+                  The real estate market in <strong>{city.name}</strong> represents one of the
+                  region&apos;s most active property landscapes.
+                  {city.medianHomePrice && appreciation ? (
+                    <> With a median home price of <strong>{city.medianHomePrice}</strong> and
+                    year-over-year appreciation averaging <strong>{appreciation}</strong>, buyers
+                    and investors find opportunities across both single-family neighborhoods and
+                    urban high-rises.</>
+                  ) : city.medianHomePrice ? (
+                    <> With a median home price of <strong>{city.medianHomePrice}</strong>, buyers
+                    and investors find opportunities across both single-family neighborhoods and
+                    urban high-rises.</>
+                  ) : (
+                    <> Buyers and investors find opportunities across both single-family
+                    neighborhoods and urban high-rises.</>
+                  )}
                 </p>
                 <p>
-                  Economic growth in {city.name} is underpinned by key employment sectors including {topEmployers.slice(0, 3).join(", ")}, driving a steady influx of skilled workforce relocations and strong household income growth (median <strong>{city.medianIncome}</strong>).
+                  Economic growth in {city.name} is underpinned by key employment sectors including {topEmployers.slice(0, 3).join(", ")}, driving a steady influx of skilled workforce relocations
+                  {city.medianIncome ? (
+                    <> and household income growth (median <strong>{city.medianIncome}</strong>)</>
+                  ) : null}.
                 </p>
-                <p>
-                  Property buyers in {city.name} benefit from an average price per square foot of <strong>{pricePerSqFt}</strong>, alongside an estimated property tax rate of <strong>{taxRate}</strong>. Whether purchasing a primary residence or expanding an investment portfolio, {city.name}&apos;s structural demand drivers support long-term capital preservation.
-                </p>
+                {(pricePerSqFt || taxRate) && (
+                  <p>
+                    Property buyers in {city.name} can expect
+                    {pricePerSqFt ? <> an average price per square foot of <strong>{pricePerSqFt}</strong></> : null}
+                    {pricePerSqFt && taxRate ? "," : null}
+                    {taxRate ? <> an estimated property tax rate of <strong>{taxRate}</strong></> : null}.
+                    Whether purchasing a primary residence or expanding an investment portfolio,{" "}
+                    {city.name}&apos;s structural demand drivers support long-term capital preservation.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1600,7 +1652,9 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
                   0{i + 1}
                 </div>
                 <h3 className="font-heading font-bold text-[#0A2647] text-lg mb-1">{pt.type}</h3>
-                <p className="font-heading text-[#C9A227] font-bold text-sm mb-3">Avg: {pt.avgPrice}</p>
+                {pt.avgPrice && (
+                  <p className="font-heading text-[#C9A227] font-bold text-sm mb-3">Avg: {pt.avgPrice}</p>
+                )}
                 <p className="font-body text-slate-600 text-xs leading-relaxed">{pt.description}</p>
               </div>
             ))}
