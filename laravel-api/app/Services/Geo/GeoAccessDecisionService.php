@@ -24,6 +24,7 @@ class GeoAccessDecisionService
     public function __construct(
         private GeoIpLookupService $geoIpLookup,
         private IpReputationService $ipReputation,
+        private CrawlerVerificationService $crawlerVerification,
     ) {
     }
 
@@ -41,6 +42,18 @@ class GeoAccessDecisionService
 
         if ($this->matchEntry(GeoBlacklistEntry::class, $ip)) {
             return $this->deny('blacklisted', $ip);
+        }
+
+        /*
+         * Search engines crawl from datacenter ASNs, so without this they were
+         * denied below and served a 403 carrying a noindex tag — which is why
+         * the site could not be indexed at all. Verification is DNS-based, not
+         * User-Agent based, so this cannot be used to bypass the block.
+         * Deliberately placed after the blacklist: an explicitly blacklisted IP
+         * stays blocked whatever its reverse DNS claims.
+         */
+        if ($this->crawlerVerification->isVerifiedCrawler($ip)) {
+            return $this->allow('verified_search_crawler');
         }
 
         $settings = $this->settings();
