@@ -1,30 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+type DealType = "starter" | "mid" | "luxury";
+
+/** Starting figures for each preset. Applied on selection, not via an effect. */
+const DEAL_PRESETS: Record<DealType, { purchase: number; renovation: number; arv: number }> = {
+  starter: { purchase: 150000, renovation: 25000, arv: 220000 },
+  mid: { purchase: 400000, renovation: 50000, arv: 550000 },
+  luxury: { purchase: 900000, renovation: 120000, arv: 1250000 },
+};
 
 export default function RoiCalculator() {
-  const [dealType, setDealType] = useState<"starter" | "mid" | "luxury">("mid");
+  const [dealType, setDealType] = useState<DealType>("mid");
 
-  const [purchasePrice, setPurchasePrice] = useState(400000);
-  const [renovationBudget, setRenovationBudget] = useState(50000);
-  const [afterRepairValue, setAfterRepairValue] = useState(550000);
+  const [purchasePrice, setPurchasePrice] = useState(DEAL_PRESETS.mid.purchase);
+  const [renovationBudget, setRenovationBudget] = useState(DEAL_PRESETS.mid.renovation);
+  const [afterRepairValue, setAfterRepairValue] = useState(DEAL_PRESETS.mid.arv);
 
-  // Auto-calculated defaults based on selected preset
-  useEffect(() => {
-    if (dealType === "starter") {
-      setPurchasePrice(150000);
-      setRenovationBudget(25000);
-      setAfterRepairValue(220000);
-    } else if (dealType === "mid") {
-      setPurchasePrice(400000);
-      setRenovationBudget(50000);
-      setAfterRepairValue(550000);
-    } else if (dealType === "luxury") {
-      setPurchasePrice(900000);
-      setRenovationBudget(120000);
-      setAfterRepairValue(1250000);
-    }
-  }, [dealType]);
+  /* Applying the preset in the click handler keeps the inputs and the selected
+     preset in a single commit. The previous effect ran a render late, so the
+     figures visibly lagged one frame behind the button the user pressed. */
+  const selectDealType = (type: DealType) => {
+    const preset = DEAL_PRESETS[type];
+    setDealType(type);
+    setPurchasePrice(preset.purchase);
+    setRenovationBudget(preset.renovation);
+    setAfterRepairValue(preset.arv);
+  };
 
   // Derived metrics
   const totalInvestment = purchasePrice + renovationBudget;
@@ -57,7 +60,7 @@ export default function RoiCalculator() {
           {(["starter", "mid", "luxury"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setDealType(t)}
+              onClick={() => selectDealType(t)}
               className={`py-3 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all border ${
                 dealType === t
                   ? "bg-[#0A2647] text-white border-transparent shadow-sm cursor-pointer"
@@ -177,6 +180,17 @@ export default function RoiCalculator() {
             }`}>{formatCurrency(netProfit)}</span>
           </div>
         </div>
+
+        {/* State the assumptions plainly. Selling costs are usually the largest
+            line item in a flip, so leaving them out silently would overstate
+            the return an investor can actually expect to realise. */}
+        <p className="mt-6 pt-4 border-t border-gray-200 font-body text-xs text-gray-500 leading-relaxed">
+          <span className="font-semibold text-gray-600">How this is calculated:</span> holding
+          costs are estimated at 3% and closing costs at 4.5% of the purchase price. This estimate
+          does <span className="font-semibold text-gray-600">not</span> include selling costs such
+          as agent commission (commonly 5–6% of resale value), staging, or capital gains tax — your
+          actual return will be lower. Figures are for illustration only and are not financial advice.
+        </p>
       </div>
     </div>
   );

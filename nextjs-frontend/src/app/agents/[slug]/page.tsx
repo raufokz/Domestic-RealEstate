@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { getAgentBySlug, agentName, agentInitials } from "@/lib/agents";
 import { formatPrice, propertyPhotoPaths } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, realEstateAgentLd, breadcrumbLd } from "@/lib/seo";
+import JsonLd from "@/components/seo/JsonLd";
 import AgentContactForm from "./AgentContactForm";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -47,8 +48,37 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
   ].filter(Boolean);
   const socialLinks = Object.entries(agent.social_links ?? {}).filter(([, url]) => !!url) as [string, string][];
 
+  const avatarUrl = agent.user?.avatar ? storageUrl(agent.user.avatar) : null;
+
   return (
     <main className="min-h-screen bg-white">
+      {/* RealEstateAgent + breadcrumb markup. Fields are passed through only
+          where the profile actually holds a value, so the structured data
+          always matches what a visitor can see on the page. */}
+      <JsonLd
+        data={[
+          realEstateAgentLd({
+            name,
+            path: `/agents/${slug}`,
+            description: agent.bio ?? agent.headline ?? null,
+            image: coverPhotoUrl ?? avatarUrl,
+            telephone: agent.office_phone ?? agent.mobile_number ?? null,
+            email: agent.office_email ?? null,
+            jobTitle: agent.headline ?? null,
+            brokerage: agent.brokerage_name ?? null,
+            city: agent.office_city ?? null,
+            state: agent.office_state ?? null,
+            rating: rating > 0 ? rating : null,
+            reviewCount: agent.review_count ?? null,
+            sameAs: socialLinks.map(([, url]) => url),
+          }),
+          breadcrumbLd([
+            { name: "Home", path: "/" },
+            { name: "Agents", path: "/agents" },
+            { name, path: `/agents/${slug}` },
+          ]),
+        ]}
+      />
       <section className="relative bg-[#0A2647] text-white py-12 md:py-16 overflow-hidden">
         {coverPhotoUrl && (
           <>

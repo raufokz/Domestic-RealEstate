@@ -481,16 +481,19 @@ export default function HeaderVariants() {
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
               </svg>
-              <span className="hidden sm:inline text-sm font-semibold">Search</span>
+              {/* Label appears only at xl: between lg and xl the seven-item nav
+                  needs the horizontal space, and the icon alone is clear. */}
+              <span className="hidden xl:inline text-sm font-semibold">Search</span>
             </button>
 
             <Link
               href="/properties"
               className={`flex min-h-[44px] items-center gap-1.5 px-3 sm:px-5 rounded-lg bg-[#C9A227] text-[#07162C] text-sm font-bold shadow-sm hover:bg-[#B59123] transition-colors whitespace-nowrap ${FOCUS_RING}`}
             >
-              {/* Short label on phones so the row fits inside 360–375px */}
-              <span className="sm:hidden">Browse</span>
-              <span className="hidden sm:inline">Browse Properties</span>
+              {/* Short label on phones (fits 320–375px) and again between lg and
+                  xl, where the full desktop nav competes for the same row. */}
+              <span className="xl:hidden">Browse</span>
+              <span className="hidden xl:inline">Browse Properties</span>
               <span aria-hidden="true">→</span>
             </Link>
 

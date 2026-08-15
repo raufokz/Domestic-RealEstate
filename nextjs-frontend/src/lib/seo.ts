@@ -142,6 +142,76 @@ export function faqLd(items: FaqItem[]) {
   };
 }
 
+export interface RealEstateAgentLd {
+  name: string;
+  path: string;
+  description?: string | null;
+  image?: string | null;
+  telephone?: string | null;
+  email?: string | null;
+  jobTitle?: string | null;
+  brokerage?: string | null;
+  city?: string | null;
+  state?: string | null;
+  /** Average review score. Omitted from output unless reviewCount > 0. */
+  rating?: number | null;
+  reviewCount?: number | null;
+  sameAs?: string[];
+}
+
+/**
+ * RealEstateAgent schema for individual agent profiles.
+ *
+ * Every field is emitted only when the underlying value actually exists, so the
+ * markup never claims data the page does not show. aggregateRating in
+ * particular is dropped unless there is a real rating AND a real review count —
+ * Google treats an invented rating as a structured-data violation.
+ */
+export function realEstateAgentLd(agent: RealEstateAgentLd) {
+  const address =
+    agent.city || agent.state
+      ? {
+          "@type": "PostalAddress",
+          ...(agent.city ? { addressLocality: agent.city } : {}),
+          ...(agent.state ? { addressRegion: agent.state } : {}),
+        }
+      : undefined;
+
+  const hasRating =
+    typeof agent.rating === "number" &&
+    agent.rating > 0 &&
+    typeof agent.reviewCount === "number" &&
+    agent.reviewCount > 0;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    name: agent.name,
+    url: absUrl(agent.path),
+    ...(agent.description ? { description: agent.description } : {}),
+    ...(agent.image ? { image: agent.image } : {}),
+    ...(agent.telephone ? { telephone: agent.telephone } : {}),
+    ...(agent.email ? { email: agent.email } : {}),
+    ...(agent.jobTitle ? { jobTitle: agent.jobTitle } : {}),
+    ...(address ? { address } : {}),
+    ...(agent.city ? { areaServed: { "@type": "Place", name: agent.city } } : {}),
+    ...(agent.brokerage
+      ? { worksFor: { "@type": "Organization", name: agent.brokerage } }
+      : {}),
+    ...(agent.sameAs && agent.sameAs.length ? { sameAs: agent.sameAs } : {}),
+    ...(hasRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: agent.rating,
+            reviewCount: agent.reviewCount,
+          },
+        }
+      : {}),
+    parentOrganization: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+  };
+}
+
 /** Generic WebPage schema for informational/legal pages. */
 export function webPageLd(opts: { name: string; description: string; path: string; dateModified?: string }) {
   return {

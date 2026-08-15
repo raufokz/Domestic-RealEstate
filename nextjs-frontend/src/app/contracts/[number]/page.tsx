@@ -3,8 +3,25 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 import SignaturePad from "@/components/SignaturePad";
 import { apiGet, apiPost } from "@/lib/api";
+
+/**
+ * Strip scripts, event handlers and javascript: URLs from contract markup.
+ * DOMPurify needs a DOM, so on the server we fall back to a conservative
+ * regex pass — the same split the blog viewer already uses.
+ */
+function sanitizeContractHtml(html: string): string {
+  if (!html) return "";
+  if (typeof window === "undefined") {
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/\son\w+=["'][^"']*["']/gi, "")
+      .replace(/href=["']javascript:[^"']*["']/gi, 'href="#"');
+  }
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+}
 
 interface Contract {
   id: number;
@@ -102,7 +119,13 @@ export default function ContractSignPage() {
         <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-card">
           <h2 className="font-heading text-xl font-bold text-navy mb-6">Contract Terms</h2>
           {contract?.template_html ? (
-            <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: contract.template_html }} />
+            <div
+              className="prose prose-slate max-w-none"
+              /* Sanitized before render: template_html arrives from the API and
+                 is rendered on a page reached by contract number, so it must not
+                 be trusted verbatim. */
+              dangerouslySetInnerHTML={{ __html: sanitizeContractHtml(contract.template_html) }}
+            />
           ) : (
             <div className="space-y-4 text-slate-600 leading-relaxed">
               <p>This agreement is entered into between Domestic Real Estate (&quot;Company&quot;) and the undersigned client (&quot;Client&quot;) for the provision of real estate services as outlined in the service request.</p>
