@@ -107,7 +107,11 @@ export const metadata: Metadata = {
 
 const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
+  // RealEstateAgent already extends LocalBusiness in schema.org's hierarchy,
+  // but Google's rich-result checks match on literal @type strings — listing
+  // both makes the LocalBusiness eligibility explicit on the SAME entity
+  // instead of duplicating it in a second JSON-LD block.
+  "@type": ["RealEstateAgent", "LocalBusiness"],
   name: "Domestic Real Estate",
   alternateName: ["Domestic Realestate", "DomesticRealEstate", "DomesticRE", "domestic real estate"],
   url: "https://www.domesticrealestate.us",

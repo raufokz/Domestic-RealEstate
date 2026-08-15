@@ -2,7 +2,6 @@
 
 import React from "react";
 import type { PublicAgent } from "@/lib/agents";
-import { DEMO_AGENTS } from "./agentDemoData";
 import MasterAgentDirectory from "./MasterAgentDirectory";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import Link from "next/link";
@@ -12,17 +11,12 @@ interface AgentPageClientProps {
 }
 
 export default function AgentPageClient({ initialAgents }: AgentPageClientProps) {
-  const displayAgents =
-    initialAgents.length >= 3
-      ? initialAgents
-      : [...initialAgents, ...DEMO_AGENTS.slice(0, 6 - initialAgents.length)];
-
   return (
     <div className="min-h-screen bg-slate-50 text-[#0A2647] font-body flex flex-col justify-between">
       <div>
         {/* Main Master Directory View */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <MasterAgentDirectory agents={displayAgents} />
+          <MasterAgentDirectory agents={initialAgents} />
         </main>
 
         {/* Bottom Call-To-Action Banner */}

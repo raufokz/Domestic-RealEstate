@@ -31,10 +31,18 @@ class RealtorApplicationTest extends TestCase
     {
         Mail::fake();
 
+        // Email verification is now required before the application can be
+        // submitted (see EmailOtpController + FormSubmissionController::
+        // submitRealtorApplication's blockIfEmailUnverified-style check).
+        $email = 'jane.realtor@example.com';
+        $this->postJson('/api/forms/email-otp/send', ['email' => $email])->assertStatus(200);
+        $code = cache()->get('email_otp:' . $email);
+        $this->postJson('/api/forms/email-otp/verify', ['email' => $email, 'code' => $code])->assertStatus(200);
+
         $response = $this->postJson('/api/forms/realtor-application', [
             'first_name' => 'Jane',
             'last_name' => 'Realtor',
-            'email' => 'jane.realtor@example.com',
+            'email' => $email,
             'brokerage' => 'Test Brokerage',
             'license_number' => 'LIC-999',
             'state' => 'NY',

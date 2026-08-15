@@ -11,6 +11,8 @@ use App\Models\Payout;
 use App\Models\PurchasedLead;
 use App\Models\User;
 use App\Services\Payments\PayoneerService;
+use App\Services\WalletService;
+use App\Services\InsufficientCreditsException;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -386,7 +388,7 @@ class MarketplaceController extends Controller
         $this->checkPplPermission($user);
         $request->validate([
             'token' => 'required|string',
-            'payment_method' => 'nullable|string|in:payoneer,bank_transfer',
+            'payment_method' => 'nullable|string|in:payoneer,bank_transfer,wallet',
         ]);
 
         $paymentMethod = $request->get('payment_method', 'payoneer');
@@ -439,6 +441,82 @@ class MarketplaceController extends Controller
 
         $lead = $context['lead'];
         $purchase = $context['purchase'];
+
+        if ($paymentMethod === 'wallet') {
+            // Unlike payoneer/bank_transfer, this completes synchronously —
+            // no third-party network call, so the whole debit + mark-sold
+            // happens in one transaction. Re-locks `leads` FIRST (same
+            // ordering as every other lock-both-things path in this
+            // controller) before WalletService::debit() locks
+            // agent_wallets — see the lock-ordering invariant documented
+            // in WalletService itself.
+            $creditsNeeded = (int) ceil((float) $lead->marketplace_price);
+
+            try {
+                DB::transaction(function () use ($id, $user, $purchase, $creditsNeeded, &$lead) {
+                    $lead = Lead::whereKey($id)->lockForUpdate()->first();
+
+                    if (!$lead || $lead->marketplace_status !== self::STATUS_RESERVED || $lead->reserved_by !== $user->id) {
+                        abort(409, 'This lead is no longer reserved for you.');
+                    }
+
+                    $ledgerEntry = WalletService::debit($user, $creditsNeeded, 'marketplace_lead_unlock', $purchase);
+
+                    $purchase->update([
+                        'status' => MarketplaceLeadPurchase::STATUS_PAID,
+                        'payment_gateway' => 'wallet',
+                        'purchased_at' => now(),
+                        'notes' => 'Paid with ' . $creditsNeeded . ' wallet credits (ledger #' . $ledgerEntry->id . ')',
+                    ]);
+
+                    $lead->forceFill([
+                        'marketplace_status' => self::STATUS_SOLD,
+                        'sold_to' => $user->id,
+                        'sold_at' => now(),
+                        'reserved_by' => null,
+                        'reservation_expires_at' => null,
+                    ])->save();
+
+                    PurchasedLead::firstOrCreate(
+                        ['lead_id' => $lead->id, 'user_id' => $user->id],
+                        ['amount' => $purchase->amount, 'purchased_at' => now()]
+                    );
+
+                    MarketplacePaymentLog::create([
+                        'purchase_id' => $purchase->id,
+                        'lead_id' => $lead->id,
+                        'user_id' => $user->id,
+                        'payment_gateway' => 'wallet',
+                        'amount' => $purchase->amount,
+                        'status' => 'successful',
+                        'payload' => ['credits_spent' => $creditsNeeded],
+                    ]);
+                });
+            } catch (InsufficientCreditsException $e) {
+                return ApiResponse::fail(
+                    'Not enough credits to unlock this lead.',
+                    'insufficient_credits',
+                    402,
+                    reason: "has {$e->available} credits, needs {$e->requested}",
+                    fix: 'Add credits to your wallet, or use another payment method.',
+                    actionUrl: '/agent/dashboard/wallet',
+                );
+            }
+
+            $this->notifyUser(
+                $user,
+                'Lead unlocked!',
+                'Full contact details for "' . ($lead->marketplace_title ?: $lead->lead_number) . '" are now unlocked.',
+                '/marketplace/purchased',
+                'View my leads',
+                ['lead_id' => $lead->id]
+            );
+
+            return ApiResponse::ok([
+                'status' => 'purchased',
+                'lead_id' => $lead->id,
+            ], 'Lead unlocked with wallet credits.');
+        }
 
         if ($paymentMethod === 'payoneer') {
             // Real checkout session — nothing is marked paid here. The lead
@@ -1559,6 +1637,14 @@ class MarketplaceController extends Controller
                 ])->save();
 
                 PurchasedLead::where('lead_id', $lead->id)->where('user_id', $purchase->user_id)->delete();
+            }
+
+            // Wallet-funded purchases are refunded as credits back to the
+            // wallet, not cash — `leads` is already locked above (see the
+            // lock-ordering invariant in WalletService).
+            if ($purchase->payment_gateway === 'wallet') {
+                $credits = (int) ceil((float) $purchase->amount);
+                WalletService::credit($purchase->user, $credits, 'dispute_refund', $purchase);
             }
 
             MarketplacePaymentLog::create([

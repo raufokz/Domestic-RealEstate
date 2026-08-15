@@ -20,6 +20,7 @@ interface Lead {
   type: string;
   priority: string;
   created_at: string;
+  my_assignment_status?: "sent" | "accepted" | "rejected" | null;
 }
 
 const KANBAN_STAGES = [
@@ -93,6 +94,11 @@ export default function AgentLeadsPage() {
                             <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${lead.score >= 80 ? "bg-green-100 text-green-700" : lead.score >= 60 ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>{lead.score}</span>
                             <span className="text-xs text-slate-400">{lead.source}</span>
                           </div>
+                          {lead.my_assignment_status === "sent" && (
+                            <div className="mt-2 text-[11px] font-semibold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5 text-center">
+                              Action needed — accept/decline
+                            </div>
+                          )}
                         </Link>
                       ))}
                     </div>
@@ -140,7 +146,9 @@ export default function AgentLeadsPage() {
                       }`}>{lead.status}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/agent/dashboard/leads/${lead.id}`} className="text-[#C9A227] hover:text-[#0A2647] text-sm font-medium">View</Link>
+                      <Link href={`/agent/dashboard/leads/${lead.id}`} className={`text-sm font-medium ${lead.my_assignment_status === "sent" ? "text-amber-700 font-semibold" : "text-[#C9A227] hover:text-[#0A2647]"}`}>
+                        {lead.my_assignment_status === "sent" ? "Respond →" : "View"}
+                      </Link>
                     </td>
                   </tr>
                 ))}

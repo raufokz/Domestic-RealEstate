@@ -51,4 +51,9 @@ return [
         'secret' => env('EMAIL_BOUNCE_WEBHOOK_SECRET'),
     ],
 
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

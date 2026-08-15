@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(NavigationFooterSeeder::class);
         $this->call(RolePermissionSeeder::class);
+        $this->call(ZipCodeSeeder::class);
         // ─── Users ───
         $admin = User::create([
             'name' => 'Admin',

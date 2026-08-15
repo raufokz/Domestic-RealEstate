@@ -96,6 +96,7 @@ const navSections = [
     { name: "Signed Contracts", href: "/admin/contracts/signed", icon: "✅" },
     { name: "Invoices", href: "/admin/invoices", icon: "💰" },
     { name: "Payments", href: "/admin/payments", icon: "💳" },
+    { name: "Pricing", href: "/admin/pricing", icon: "🏷️" },
   ]},
   { label: "ANALYTICS & REPORTS", items: [
     { name: "Analytics", href: "/admin/analytics", icon: "📈" },

@@ -4,11 +4,20 @@ namespace App\Observers;
 
 use App\Models\Lead;
 use App\Services\AutomationEngine;
+use App\Services\LeadRoutingService;
 
 class LeadObserver
 {
     public function created(Lead $lead): void
     {
+        // Auto-route to a matching agent by ZIP/service-area coverage before
+        // the generic automation workflows run, so an assigned agent shows up
+        // in the same activity stream those workflows react to. Leads that
+        // already arrive pre-assigned (import, admin creation) are left alone.
+        if (!$lead->assigned_to) {
+            LeadRoutingService::route($lead);
+        }
+
         // Auto-create a Deal in the default pipeline if no deal exists for this lead
         if (!\App\Models\Deal::where('lead_id', $lead->id)->exists()) {
             $pipeline = \App\Models\Pipeline::where('slug', $lead->type)->first()

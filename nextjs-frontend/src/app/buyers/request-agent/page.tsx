@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { PageHero } from '@/components/ui/PageTemplate';
+import { apiPost, ApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
+import Turnstile from '@/components/Turnstile';
 
 interface FormData {
   name: string;
@@ -25,16 +28,49 @@ const initial: FormData = {
   timeline: '',
 };
 
+const toNumber = (value: string): number | undefined => {
+  const cleaned = value.replace(/[^0-9.]/g, '');
+  if (!cleaned) return undefined;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : undefined;
+};
+
 export default function RequestAgentPage() {
   const [form, setForm] = useState<FormData>(initial);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const { notifyError } = useToast();
 
   const update = (field: keyof FormData, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    const [firstName, ...rest] = form.name.trim().split(/\s+/);
+    setLoading(true);
+    try {
+      await apiPost('/forms/buyer-request', {
+        first_name: firstName || form.name,
+        last_name: rest.join(' ') || '-',
+        email: form.email,
+        phone: form.phone || undefined,
+        budget_min: toNumber(form.budgetMin),
+        budget_max: toNumber(form.budgetMax),
+        preferred_cities: form.preferredArea || undefined,
+        property_type: form.propertyType || undefined,
+        timeline: form.timeline || undefined,
+        turnstile_token: turnstileToken || undefined,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      notifyError(
+        err,
+        err instanceof ApiError ? err.message : 'Failed to submit your request. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -85,10 +121,12 @@ export default function RequestAgentPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-name" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Full Name
                 </label>
                 <input
+                  id="request-agent-name"
+                  name="name"
                   type="text"
                   required
                   autoComplete="name"
@@ -99,10 +137,12 @@ export default function RequestAgentPage() {
                 />
               </div>
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-email" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Email
                 </label>
                 <input
+                  id="request-agent-email"
+                  name="email"
                   type="email"
                   required
                   autoComplete="email"
@@ -116,10 +156,12 @@ export default function RequestAgentPage() {
             </div>
 
             <div>
-              <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+              <label htmlFor="request-agent-phone" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                 Phone
               </label>
               <input
+                id="request-agent-phone"
+                name="phone"
                 type="tel"
                 autoComplete="tel"
                 inputMode="tel"
@@ -132,11 +174,14 @@ export default function RequestAgentPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-budget-min" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Budget Range (Min)
                 </label>
                 <input
+                  id="request-agent-budget-min"
+                  name="budgetMin"
                   type="text"
+                  inputMode="numeric"
                   value={form.budgetMin}
                   onChange={(e) => update('budgetMin', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
@@ -144,11 +189,14 @@ export default function RequestAgentPage() {
                 />
               </div>
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-budget-max" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Budget Range (Max)
                 </label>
                 <input
+                  id="request-agent-budget-max"
+                  name="budgetMax"
                   type="text"
+                  inputMode="numeric"
                   value={form.budgetMax}
                   onChange={(e) => update('budgetMax', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
@@ -158,11 +206,14 @@ export default function RequestAgentPage() {
             </div>
 
             <div>
-              <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+              <label htmlFor="request-agent-area" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                 Preferred Area
               </label>
               <input
+                id="request-agent-area"
+                name="preferredArea"
                 type="text"
+                autoComplete="address-level2"
                 value={form.preferredArea}
                 onChange={(e) => update('preferredArea', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
@@ -172,10 +223,12 @@ export default function RequestAgentPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-property-type" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Property Type
                 </label>
                 <select
+                  id="request-agent-property-type"
+                  name="propertyType"
                   value={form.propertyType}
                   onChange={(e) => update('propertyType', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227] bg-white"
@@ -189,10 +242,12 @@ export default function RequestAgentPage() {
                 </select>
               </div>
               <div>
-                <label className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
+                <label htmlFor="request-agent-timeline" className="block font-heading text-sm font-semibold text-[#0A2647] mb-2">
                   Timeline
                 </label>
                 <select
+                  id="request-agent-timeline"
+                  name="timeline"
                   value={form.timeline}
                   onChange={(e) => update('timeline', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 font-body text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227] bg-white"
@@ -207,11 +262,14 @@ export default function RequestAgentPage() {
               </div>
             </div>
 
+            <Turnstile onVerify={setTurnstileToken} className="flex justify-center" />
+
             <button
               type="submit"
-              className="w-full bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors text-lg"
+              disabled={loading}
+              className="w-full bg-[#C9A227] text-[#0A2647] font-heading font-semibold px-8 py-4 rounded-lg hover:bg-[#C9A227]/90 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Submit Request
+              {loading ? 'Submitting...' : 'Submit Request'}
             </button>
           </form>
         </div>

@@ -27,6 +27,7 @@ interface LeadDetail {
   preferred_location: string;
   notes: string;
   created_at: string;
+  my_assignment_status?: "sent" | "accepted" | "rejected" | null;
   activities: Array<{
     id: number;
     type: string;
@@ -51,6 +52,20 @@ export default function LeadDetailPage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [addingTask, setAddingTask] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [responding, setResponding] = useState(false);
+
+  const handleRespond = async (action: "accept" | "decline") => {
+    setResponding(true);
+    try {
+      await apiPost(`/agent/leads/${id}/${action}`, {});
+      success(action === "accept" ? "Lead accepted." : "Lead declined and re-routed.");
+      refetch();
+    } catch (e) {
+      notifyError(e, `Could not ${action} this lead. Please try again.`);
+    } finally {
+      setResponding(false);
+    }
+  };
 
   const handleAddNote = async () => {
     if (!note.trim()) return;
@@ -189,6 +204,31 @@ export default function LeadDetailPage() {
             </div>
 
             <div className="space-y-6">
+              {lead.my_assignment_status === "sent" && (
+                <div className="bg-amber-50 rounded-xl border border-amber-300 p-6">
+                  <h3 className="text-lg font-bold text-amber-800 mb-1">Action Needed</h3>
+                  <p className="text-sm text-amber-700 mb-4">
+                    This lead was routed to you based on your service area. Accept it to keep it, or decline to send it to the next matching agent.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleRespond("accept")}
+                      disabled={responding}
+                      className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
+                    >
+                      {responding ? "Please wait..." : "Accept Lead"}
+                    </button>
+                    <button
+                      onClick={() => handleRespond("decline")}
+                      disabled={responding}
+                      className="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition disabled:opacity-50"
+                    >
+                      {responding ? "Please wait..." : "Decline"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h3 className="text-lg font-bold text-[#0A2647] mb-4">Status</h3>
                 <select

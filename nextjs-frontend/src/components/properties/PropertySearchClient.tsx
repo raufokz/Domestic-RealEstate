@@ -8,6 +8,9 @@ import { propertyPhotoPaths } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 const PropertyListingsMap = dynamic(() => import("./PropertyListingsMap"), { ssr: false });
 
@@ -374,34 +377,22 @@ export default function PropertySearchClient() {
 
               {/* Error State */}
               {!loading && error && (
-                <div className="bg-red-50 border border-red-200 rounded-3xl p-8 text-center shadow-sm">
-                  <p className="text-red-700 font-medium text-sm">{error}</p>
-                  <button
-                    onClick={fetchProperties}
-                    className="mt-4 px-5 py-2.5 bg-[#C9A227] text-[#0A2647] rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#b8911f] transition-all"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                <ErrorState message={error} onRetry={fetchProperties} className="rounded-3xl" />
               )}
 
               {/* Empty State */}
               {!loading && !error && filteredProperties.length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-premium-sm">
-                  <div className="flex justify-center mb-4">
-                    <svg className="w-12 h-12 text-[#C9A227]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-                    </svg>
-                  </div>
-                  <h3 className="font-heading text-lg font-extrabold text-[#0A2647] mb-2">
-                    {properties.length === 0 ? "No listings available" : "No results match filters"}
-                  </h3>
-                  <p className="text-slate-400 font-body text-xs max-w-sm mx-auto leading-normal">
-                    {properties.length === 0
+                <EmptyState
+                  icon="🏠"
+                  title={properties.length === 0 ? "No listings available" : "No results match filters"}
+                  message={
+                    properties.length === 0
                       ? "New listings are added daily. Drop our team a message to alert you."
-                      : "Try loosening your search keywords or clearing price boundaries."}
-                  </p>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3">
+                      : "Try loosening your search keywords or clearing price boundaries."
+                  }
+                  className="rounded-3xl shadow-premium-sm"
+                >
+                  <div className="flex flex-wrap justify-center gap-3 mb-2">
                     {hasFilters && (
                       <button
                         onClick={clearFilters}
@@ -417,15 +408,18 @@ export default function PropertySearchClient() {
                       Contact Advisor
                     </Link>
                   </div>
-                </div>
+                </EmptyState>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {filteredProperties.map((p) => {
+                  {filteredProperties.map((p, i) => {
                     const photo = storageUrl(propertyPhotoPaths(p)[0]) ?? null;
                     const location = [p.city, p.state].filter(Boolean).join(", ");
                     return (
-                      <article
+                      <motion.article
                         key={p.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: Math.min(i, 8) * 0.04 }}
                         className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-premium-sm hover:shadow-premium-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                       >
                         <div>
@@ -480,7 +474,7 @@ export default function PropertySearchClient() {
                             Explore Details
                           </Link>
                         </div>
-                      </article>
+                      </motion.article>
                     );
                   })}
                 </div>

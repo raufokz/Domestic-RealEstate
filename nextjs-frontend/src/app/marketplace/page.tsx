@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useFetch } from "@/hooks/useFetch";
-import { apiPost } from "@/lib/api";
+import { apiPost, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import MarketplaceCountdown from "@/components/marketplace/MarketplaceCountdown";
 
@@ -119,7 +119,9 @@ export default function MarketplacePage() {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
   const [busy, setBusy] = useState(false);
   const [dismissed, setDismissed] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<"payoneer" | "bank_transfer">("payoneer");
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "payoneer" | "bank_transfer">("wallet");
+  const { data: walletData, refetch: refetchWallet } = useFetch<{ data: { balance_credits: number } }>("/wallet/balance");
+  const walletBalance = walletData?.data?.balance_credits ?? 0;
 
   const leads = data?.data || [];
   const meta = data?.meta;
@@ -162,7 +164,7 @@ export default function MarketplacePage() {
     if (!reservation || busy) return;
     setBusy(true);
     try {
-      const res = await apiPost<{ status: string; message: string; expires_at?: string; checkout_url?: string }>(
+      const res = await apiPost<{ status: string; message: string; expires_at?: string; checkout_url?: string; lead_id?: number }>(
         `/marketplace/leads/${reservation.lead.id}/process-payment`,
         { token: reservation.token, payment_method: paymentMethod }
       );
@@ -175,17 +177,32 @@ export default function MarketplacePage() {
         return;
       }
 
+      if (res.status === "purchased") {
+        // Wallet payment completes synchronously — no webhook to wait for.
+        success(res.message || "Lead unlocked with wallet credits.");
+        setReservation(null);
+        refetchWallet();
+        refetch();
+        return;
+      }
+
       success(res.message);
       setReservation({ ...reservation, paymentState: "awaiting", expiresAt: res.expires_at || reservation.expiresAt });
       refetch();
     } catch (e) {
-      notifyError(e, "Payment could not be started. Your reservation may have expired.");
-      setReservation(null);
+      if (e instanceof ApiError && e.status === 402) {
+        // Reservation is untouched server-side on insufficient credits —
+        // keep the modal open so the agent can pick another payment method.
+        notifyError(e, "Not enough credits to unlock this lead.");
+      } else {
+        notifyError(e, "Payment could not be started. Your reservation may have expired.");
+        setReservation(null);
+      }
       refetch();
     } finally {
       setBusy(false);
     }
-  }, [reservation, busy, paymentMethod, success, notifyError, refetch]);
+  }, [reservation, busy, paymentMethod, success, notifyError, refetch, refetchWallet]);
 
   const release = useCallback(async () => {
     if (!reservation || busy) return;
@@ -254,6 +271,12 @@ export default function MarketplacePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/agent/dashboard/wallet"
+            className="text-sm font-bold text-[#0A2647] bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl hover:bg-amber-100 transition"
+          >
+            ⚡ {walletBalance} Credits
+          </Link>
           <Link
             href="/marketplace/how-it-works"
             className="text-sm font-semibold text-slate-600 hover:text-[#0A2647] bg-slate-100 px-4 py-2 rounded-xl transition"
@@ -571,7 +594,21 @@ export default function MarketplacePage() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                     Select Payment Method
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("wallet")}
+                      className={`p-3 rounded-xl border text-left font-bold text-xs flex flex-col gap-1 transition ${
+                        paymentMethod === "wallet"
+                          ? "border-[#0A2647] bg-[#0A2647]/5 text-[#0A2647]"
+                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>⚡ Wallet Credits</span>
+                      <span className={`text-[10px] font-normal ${walletBalance < reservation.lead.price ? "text-red-500" : "text-slate-400"}`}>
+                        Balance: {walletBalance}
+                      </span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("payoneer")}
@@ -581,7 +618,7 @@ export default function MarketplacePage() {
                           : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       }`}
                     >
-                      <span>💳 Card via Payoneer</span>
+                      <span>💳 Payoneer</span>
                       <span className="text-[10px] text-slate-400 font-normal">Secure checkout</span>
                     </button>
                     <button
@@ -593,11 +630,25 @@ export default function MarketplacePage() {
                           : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       }`}
                     >
-                      <span>🏦 Bank / Manual Transfer</span>
+                      <span>🏦 Bank Transfer</span>
                       <span className="text-[10px] text-slate-400 font-normal">Admin verified</span>
                     </button>
                   </div>
                 </div>
+
+                {paymentMethod === "wallet" && (
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 text-xs text-slate-600">
+                    <p className="font-bold text-[#0A2647] mb-1">⚡ Instant unlock</p>
+                    {walletBalance >= reservation.lead.price ? (
+                      <p>Contact details reveal immediately — no waiting, no redirect.</p>
+                    ) : (
+                      <p className="text-red-600">
+                        Your balance ({walletBalance} credits) isn&apos;t enough for this {reservation.lead.price}-credit lead.{" "}
+                        <Link href="/agent/dashboard/wallet" className="underline font-bold">Add credits</Link> or pick another method.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {paymentMethod === "payoneer" && (
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 text-xs text-slate-600">
@@ -625,14 +676,16 @@ export default function MarketplacePage() {
                 <div className="space-y-2">
                   <button
                     onClick={processPayment}
-                    disabled={busy}
+                    disabled={busy || (paymentMethod === "wallet" && walletBalance < reservation.lead.price)}
                     className="w-full bg-[#C9A227] text-[#0A2647] font-extrabold py-3.5 rounded-xl hover:bg-[#b8911f] transition disabled:opacity-50 text-base shadow-md"
                   >
                     {busy
-                      ? "Redirecting to secure checkout..."
-                      : paymentMethod === "payoneer"
-                        ? `Pay $${reservation.lead.price} via Payoneer`
-                        : `Submit $${reservation.lead.price} Bank Transfer`}
+                      ? paymentMethod === "wallet" ? "Unlocking..." : "Redirecting to secure checkout..."
+                      : paymentMethod === "wallet"
+                        ? `Unlock — ${reservation.lead.price} Credits`
+                        : paymentMethod === "payoneer"
+                          ? `Pay $${reservation.lead.price} via Payoneer`
+                          : `Submit $${reservation.lead.price} Bank Transfer`}
                   </button>
                   <button
                     onClick={release}

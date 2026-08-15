@@ -7,7 +7,7 @@ import MakeOfferButton from "./MakeOfferButton";
 import PropertyGallery from "./PropertyGallery";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
 import JsonLd from "@/components/seo/JsonLd";
-import { buildMetadata, breadcrumbLd, SITE_URL } from "@/lib/seo";
+import { buildMetadata, breadcrumbLd, listingLd as buildListingLd } from "@/lib/seo";
 import { getPropertyBySlug, formatPrice, priceNumber, propertyPhotoPaths, type PublicProperty } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
 
@@ -63,40 +63,22 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   ].filter((x): x is { label: string; value: string } => !!x);
 
   // Structured data built from REAL data only.
-  const listingLd = {
-    "@context": "https://schema.org",
-    "@type": ["Product", "Residence"],
+  const listingLd = buildListingLd({
     name: prop.title,
-    description: prop.description ?? undefined,
-    url: `${SITE_URL}/properties/${prop.slug}`,
-    image: photos.length ? photos : undefined,
-    ...(prop.address || prop.city
-      ? {
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: prop.address ?? undefined,
-            addressLocality: prop.city ?? undefined,
-            addressRegion: prop.state ?? undefined,
-            postalCode: prop.zip ?? undefined,
-            addressCountry: prop.country ?? "US",
-          },
-        }
-      : {}),
-    ...(hasGeo ? { geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng } } : {}),
-    ...(prop.bedrooms ? { numberOfRooms: prop.bedrooms } : {}),
-    ...(prop.sqft ? { floorSize: { "@type": "QuantitativeValue", value: prop.sqft, unitCode: "FTK" } } : {}),
-    ...(priceVal
-      ? {
-          offers: {
-            "@type": "Offer",
-            price: priceVal,
-            priceCurrency: "USD",
-            availability: "https://schema.org/InStock",
-            url: `${SITE_URL}/properties/${prop.slug}`,
-          },
-        }
-      : {}),
-  };
+    description: prop.description,
+    path: `/properties/${prop.slug}`,
+    image: photos,
+    price: priceVal,
+    city: prop.city,
+    state: prop.state,
+    zip: prop.zip,
+    streetAddress: prop.address,
+    country: prop.country,
+    latitude: hasGeo ? lat : null,
+    longitude: hasGeo ? lng : null,
+    numberOfRooms: prop.bedrooms,
+    floorSizeSqft: prop.sqft,
+  });
   return (
     <main className="min-h-screen bg-slate-50/50">
       <JsonLd

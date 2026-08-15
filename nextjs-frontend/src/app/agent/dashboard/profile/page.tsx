@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AgentLayout from "@/components/agent/AgentLayout";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
+import ServiceAreaMap from "@/components/agents/ServiceAreaMap";
 import { apiGet, apiPut, apiPost, apiPatch, apiDelete, ApiError, API_BASE } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { SITE_URL } from "@/lib/seo";
@@ -14,6 +15,8 @@ const PROPERTY_TYPES_LIST = [
 const SPECIALTIES_LIST = [
   "Buyers", "Sellers", "Investors", "Relocation", "First-Time Buyers", "Luxury Homes", "Short Sales", "Foreclosures", "Property Management", "Vacation Homes"
 ];
+
+const RADIUS_OPTIONS = [10, 25, 50, 75, 100];
 
 const CERTIFICATIONS_LIST = [
   "CRS (Certified Residential Specialist)", "ABR (Accredited Buyer's Representative)", "GRI (Graduate, REALTOR® Institute)", "SRES (Seniors Real Estate Specialist)", "CCIM (Certified Commercial Investment Member)", "SIOR (Society of Industrial and Office Realtors)", "e-PRO® Certified"
@@ -29,7 +32,7 @@ const EDITABLE_FIELDS = [
   "office_country", "office_phone", "office_email", "license_number", "license_state", "license_expiry_date",
   "mls_board", "mls_number", "nar_membership", "realtor_membership", "brokerage_name", "broker_name",
   "brokerage_address", "brokerage_website", "brokerage_contact", "certifications", "awards", "designations",
-  "specialties", "property_types", "languages", "service_areas", "social_links", "business_name",
+  "specialties", "property_types", "languages", "service_areas", "radius_miles", "social_links", "business_name",
   "business_email", "business_phone", "office_hours", "team_name", "team_members", "assistant_info",
   "notification_preferences", "privacy_settings", "intro_video_url",
 ] as const;
@@ -58,6 +61,7 @@ export default function AgentProfilePage() {
   const [cropperType, setCropperType] = useState<"profile_photo" | "cover_photo" | "company_logo">("profile_photo");
   const [fullName, setFullName] = useState("");
   const [languageDraft, setLanguageDraft] = useState("");
+  const [zipDraft, setZipDraft] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
@@ -116,6 +120,18 @@ export default function AgentProfilePage() {
 
   const removeLanguage = (lang: string) => {
     updateField("languages", (profile.languages || []).filter((l: string) => l !== lang));
+  };
+
+  const addServiceAreaZip = () => {
+    const zip = zipDraft.trim();
+    if (!/^\d{5}$/.test(zip)) return;
+    const current: string[] = profile.service_areas || [];
+    if (!current.includes(zip)) updateField("service_areas", [...current, zip]);
+    setZipDraft("");
+  };
+
+  const removeServiceAreaZip = (zip: string) => {
+    updateField("service_areas", (profile.service_areas || []).filter((z: string) => z !== zip));
   };
 
   const handleSave = async () => {
@@ -607,6 +623,51 @@ export default function AgentProfilePage() {
                       Add
                     </button>
                   </div>
+                </div>
+
+                <div className="border-t pt-5">
+                  <p className="text-xs font-bold text-[#0A2647] mb-1">Service Area ZIP Codes</p>
+                  <p className="text-xs text-slate-400 mb-3">Leads inside your coverage radius of these ZIPs get routed to you first.</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(profile.service_areas || []).map((zip: string) => (
+                      <span key={zip} className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0A2647]/5 text-[#0A2647] rounded-full text-xs font-semibold">
+                        {zip}
+                        <button type="button" onClick={() => removeServiceAreaZip(zip)} className="text-[#0A2647]/50 hover:text-red-600">✕</button>
+                      </span>
+                    ))}
+                    {(!profile.service_areas || profile.service_areas.length === 0) && <span className="text-xs text-slate-400">None added</span>}
+                  </div>
+                  <div className="flex gap-2 max-w-xs mb-4">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={zipDraft}
+                      onChange={(e) => setZipDraft(e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addServiceAreaZip(); } }}
+                      placeholder="e.g. 90210"
+                      className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                    />
+                    <button type="button" onClick={addServiceAreaZip} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-[#0A2647]">
+                      Add
+                    </button>
+                  </div>
+
+                  <p className="text-xs font-bold text-[#0A2647] mb-2">Coverage Radius</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {RADIUS_OPTIONS.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => updateField("radius_miles", r)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${profile.radius_miles === r ? "bg-[#0A2647] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                      >
+                        {r} mi
+                      </button>
+                    ))}
+                  </div>
+
+                  <ServiceAreaMap zips={profile.service_areas || []} radiusMiles={profile.radius_miles || 25} />
                 </div>
               </div>
             )}

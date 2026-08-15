@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PageHero, CTASection } from '@/components/ui/PageTemplate';
 import { apiPost, ApiError } from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import Turnstile from '@/components/Turnstile';
 
 const propertyTypes = ['Single Family', 'Condo', 'Townhouse', 'Multi-Family', 'Land'];
 const conditions = ['Excellent', 'Very Good', 'Good', 'Fair', 'Needs Work'];
@@ -23,6 +24,7 @@ export default function RequestValuationPage() {
   const [condition, setCondition] = useState('Good');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
   const { notifyError } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +42,7 @@ export default function RequestValuationPage() {
         zip: zip || undefined,
         condition,
         message: `Property type: ${propertyType}`,
+        turnstile_token: turnstileToken || undefined,
       });
       setSubmitted(true);
     } catch (err) {
@@ -275,6 +278,8 @@ export default function RequestValuationPage() {
                   ))}
                 </div>
               </div>
+
+              <Turnstile onVerify={setTurnstileToken} className="flex justify-center" />
 
               <button
                 type="submit"

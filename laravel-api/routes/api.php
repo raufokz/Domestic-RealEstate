@@ -57,6 +57,11 @@ use App\Http\Controllers\Api\GeoBlacklistController;
 use App\Http\Controllers\Api\GeoAccessLogController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RealtorApplicationController;
+use App\Http\Controllers\Api\EmailOtpController;
+use App\Http\Controllers\Api\PricingController;
+use App\Http\Controllers\Api\ZipLookupController;
+use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\FunnelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,6 +139,24 @@ Route::prefix('realtor-applications')->group(function () {
     Route::post('/{reference}/resubmit', [RealtorApplicationController::class, 'resubmit']);
 });
 
+// Email OTP (public — no login exists at this stage, e.g. realtor application)
+Route::prefix('forms/email-otp')->middleware('throttle:otp')->group(function () {
+    Route::post('/send', [EmailOtpController::class, 'send']);
+    Route::post('/verify', [EmailOtpController::class, 'verify']);
+});
+
+// Progressive-capture consumer funnels (public) — see FunnelController.
+// checkpoint = name/phone screen (Lead created here); complete = final
+// screen (token-bound, never re-matched by email/phone).
+Route::prefix('funnel')->group(function () {
+    Route::post('/buy/checkpoint', [FunnelController::class, 'buyCheckpoint']);
+    Route::post('/buy/complete', [FunnelController::class, 'buyComplete']);
+    Route::post('/sell/checkpoint', [FunnelController::class, 'sellCheckpoint']);
+    Route::post('/sell/complete', [FunnelController::class, 'sellComplete']);
+    Route::post('/invest/checkpoint', [FunnelController::class, 'investCheckpoint']);
+    Route::post('/invest/complete', [FunnelController::class, 'investComplete']);
+});
+
 // Universal Form Submissions (public)
 Route::prefix('forms')->group(function () {
     Route::post('/realtor-application', [FormSubmissionController::class, 'submitRealtorApplication']);
@@ -165,6 +188,9 @@ Route::get('/affiliate/{code}/track', [AffiliateController::class, 'trackClick']
 Route::get('/plans', [InvoiceController::class, 'plans']);
 Route::get('/lead-packages', [InvoiceController::class, 'leadPackages']);
 
+// ZIP centroid lookup (public, read-only — free zip_codes table)
+Route::get('/zip-lookup/{zip}', [ZipLookupController::class, 'show'])->middleware('throttle:120,1');
+
 // Navigation & Footer (Public)
 Route::get('/navigation/header', [NavigationController::class, 'getHeaderMenu']);
 Route::get('/navigation/footer', [NavigationController::class, 'getFooterMenu']);
@@ -181,6 +207,7 @@ Route::post('/marketplace/webhook', [MarketplaceController::class, 'handleWebhoo
 Route::post('/marketplace/payouts/webhook', [MarketplaceController::class, 'handlePayoutWebhook'])->middleware('throttle:120,1');
 Route::post('/invoices/webhook', [InvoiceController::class, 'handlePayoneerWebhook'])->middleware('throttle:120,1');
 Route::post('/webhooks/email/bounce', [EmailWebhookController::class, 'bounce'])->middleware('throttle:120,1');
+Route::post('/wallet/webhook', [WalletController::class, 'handleWebhook'])->middleware('throttle:120,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -245,6 +272,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/leads/{id}/details', [MarketplaceController::class, 'details']);
         Route::get('/purchases/{id}/invoice', [MarketplaceController::class, 'getInvoice']);
         Route::get('/purchases/{id}/export', [MarketplaceController::class, 'exportLead']);
+    });
+
+    // Credit Wallet (authenticated users)
+    Route::prefix('wallet')->group(function () {
+        Route::get('/balance', [WalletController::class, 'balance']);
+        Route::get('/ledger', [WalletController::class, 'ledger']);
+        Route::get('/pending-topups', [WalletController::class, 'pendingTopups']);
+        Route::post('/topup', [WalletController::class, 'topup']);
     });
 
     // User notifications
@@ -412,6 +447,8 @@ Route::post('/leads', [LeadController::class, 'capture']);
 
     // Leads / Clients / CRM
     Route::get('/clients', [AgentPortalController::class, 'clients']);
+    Route::post('/leads/{id}/accept', [LeadController::class, 'acceptAssignment']);
+    Route::post('/leads/{id}/decline', [LeadController::class, 'declineAssignment']);
 
     // Tasks
     Route::get('/tasks', [AgentPortalController::class, 'tasks']);
@@ -948,6 +985,25 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
     Route::get('/settings/ai', [SettingsController::class, 'getAiSettings']);
     Route::put('/settings/ai', [SettingsController::class, 'updateAiSettings']);
     Route::get('/ai/usage-analytics', [SettingsController::class, 'getAiUsageAnalytics']);
+
+    // Pricing — MembershipPlan / LeadPackage admin CRUD
+    Route::prefix('pricing')->group(function () {
+        Route::get('/plans', [PricingController::class, 'plans']);
+        Route::post('/plans', [PricingController::class, 'storePlan']);
+        Route::put('/plans/{id}', [PricingController::class, 'updatePlan']);
+        Route::delete('/plans/{id}', [PricingController::class, 'destroyPlan']);
+        Route::get('/lead-packages', [PricingController::class, 'leadPackages']);
+        Route::post('/lead-packages', [PricingController::class, 'storeLeadPackage']);
+        Route::put('/lead-packages/{id}', [PricingController::class, 'updateLeadPackage']);
+        Route::delete('/lead-packages/{id}', [PricingController::class, 'destroyLeadPackage']);
+    });
+
+    // Wallet — pending manual bank-transfer top-ups
+    Route::prefix('wallet')->group(function () {
+        Route::get('/topups', [WalletController::class, 'adminPendingTopups']);
+        Route::post('/topups/{id}/confirm', [WalletController::class, 'adminConfirmTopup']);
+        Route::post('/topups/{id}/reject', [WalletController::class, 'adminRejectTopup']);
+    });
 
     // Realtor Application Verification Queue
     Route::middleware('permission:realtors.verify')->group(function () {

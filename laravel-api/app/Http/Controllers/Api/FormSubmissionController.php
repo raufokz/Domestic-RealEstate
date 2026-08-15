@@ -10,16 +10,41 @@ use App\Models\PipelineStage;
 use App\Models\RealtorApplication;
 use App\Services\AutomationEngine;
 use App\Services\LeadCaptureService;
+use App\Services\TurnstileVerifier;
 use App\Models\CustomFormField;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
 class FormSubmissionController extends Controller
 {
+    /**
+     * Cloudflare Turnstile check shared by every public lead form. Returns
+     * null when the submission may proceed, or a 422 JsonResponse to return
+     * immediately when it fails (no-op / always passes until
+     * TURNSTILE_SECRET_KEY is configured — see TurnstileVerifier).
+     */
+    private function blockIfSpam(Request $request): ?JsonResponse
+    {
+        $result = TurnstileVerifier::verify($request->input('turnstile_token'), $request->ip());
+        if ($result['passed']) {
+            return null;
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Spam verification failed. Please refresh the page and try again.',
+        ], 422);
+    }
+
     public function submitRealtorApplication(Request $request)
     {
+        if ($blocked = $this->blockIfSpam($request)) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -30,6 +55,13 @@ class FormSubmissionController extends Controller
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:255',
             'zip' => 'nullable|string|max:20',
+            'zip_codes' => 'nullable|array|max:25',
+            'zip_codes.*' => 'string|max:20',
+            'radius_miles' => 'nullable|integer|in:10,25,50,75,100',
+            'lead_type_preferences' => 'nullable|array',
+            'lead_type_preferences.*' => 'string|in:buyer,seller,investor,luxury,commercial',
+            'languages_spoken' => 'nullable|array',
+            'languages_spoken.*' => 'string|max:50',
             'years_experience' => 'nullable|integer|min:0',
             'current_production' => 'nullable|string|max:500',
             'specialization' => 'nullable|string|max:500',
@@ -41,6 +73,14 @@ class FormSubmissionController extends Controller
             'license_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'profile_photo' => 'nullable|file|image|max:5120',
         ]);
+
+        if (!\App\Http\Controllers\Api\EmailOtpController::isVerified($validated['email'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please verify your email address before submitting.',
+                'code' => 'email_not_verified',
+            ], 422);
+        }
 
         try {
             DB::beginTransaction();
@@ -64,6 +104,10 @@ class FormSubmissionController extends Controller
                     'state' => $validated['state'],
                     'city' => $validated['city'],
                     'zip' => $validated['zip'] ?? null,
+                    'zip_codes' => $validated['zip_codes'] ?? [],
+                    'radius_miles' => $validated['radius_miles'] ?? null,
+                    'lead_type_preferences' => $validated['lead_type_preferences'] ?? [],
+                    'languages_spoken' => $validated['languages_spoken'] ?? [],
                     'years_experience' => $validated['years_experience'] ?? null,
                     'current_production' => $validated['current_production'] ?? null,
                     'specialization' => $validated['specialization'] ?? null,
@@ -100,6 +144,11 @@ class FormSubmissionController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'license_number' => $validated['license_number'],
                 'license_state' => strtoupper(substr($validated['state'], 0, 2)),
+                'zip_codes' => $validated['zip_codes'] ?? [],
+                'radius_miles' => $validated['radius_miles'] ?? null,
+                'lead_type_preferences' => $validated['lead_type_preferences'] ?? [],
+                'languages_spoken' => $validated['languages_spoken'] ?? [],
+                'email_verified' => true,
                 'brokerage_name' => $validated['brokerage'],
                 'id_document_path' => $idDocPath,
                 'license_document_path' => $licenseDocPath,
@@ -212,6 +261,10 @@ class FormSubmissionController extends Controller
 
     public function submitInvestorInquiry(Request $request)
     {
+        if ($blocked = $this->blockIfSpam($request)) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -290,6 +343,10 @@ class FormSubmissionController extends Controller
 
     public function submitSellerRequest(Request $request)
     {
+        if ($blocked = $this->blockIfSpam($request)) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -375,6 +432,10 @@ class FormSubmissionController extends Controller
 
     public function submitBuyerRequest(Request $request)
     {
+        if ($blocked = $this->blockIfSpam($request)) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -455,6 +516,10 @@ class FormSubmissionController extends Controller
 
     public function submitContactForm(Request $request)
     {
+        if ($blocked = $this->blockIfSpam($request)) {
+            return $blocked;
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',

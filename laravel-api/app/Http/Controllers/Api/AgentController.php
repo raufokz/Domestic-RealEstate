@@ -233,6 +233,7 @@ class AgentController extends Controller
             'office_city' => 'nullable|string|max:100',
             'office_state' => 'nullable|string|max:100',
             'office_zip' => 'nullable|string|max:20',
+            'radius_miles' => 'nullable|integer|in:10,25,50,75,100',
             'office_country' => 'nullable|string|max:100',
             'office_phone' => 'nullable|string|max:50',
             'office_email' => 'nullable|email|max:255',

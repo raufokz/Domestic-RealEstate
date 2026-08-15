@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
-import { buildMetadata, breadcrumbLd, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { buildMetadata, breadcrumbLd, articleLd as buildArticleLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
   getBlogPosts,
   getBlogPostBySlug,
@@ -141,22 +141,16 @@ export default async function BlogPostPage({
   const tags: string[] = normalizeTags(post.tags);
   const shareUrl = `${SITE_URL}/blog/${post.slug}`;
 
-  const articleLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
+  const articleLd = buildArticleLd({
     headline: post.title,
     description: post.meta_description || postExcerpt(post),
-    url: `${SITE_URL}/blog/${post.slug}`,
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
-    ...(post.featured_image ? { image: post.featured_image } : {}),
-    ...(post.published_at ? { datePublished: post.published_at } : {}),
-    author: post.author?.name
-      ? { "@type": "Person", name: post.author.name }
-      : { "@type": "Organization", name: SITE_NAME },
-    publisher: { "@type": "Organization", name: SITE_NAME },
-    ...(post.category?.name ? { articleSection: post.category.name } : {}),
-    ...(tags.length ? { keywords: tags.join(", ") } : {}),
-  };
+    path: `/blog/${post.slug}`,
+    image: post.featured_image,
+    publishedTime: post.published_at,
+    authorName: post.author?.name,
+    section: post.category?.name,
+    keywords: tags,
+  });
 
   const validFaqItems = Array.isArray(post.faq_schema)
     ? post.faq_schema.filter(

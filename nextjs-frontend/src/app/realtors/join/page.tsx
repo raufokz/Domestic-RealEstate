@@ -1,9 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, apiPost, ApiError } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import ChatWidgetWrapper from '@/components/ai/ChatWidgetWrapper';
+import Turnstile from '@/components/Turnstile';
+
+const RADIUS_OPTIONS = [10, 25, 50, 75, 100];
+const LEAD_TYPES = [
+  { value: 'buyer', label: 'Buyer' },
+  { value: 'seller', label: 'Seller' },
+  { value: 'investor', label: 'Investor' },
+  { value: 'luxury', label: 'Luxury' },
+  { value: 'commercial', label: 'Commercial' },
+];
+const LANGUAGES = ['English', 'Spanish', 'Mandarin', 'French', 'Vietnamese', 'Tagalog', 'Korean', 'Arabic', 'Russian', 'Portuguese'];
 
 export default function RealtorJoinPage() {
   const { success, notifyError } = useToast();
@@ -31,6 +42,20 @@ export default function RealtorJoinPage() {
   const [licenseDocument, setLicenseDocument] = useState<File | null>(null);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [applicationReference, setApplicationReference] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
+
+  // Service area
+  const [zipInput, setZipInput] = useState('');
+  const [zipCodes, setZipCodes] = useState<string[]>([]);
+  const [radiusMiles, setRadiusMiles] = useState<number>(25);
+  const [leadTypes, setLeadTypes] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>(['English']);
+
+  // Email verification (OTP)
+  const [otpStage, setOtpStage] = useState<'idle' | 'sent' | 'verified'>('idle');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -38,13 +63,80 @@ export default function RealtorJoinPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+    // Changing the verified email invalidates the previous verification.
+    if (name === 'email' && otpStage !== 'idle') {
+      setOtpStage('idle');
+      setOtpCode('');
+    }
+  };
+
+  const addZip = () => {
+    const cleaned = zipInput.trim();
+    if (!cleaned) return;
+    if (!/^\d{5}$/.test(cleaned)) {
+      notifyError(null, 'ZIP codes must be 5 digits.');
+      return;
+    }
+    if (zipCodes.includes(cleaned)) {
+      setZipInput('');
+      return;
+    }
+    if (zipCodes.length >= 25) {
+      notifyError(null, 'You can add up to 25 ZIP codes.');
+      return;
+    }
+    setZipCodes(prev => [...prev, cleaned]);
+    setZipInput('');
+  };
+
+  const removeZip = (zip: string) => setZipCodes(prev => prev.filter(z => z !== zip));
+
+  const toggleLeadType = (value: string) =>
+    setLeadTypes(prev => (prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]));
+
+  const toggleLanguage = (value: string) =>
+    setLanguages(prev => (prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]));
+
+  const sendOtp = async () => {
+    if (!formData.email) {
+      notifyError(null, 'Enter your email address first.');
+      return;
+    }
+    setOtpSending(true);
+    try {
+      await apiPost('/forms/email-otp/send', { email: formData.email });
+      setOtpStage('sent');
+      success('Verification code sent — check your inbox.');
+    } catch (err) {
+      notifyError(err, err instanceof ApiError ? err.message : 'Failed to send verification code.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode) return;
+    setOtpVerifying(true);
+    try {
+      await apiPost('/forms/email-otp/verify', { email: formData.email, code: otpCode });
+      setOtpStage('verified');
+      success('Email verified!');
+    } catch (err) {
+      notifyError(err, err instanceof ApiError ? err.message : 'Invalid or expired code.');
+    } finally {
+      setOtpVerifying(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.agreement_accepted) {
       notifyError(null, 'Please accept the agreement to continue.');
+      return;
+    }
+    if (otpStage !== 'verified') {
+      notifyError(null, 'Please verify your email address before submitting.');
       return;
     }
 
@@ -52,6 +144,11 @@ export default function RealtorJoinPage() {
     try {
       const body = new FormData();
       Object.entries(formData).forEach(([key, value]) => body.append(key, String(value)));
+      zipCodes.forEach(z => body.append('zip_codes[]', z));
+      body.append('radius_miles', String(radiusMiles));
+      leadTypes.forEach(t => body.append('lead_type_preferences[]', t));
+      languages.forEach(l => body.append('languages_spoken[]', l));
+      if (turnstileToken) body.append('turnstile_token', turnstileToken);
       if (idDocument) body.append('id_document', idDocument);
       if (licenseDocument) body.append('license_document', licenseDocument);
       if (profilePhoto) body.append('profile_photo', profilePhoto);
@@ -185,15 +282,56 @@ export default function RealtorJoinPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-navy mb-2">Email *</label>
-                  <input
-                    type="email"
-                    name="email" autoComplete="email" inputMode="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent"
-                  />
+                  <label htmlFor="realtor-join-email" className="block text-sm font-semibold text-navy mb-2">Email *</label>
+                  <div className="flex gap-2">
+                    <input
+                      id="realtor-join-email"
+                      type="email"
+                      name="email" autoComplete="email" inputMode="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      disabled={otpStage === 'verified'}
+                      className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent disabled:bg-slate-50"
+                    />
+                    {otpStage !== 'verified' && (
+                      <button
+                        type="button"
+                        onClick={sendOtp}
+                        disabled={otpSending || !formData.email}
+                        className="shrink-0 px-4 py-3 bg-navy text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors disabled:opacity-50"
+                      >
+                        {otpSending ? 'Sending...' : otpStage === 'sent' ? 'Resend Code' : 'Verify Email'}
+                      </button>
+                    )}
+                  </div>
+                  {otpStage === 'verified' && (
+                    <p className="mt-2 text-xs font-semibold text-green-600 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      Email verified
+                    </p>
+                  )}
+                  {otpStage === 'sent' && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="6-digit code"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-gold focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={verifyOtp}
+                        disabled={otpVerifying || otpCode.length !== 6}
+                        className="shrink-0 px-4 py-2.5 bg-gold text-navy-900 text-sm font-bold rounded-xl hover:bg-gold-400 transition-colors disabled:opacity-50"
+                      >
+                        {otpVerifying ? 'Checking...' : 'Confirm'}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-navy mb-2">Phone</label>
@@ -276,6 +414,108 @@ export default function RealtorJoinPage() {
                     min="0"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Service Area & Preferences */}
+            <div>
+              <h2 className="font-heading text-2xl font-bold text-navy mb-2">Service Area &amp; Lead Preferences</h2>
+              <p className="text-sm text-slate-500 mb-6">Tell us where you work and what kinds of leads you want — this drives how leads get matched to you.</p>
+
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="realtor-join-zip-input" className="block text-sm font-semibold text-navy mb-2">
+                    Service Area ZIP Codes
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      id="realtor-join-zip-input"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      placeholder="e.g. 90210"
+                      value={zipInput}
+                      onChange={(e) => setZipInput(e.target.value.replace(/\D/g, ''))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addZip(); } }}
+                      className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addZip}
+                      className="shrink-0 px-5 py-3 bg-navy text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {zipCodes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {zipCodes.map((z) => (
+                        <span key={z} className="inline-flex items-center gap-1.5 bg-gold-50 text-navy text-sm font-semibold px-3 py-1.5 rounded-full">
+                          {z}
+                          <button type="button" onClick={() => removeZip(z)} aria-label={`Remove ${z}`} className="text-navy/60 hover:text-navy">
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="realtor-join-radius" className="block text-sm font-semibold text-navy mb-2">
+                    Service Radius
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {RADIUS_OPTIONS.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRadiusMiles(r)}
+                        className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+                          radiusMiles === r ? 'bg-navy text-white border-navy' : 'bg-white text-navy border-slate-200 hover:border-navy'
+                        }`}
+                      >
+                        {r} mi
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block text-sm font-semibold text-navy mb-2">Lead Types You Want</span>
+                  <div className="flex flex-wrap gap-2">
+                    {LEAD_TYPES.map((lt) => (
+                      <button
+                        key={lt.value}
+                        type="button"
+                        onClick={() => toggleLeadType(lt.value)}
+                        className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+                          leadTypes.includes(lt.value) ? 'bg-gold text-navy-900 border-gold' : 'bg-white text-navy border-slate-200 hover:border-gold'
+                        }`}
+                      >
+                        {lt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block text-sm font-semibold text-navy mb-2">Languages Spoken</span>
+                  <div className="flex flex-wrap gap-2">
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => toggleLanguage(lang)}
+                        className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+                          languages.includes(lang) ? 'bg-navy text-white border-navy' : 'bg-white text-navy border-slate-200 hover:border-navy'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -396,14 +636,17 @@ export default function RealtorJoinPage() {
               </label>
             </div>
 
+            <Turnstile onVerify={setTurnstileToken} className="flex justify-center" />
+
             {/* Submit Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || otpStage !== 'verified'}
+                title={otpStage !== 'verified' ? 'Verify your email above first' : undefined}
                 className="flex-1 bg-gradient-to-r from-gold-500 to-gold-400 text-navy-900 font-bold py-4 rounded-xl hover:shadow-gold transition-all disabled:opacity-50"
               >
-                {loading ? 'Submitting...' : 'Join Now'}
+                {loading ? 'Submitting...' : otpStage !== 'verified' ? 'Verify Email to Continue' : 'Join Now'}
               </button>
               <button
                 type="button"

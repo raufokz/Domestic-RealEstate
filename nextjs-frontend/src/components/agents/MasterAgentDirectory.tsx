@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import type { PublicAgent } from "@/lib/agents";
 import { agentName, agentInitials } from "@/lib/agents";
 import { storageUrl } from "@/lib/media";
@@ -178,7 +179,12 @@ export default function MasterAgentDirectory({ agents }: MasterAgentDirectoryPro
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           {filteredAgents.map((agent) => {
             const avatar = storageUrl(agent.user?.avatar);
             const name = agentName(agent);
@@ -299,7 +305,7 @@ export default function MasterAgentDirectory({ agents }: MasterAgentDirectoryPro
               </div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       {/* 4. FULL PORTRAIT LIGHTBOX MODAL */}

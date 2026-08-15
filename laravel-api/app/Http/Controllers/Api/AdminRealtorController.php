@@ -149,6 +149,7 @@ class AdminRealtorController extends Controller
             'property_types' => 'nullable|array',
             'languages' => 'nullable|array',
             'service_areas' => 'nullable|array',
+            'radius_miles' => 'nullable|integer|in:10,25,50,75,100',
             'office_address' => 'nullable|string|max:255',
             'office_city' => 'nullable|string|max:100',
             'office_state' => 'nullable|string|max:100',

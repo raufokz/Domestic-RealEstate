@@ -58,7 +58,7 @@ class AgentProfile extends Model
         'license_number', 'license_state', 'license_expiry_date', 'license_status', 'mls_board', 'mls_number', 'years_experience',
         'nar_membership', 'realtor_membership', 'certifications', 'awards', 'designations',
         'specialties', 'property_types', 'languages', 'service_areas', 'lead_type_preferences', 'partnership_type',
-        'office_address', 'office_city', 'office_state', 'office_zip', 'office_country', 'office_phone', 'office_email',
+        'office_address', 'office_city', 'office_state', 'office_zip', 'radius_miles', 'office_country', 'office_phone', 'office_email',
         'secondary_email', 'mobile_number', 'office_number', 'whatsapp_number', 'fax', 'website', 'social_links',
         'business_name', 'business_email', 'business_phone', 'office_hours', 'team_name', 'team_members', 'assistant_info',
         'notification_preferences', 'privacy_settings', 'e_signature', 'rating', 'review_count', 'sales_count',

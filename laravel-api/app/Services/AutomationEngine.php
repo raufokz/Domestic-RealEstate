@@ -252,7 +252,9 @@ class AutomationEngine
         }
 
         $agentId = $params['agent_id'] ?? null;
-        if (! $agentId && ($params['method'] ?? '') === 'round_robin') {
+        // Accept both keys — workflow configs have used 'method' and 'strategy'
+        // interchangeably, and a mismatch here silently skips assignment.
+        if (! $agentId && ($params['method'] ?? $params['strategy'] ?? '') === 'round_robin') {
             $agentId = self::getNextRoundRobinAgent();
         }
 

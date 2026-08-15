@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { PageHero } from '@/components/ui/PageTemplate';
 import { apiPost, ApiError } from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import Turnstile from '@/components/Turnstile';
 
 interface FormData {
   firstName: string;
@@ -46,6 +47,7 @@ export default function BuyBoxPage() {
   const [form, setForm] = useState<FormData>(initial);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
   const { notifyError } = useToast();
 
   const update = (field: keyof FormData, value: string) =>
@@ -70,6 +72,7 @@ export default function BuyBoxPage() {
           form.condition ? `Condition preference: ${form.condition}` : null,
           form.notes || null,
         ].filter(Boolean).join(' | ') || undefined,
+        turnstile_token: turnstileToken || undefined,
       });
       setSubmitted(true);
     } catch (err) {
@@ -338,6 +341,8 @@ export default function BuyBoxPage() {
                 placeholder="Any other criteria or preferences..."
               />
             </div>
+
+            <Turnstile onVerify={setTurnstileToken} className="flex justify-center" />
 
             <button
               type="submit"

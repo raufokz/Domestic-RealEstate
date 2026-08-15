@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroVariants from "@/components/home/HeroVariants";
 import CompanyLogos from "@/components/home/CompanyLogos";
+import ConsumerIntentRouter from "@/components/home/ConsumerIntentRouter";
 import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planPrice, type AgentPlanTier } from "@/lib/agentPlans";
 import { getAgents, agentName, agentInitials, type PublicAgent } from "@/lib/agents";
 import { renderIcon } from "@/components/ui/PageTemplate";
@@ -322,8 +323,11 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
 
   return (
     <div className="bg-slate-50 text-slate-800 font-sans min-h-screen">
-      
-      {/* ── HERO OPTION 3 (FRAMER MOTION INTEGRATED HERO) ── */}
+
+      {/* ── CONSUMER INTENT ROUTER — "what do you want to do?" above the fold ── */}
+      <ConsumerIntentRouter />
+
+      {/* ── HERO OPTION 3 (FRAMER MOTION INTEGRATED HERO) — B2B agent/lead-marketplace pitch, now secondary ── */}
       <HeroVariants heroId={3} />
 
       {/* ── PARTNER BROKERAGES TRUST BAR (real logos from /public/companies-logos) ── */}

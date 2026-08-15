@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PropertyGrid from "@/components/properties/PropertyGrid";
 import JsonLd from "@/components/seo/JsonLd";
-import { buildMetadata, breadcrumbLd, faqLd, SITE_URL } from "@/lib/seo";
+import { buildMetadata, breadcrumbLd, faqLd, localBusinessLd, SITE_URL } from "@/lib/seo";
 
 export interface CityData {
   name: string;
@@ -1459,6 +1459,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
         data={[
           cityLd,
           placeLd,
+          localBusinessLd({ path: `/cities/${slug}`, areaServed: city.name }),
           breadcrumbLd([
             { name: "Home", path: "/" },
             { name: "Cities", path: "/cities" },

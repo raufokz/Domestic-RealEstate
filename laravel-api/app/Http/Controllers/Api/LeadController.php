@@ -66,6 +66,15 @@ class LeadController extends Controller
         if ($request->filled('priority')) $query->where('priority', $request->priority);
         if ($this->isPrivileged($request->user()) && $request->filled('assigned_to')) $query->where('assigned_to', $request->assigned_to);
         $leads = $query->orderBy('created_at', 'desc')->paginate($request->get('per_page', 25));
+
+        $userId = $request->user()->id;
+        $pendingLeadIds = LeadAssignment::whereIn('lead_id', $leads->getCollection()->pluck('id'))
+            ->where('agent_id', $userId)->where('status', 'sent')->pluck('lead_id')->all();
+        $leads->getCollection()->transform(function (Lead $lead) use ($pendingLeadIds) {
+            $lead->my_assignment_status = in_array($lead->id, $pendingLeadIds, true) ? 'sent' : null;
+            return $lead;
+        });
+
         return response()->json($leads);
     }
 
@@ -191,9 +200,15 @@ class LeadController extends Controller
 
     public function show(Request $request, $id) {
         $lead = $this->findLeadForUser($id, $request->user());
-        return response()->json(
-            $lead->load(['assignee', 'realtor', 'activities.performer', 'notes.creator', 'tasks', 'assignments.agent'])
-        );
+        $lead->load(['assignee', 'realtor', 'activities.performer', 'notes.creator', 'tasks', 'assignments.agent']);
+
+        $myAssignment = $lead->assignments
+            ->where('agent_id', $request->user()->id)
+            ->sortByDesc('assigned_at')
+            ->first();
+        $lead->my_assignment_status = $myAssignment->status ?? null;
+
+        return response()->json($lead);
     }
 
     public function updateStatus(Request $request, $id) {
@@ -295,6 +310,77 @@ class LeadController extends Controller
         ]);
         Lead::where('id', $id)->update(['assigned_to' => $request->agent_id]);
         return response()->json($assignment, 201);
+    }
+
+    /**
+     * Agent accepts a lead that was auto-routed to them by LeadRoutingService.
+     */
+    public function acceptAssignment(Request $request, $id) {
+        $user = $request->user();
+        $lead = Lead::findOrFail($id);
+        abort_unless($lead->assigned_to === $user->id, 403, 'This lead is not assigned to you.');
+
+        $assignment = LeadAssignment::where('lead_id', $id)->where('agent_id', $user->id)
+            ->where('status', 'sent')->latest('assigned_at')->first();
+        abort_if(!$assignment, 404, 'No pending assignment found for this lead.');
+
+        $assignment->update(['status' => 'accepted', 'responded_at' => now()]);
+
+        LeadActivity::create([
+            'lead_id' => $lead->id,
+            'type' => 'assignment_accepted',
+            'description' => $user->name . ' accepted this routed lead.',
+            'performed_by' => $user->id,
+        ]);
+
+        return response()->json(['message' => 'Lead accepted', 'assignment' => $assignment]);
+    }
+
+    /**
+     * Agent declines a lead that was auto-routed to them — releases it and
+     * re-routes to the next best matching agent, excluding everyone who has
+     * already been sent (and responded to) this lead.
+     */
+    public function declineAssignment(Request $request, $id) {
+        $user = $request->user();
+        $lead = Lead::findOrFail($id);
+        abort_unless($lead->assigned_to === $user->id, 403, 'This lead is not assigned to you.');
+
+        $assignment = LeadAssignment::where('lead_id', $id)->where('agent_id', $user->id)
+            ->where('status', 'sent')->latest('assigned_at')->first();
+        abort_if(!$assignment, 404, 'No pending assignment found for this lead.');
+
+        $assignment->update(['status' => 'rejected', 'responded_at' => now()]);
+        $lead->update(['assigned_to' => null]);
+
+        LeadActivity::create([
+            'lead_id' => $lead->id,
+            'type' => 'assignment_declined',
+            'description' => $user->name . ' declined this routed lead.',
+            'performed_by' => $user->id,
+        ]);
+
+        $excluded = LeadAssignment::where('lead_id', $id)->pluck('agent_id')->unique()->values()->all();
+        $nextAgentId = \App\Services\LeadRoutingService::route($lead->fresh(), $excluded);
+
+        if (!$nextAgentId) {
+            $admins = \App\Models\User::whereIn('role', ['admin', 'super_admin'])->pluck('id');
+            foreach ($admins as $adminId) {
+                \App\Models\Notification::create([
+                    'user_id' => $adminId,
+                    'type' => 'lead_needs_agent',
+                    'severity' => \App\Models\Notification::SEVERITY_WARNING,
+                    'module' => 'leads',
+                    'title' => 'Lead needs manual assignment',
+                    'message' => 'No matching agent was found after a decline for lead ' . $lead->lead_number . '.',
+                    'action_url' => '/admin/leads/' . $lead->id,
+                    'action_label' => 'Assign manually',
+                    'data' => ['lead_id' => $lead->id],
+                ]);
+            }
+        }
+
+        return response()->json(['message' => 'Lead declined', 'rerouted_to' => $nextAgentId]);
     }
 
     /**

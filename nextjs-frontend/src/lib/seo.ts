@@ -212,6 +212,160 @@ export function realEstateAgentLd(agent: RealEstateAgentLd) {
   };
 }
 
+/**
+ * Standalone Organization schema — matches the site-wide entity emitted in
+ * the root layout (name/url/logo/sameAs), for pages that need to reference
+ * the organization on its own (e.g. as `publisher`) rather than nested
+ * inside another schema.
+ */
+export function organizationLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/Domestic-logo.png`,
+    sameAs: [
+      "https://facebook.com/domesticrealestate",
+      "https://twitter.com/domesticrealestate",
+      "https://linkedin.com/company/domesticrealestate",
+      "https://instagram.com/domesticrealestate",
+    ],
+  };
+}
+
+/**
+ * LocalBusiness schema for a specific served area/page (e.g. a city landing
+ * page). Emits `@type: ["RealEstateAgent", "LocalBusiness"]` on the same
+ * entity — see the identical pattern in the root layout's site-wide schema —
+ * rather than a second, duplicate entity. Only includes fields the page
+ * actually has; never fabricates a street address the business doesn't
+ * publish (this is a multi-location platform, not a single storefront).
+ */
+export function localBusinessLd(opts: { path: string; areaServed?: string | null; telephone?: string | null }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": ["RealEstateAgent", "LocalBusiness"],
+    name: SITE_NAME,
+    url: absUrl(opts.path),
+    image: `${SITE_URL}/Domestic-logo.png`,
+    priceRange: "$$$",
+    address: { "@type": "PostalAddress", addressCountry: "US" },
+    ...(opts.areaServed ? { areaServed: { "@type": "Place", name: opts.areaServed } } : {}),
+    ...(opts.telephone ? { telephone: opts.telephone } : {}),
+  };
+}
+
+export interface ArticleLd {
+  headline: string;
+  description: string;
+  path: string;
+  image?: string | null;
+  authorName?: string | null;
+  publishedTime?: string | null;
+  modifiedTime?: string | null;
+  section?: string | null;
+  keywords?: string[];
+}
+
+/** BlogPosting (Article subtype) schema for blog posts. */
+export function articleLd(opts: ArticleLd) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: opts.headline,
+    description: opts.description,
+    url: absUrl(opts.path),
+    ...(opts.image ? { image: absUrl(opts.image) } : {}),
+    ...(opts.publishedTime ? { datePublished: opts.publishedTime } : {}),
+    dateModified: opts.modifiedTime || opts.publishedTime,
+    author: opts.authorName
+      ? { "@type": "Person", name: opts.authorName }
+      : { "@type": "Organization", name: SITE_NAME },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/Domestic-logo.png` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": absUrl(opts.path) },
+    ...(opts.section ? { articleSection: opts.section } : {}),
+    ...(opts.keywords && opts.keywords.length ? { keywords: opts.keywords.join(", ") } : {}),
+  };
+}
+
+export interface ListingLd {
+  name: string;
+  description?: string | null;
+  path: string;
+  /** Single image path, or an array for a full gallery. */
+  image?: string | string[] | null;
+  price?: number | null;
+  priceCurrency?: string;
+  availability?: "InStock" | "OutOfStock" | "Sold";
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  streetAddress?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  numberOfRooms?: number | null;
+  /** Floor size in square feet. */
+  floorSizeSqft?: number | null;
+}
+
+/** Product + Offer schema for a property listing detail page. */
+export function listingLd(opts: ListingLd) {
+  const availabilityMap: Record<string, string> = {
+    InStock: "https://schema.org/InStock",
+    OutOfStock: "https://schema.org/OutOfStock",
+    Sold: "https://schema.org/SoldOut",
+  };
+
+  const hasGeo =
+    typeof opts.latitude === "number" && typeof opts.longitude === "number" &&
+    isFinite(opts.latitude) && isFinite(opts.longitude);
+
+  const images = Array.isArray(opts.image) ? opts.image : opts.image ? [opts.image] : [];
+
+  return {
+    "@context": "https://schema.org",
+    "@type": ["Product", "Residence"],
+    name: opts.name,
+    ...(opts.description ? { description: opts.description } : {}),
+    url: absUrl(opts.path),
+    ...(images.length ? { image: images.map(absUrl) } : {}),
+    ...(opts.streetAddress || opts.city || opts.state || opts.zip
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            ...(opts.streetAddress ? { streetAddress: opts.streetAddress } : {}),
+            ...(opts.city ? { addressLocality: opts.city } : {}),
+            ...(opts.state ? { addressRegion: opts.state } : {}),
+            ...(opts.zip ? { postalCode: opts.zip } : {}),
+            addressCountry: opts.country || "US",
+          },
+        }
+      : {}),
+    ...(hasGeo ? { geo: { "@type": "GeoCoordinates", latitude: opts.latitude, longitude: opts.longitude } } : {}),
+    ...(opts.numberOfRooms ? { numberOfRooms: opts.numberOfRooms } : {}),
+    ...(opts.floorSizeSqft
+      ? { floorSize: { "@type": "QuantitativeValue", value: opts.floorSizeSqft, unitCode: "FTK" } }
+      : {}),
+    ...(opts.price
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: opts.price,
+            priceCurrency: opts.priceCurrency || "USD",
+            availability: availabilityMap[opts.availability || "InStock"],
+            url: absUrl(opts.path),
+          },
+        }
+      : {}),
+  };
+}
+
 /** Generic WebPage schema for informational/legal pages. */
 export function webPageLd(opts: { name: string; description: string; path: string; dateModified?: string }) {
   return {

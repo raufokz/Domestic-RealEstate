@@ -15,13 +15,14 @@ class Lead extends Model
     protected $fillable = [
         'lead_number', 'source', 'source_url', 'utm_source', 'utm_medium',
         'utm_campaign', 'first_name', 'last_name', 'email', 'phone',
-        'normalized_email', 'normalized_phone', 'type', 'status', 'priority',
+        'normalized_email', 'normalized_phone', 'type', 'source_intent', 'status', 'priority',
         'score', 'budget_min', 'budget_max', 'timeline', 'motivation',
         'notes', 'assigned_to', 'realtor_id', 'broker_id', 'ghl_contact_id',
         'ip_address', 'user_agent', 'page_url',
-        'property_type', 'bedrooms', 'bathrooms', 'location',
+        'property_type', 'bedrooms', 'bathrooms', 'location', 'zip_code',
         'financing', 'pre_approved', 'credit_score',
         'realtor_status', 'contact_time', 'consent_given', 'chat_metadata',
+        'funnel_completed_at', 'quality_tier', 'consent_text', 'consent_version', 'consent_given_at',
         'marketplace_status', 'marketplace_title', 'marketplace_category',
         'marketplace_description', 'marketplace_price',
         'pricing_model', 'commission_rate', 'payout_method', 'payout_email',
@@ -42,6 +43,8 @@ class Lead extends Model
             'publish_at' => 'datetime',
             'attachments' => 'array',
             'views_count' => 'integer',
+            'funnel_completed_at' => 'datetime',
+            'consent_given_at' => 'datetime',
         ];
     }
 
@@ -53,6 +56,19 @@ class Lead extends Model
         parent::boot();
         static::creating(function ($model) {
             if (!$model->lead_number) $model->lead_number = 'LEAD-' . strtoupper(uniqid());
+
+            // Most capture forms only collect a free-text "City, ST 12345" style
+            // location field, not a dedicated ZIP input. Pull a 5-digit ZIP out of
+            // whatever text is available so the routing engine has something to
+            // match against without requiring every form to be rebuilt.
+            if (empty($model->zip_code)) {
+                foreach ([$model->location, $model->notes] as $text) {
+                    if ($text && preg_match('/\b(\d{5})(?:-\d{4})?\b/', $text, $m)) {
+                        $model->zip_code = $m[1];
+                        break;
+                    }
+                }
+            }
         });
     }
 
