@@ -102,14 +102,6 @@ export default function AnalyticsReportingPage() {
     fetchBlogData(activeDays);
   }, [activeDays, fetchPageData, fetchBlogData]);
 
-  useEffect(() => {
-    fetchData(activeDays);
-  }, [activeDays, fetchData]);
-
-  useEffect(() => {
-    fetchData(activeDays);
-  }, [activeDays, fetchData]);
-
   const handlePeriodChange = (days: number) => {
     setActiveDays(days);
   };
