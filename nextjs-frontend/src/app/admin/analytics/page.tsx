@@ -91,7 +91,7 @@ export default function AnalyticsReportingPage() {
     setError(null);
     try {
       const result = await apiGet<{ blog: AnalyticsData['blog'] }>(`/admin/blog-analytics?days=${days}`);
-      setBlogData(result.data.blog);
+      setBlogData(result.blog);
     } catch (err: any) {
       setError(err?.message || "Failed to load blog analytics data");
     }
