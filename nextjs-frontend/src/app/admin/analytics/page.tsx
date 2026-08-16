@@ -50,6 +50,12 @@ interface AnalyticsData {
     total_invoices: number;
     total_collected: number;
   };
+  blog: {
+    total_blog_views: number;
+    by_day: { date: string; views: number }[];
+    top_posts: { blog_id: number; views: number }[];
+    referer_sources: { referer: string; count: number }[];
+  };
 }
 
 const NAVY = "#0A2647";
@@ -66,10 +72,11 @@ const periods = [
 export default function AnalyticsReportingPage() {
   const [activeDays, setActiveDays] = useState(30);
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [blogData, setBlogData] = useState<AnalyticsData['blog'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async (days: number) => {
+  const fetchPageData = useCallback(async (days: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -77,10 +84,27 @@ export default function AnalyticsReportingPage() {
       setData(result);
     } catch (err: any) {
       setError(err?.message || "Failed to load analytics data");
-    } finally {
-      setLoading(false);
     }
   }, []);
+
+  const fetchBlogData = useCallback(async (days: number) => {
+    setError(null);
+    try {
+      const result = await apiGet<{ blog: AnalyticsData['blog'] }>(`/admin/blog-analytics?days=${days}`);
+      setBlogData(result.data.blog);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load blog analytics data");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPageData(activeDays);
+    fetchBlogData(activeDays);
+  }, [activeDays, fetchPageData, fetchBlogData]);
+
+  useEffect(() => {
+    fetchData(activeDays);
+  }, [activeDays, fetchData]);
 
   useEffect(() => {
     fetchData(activeDays);
@@ -94,7 +118,7 @@ export default function AnalyticsReportingPage() {
     <AdminLayout title="Analytics & Reporting">
       <div className="space-y-6">
         {/* Period Selector */}
-        <div className="flex flex-wrap items-center gap-2">
+<div className="flex flex-wrap items-center gap-2">
           {periods.map((p) => (
             <button
               key={p.days}
@@ -108,6 +132,15 @@ export default function AnalyticsReportingPage() {
               {p.label}
             </button>
           ))}
+          <button
+            key="blog"
+            onClick={() => setActiveDays(30)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeDays === 30 ? "bg-[#0A2647] text-white" : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+            }`}
+          >
+            Blog
+          </button>
         </div>
 
         {error && (
@@ -130,6 +163,7 @@ export default function AnalyticsReportingPage() {
               <KpiCard label="Campaigns Sent" value={data.campaigns.total.toLocaleString()} sub={`Open rate: ${data.campaigns.open_rate}`} />
               <KpiCard label="Revenue Collected" value={`$${Number(data.revenue.total_collected || 0).toLocaleString()}`} sub={`${data.revenue.total_invoices} invoices`} />
               <KpiCard label="Agents" value={String(data.agents.length)} />
+              <KpiCard label="Blog Views" value={data.blog?.total_blog_views.toLocaleString() ?? '0'} />
             </div>
 
             {/* Page Views Trend & Leads by Source */}
