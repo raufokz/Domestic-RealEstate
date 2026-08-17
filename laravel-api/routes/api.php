@@ -613,6 +613,7 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
 
     // Admin Realtor Management & Verification Portal
     Route::get('/realtors', [AdminRealtorController::class, 'index']);
+    Route::post('/realtors/import-paste', [AdminRealtorController::class, 'importPaste']);
     Route::get('/realtors/{id}', [AdminRealtorController::class, 'show']);
     Route::put('/realtors/{id}', [AdminRealtorController::class, 'update']);
     Route::post('/realtors/{id}/status', [AdminRealtorController::class, 'updateStatus']);

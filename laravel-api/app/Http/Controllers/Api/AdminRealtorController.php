@@ -363,4 +363,204 @@ class AdminRealtorController extends Controller
 
         return response()->json(['message' => 'Document deleted by Admin']);
     }
+
+    /**
+     * Bulk-create realtor profiles from pasted rows.
+     *
+     * Mirrors PropertyController::importPaste — same ImportBatch tracking and
+     * per-row error recording, so failures show up in the existing import
+     * history screen rather than being swallowed.
+     *
+     * Two deliberate choices, both because imported agents have not signed up:
+     *
+     *  - Accounts get a random 64-char password that is never recorded or sent
+     *    anywhere, so nobody can log in as a person who never registered. They
+     *    go through password reset if they later join.
+     *  - Profiles land as is_published = 0 / status = 'pending'. The public
+     *    directory requires is_published = 1 AND status IN (approved,
+     *    verified), so nothing appears on /agents until an admin approves it.
+     *
+     * Ratings, review counts and sales counts are never accepted from the
+     * import — putting invented numbers on a real person's profile is the one
+     * thing this must not do.
+     */
+    public function importPaste(Request $request): JsonResponse
+    {
+        $this->checkAdmin();
+
+        $request->validate(['agents' => 'required|array|max:1000']);
+
+        $batch = \App\Models\ImportBatch::create([
+            'import_type' => 'realtors',
+            'file_name' => 'pasted-agents',
+            'format' => 'paste',
+            'status' => 'processing',
+            'column_map' => [],
+            'detected_headers' => ['name', 'email', 'phone', 'brokerage_name', 'address', 'city', 'state', 'zip'],
+            'total_rows' => count($request->agents),
+            'created_by' => $request->user()?->id,
+            'started_at' => now(),
+        ]);
+
+        $imported = 0;
+        $updated = 0;
+        $failed = 0;
+
+        foreach ($request->agents as $i => $raw) {
+            $rowNumber = $i + 1;
+            $row = is_array($raw) ? $raw : [];
+            $headers = array_keys($row);
+
+            $name = trim((string) ($row['name'] ?? ''));
+            $email = strtolower(trim((string) ($row['email'] ?? '')));
+
+            $missing = [];
+            if ($name === '') {
+                $missing[] = 'name';
+            }
+            if ($email === '') {
+                $missing[] = 'email';
+            }
+            if ($missing !== []) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'missing_required_field',
+                    'Missing required field(s): '.implode(', ', $missing).'.',
+                    $headers,
+                    $row
+                );
+
+                continue;
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'invalid_email',
+                    '"'.$email.'" is not a valid email address.',
+                    $headers,
+                    $row
+                );
+
+                continue;
+            }
+
+            try {
+                DB::transaction(function () use ($row, $name, $email, &$imported, &$updated) {
+                    $isNewUser = !User::where('email', $email)->exists();
+
+                    $user = User::firstOrCreate(
+                        ['email' => $email],
+                        [
+                            'name' => $name,
+                            /*
+                             * The User model casts `password` => 'hashed', so any
+                             * literal placed here is bcrypt-hashed and becomes a
+                             * WORKING password. A fixed sentinel would therefore
+                             * hand the same known password to every imported
+                             * account. Random bytes nobody ever sees are the only
+                             * safe option: the hash is valid, but no input matches
+                             * it, so these accounts cannot be logged into.
+                             */
+                            'password' => Str::random(64),
+                            'role' => 'agent',
+                            'status' => 'pending',
+                            'phone' => $this->cleanImportedPhone($row['phone'] ?? null),
+                        ]
+                    );
+
+                    if (!$isNewUser && $user->phone === null) {
+                        $user->forceFill(['phone' => $this->cleanImportedPhone($row['phone'] ?? null)])->save();
+                    }
+
+                    $profile = AgentProfile::firstOrNew(['user_id' => $user->id]);
+
+                    if (!$profile->exists) {
+                        $profile->slug = $this->uniqueAgentSlug($name);
+                        $profile->is_published = false;
+                        $profile->status = 'pending';
+                        $profile->license_status = 'pending';
+                        $imported++;
+                    } else {
+                        $updated++;
+                    }
+
+                    // Only fill blanks on an existing profile: an import must not
+                    // overwrite details an agent has already corrected themselves.
+                    $profile->brokerage_name = $profile->brokerage_name ?: (trim((string) ($row['brokerage_name'] ?? '')) ?: null);
+                    $profile->office_address = $profile->office_address ?: (trim((string) ($row['address'] ?? '')) ?: null);
+                    $profile->office_city = $profile->office_city ?: (trim((string) ($row['city'] ?? '')) ?: null);
+                    $profile->office_state = $profile->office_state ?: (trim((string) ($row['state'] ?? '')) ?: null);
+                    $profile->office_zip = $profile->office_zip ?: (trim((string) ($row['zip'] ?? '')) ?: null);
+                    $profile->office_phone = $profile->office_phone ?: $this->cleanImportedPhone($row['phone'] ?? null);
+                    $profile->office_email = $profile->office_email ?: $email;
+                    $profile->office_country = $profile->office_country ?: 'US';
+                    $profile->save();
+                });
+            } catch (\Throwable $e) {
+                $failed++;
+                \App\Services\TabularImportService::recordRowError(
+                    $batch,
+                    $rowNumber,
+                    'save_failed',
+                    $e->getMessage(),
+                    $headers,
+                    $row
+                );
+            }
+        }
+
+        $batch->update([
+            'status' => $failed > 0 ? 'completed_with_errors' : 'completed',
+            'rows_imported' => $imported,
+            'rows_failed' => $failed,
+            'completed_at' => now(),
+        ]);
+
+        $message = "Imported {$imported} new realtor".($imported === 1 ? '' : 's').'.';
+        if ($updated > 0) {
+            $message .= " {$updated} existing profile(s) were topped up.";
+        }
+        if ($failed > 0) {
+            $message .= " {$failed} row(s) had issues — check the import history for details.";
+        }
+        $message .= ' All new profiles are pending review and are not visible on the public directory yet.';
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'batch_id' => $batch->id,
+            'count' => $imported,
+            'updated' => $updated,
+            'failed' => $failed,
+        ]);
+    }
+
+    /** Digits-only sanity check; placeholder numbers such as 000-000-0000 are dropped. */
+    private function cleanImportedPhone(mixed $raw): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $raw);
+        if ($digits === null || strlen($digits) !== 10 || preg_match('/^0+$/', $digits)) {
+            return null;
+        }
+
+        return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6));
+    }
+
+    /** agent_profiles.slug is unique — suffix until free. */
+    private function uniqueAgentSlug(string $name): string
+    {
+        $base = Str::slug($name) ?: 'agent';
+        $slug = $base;
+        $n = 2;
+        while (AgentProfile::where('slug', $slug)->exists()) {
+            $slug = $base.'-'.$n++;
+        }
+
+        return $slug;
+    }
 }

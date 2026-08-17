@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AGENT_PLAN_TIERS, ENTERPRISE_PLAN, planPrice, type AgentPlanTier } from "@/lib/agentPlans";
@@ -121,29 +122,33 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
     <div className="bg-[#07162C] text-slate-100 font-sans min-h-screen">
 
       {/* ── SECTION 01: HERO & MARKETPLACE SEARCH ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#07162C]">
-        {/* Cinematic Sunset Mansion Hero Background Image */}
+      <section className="relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#07162C]">
+        {/* Cinematic Sunset Mansion Hero Background Image (LCP — preloaded) */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="/variant1-hero.jpg"
-            alt="Twilight Mansion Hub Background"
-            className="w-full h-full object-cover opacity-35 filter brightness-90 transition-all duration-1000"
+            alt=""
+            fill
+            sizes="100vw"
+            preload
+            fetchPriority="high"
+            className="object-cover opacity-35 brightness-90 transition-all duration-1000"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#07162C]/80 via-[#07162C]/70 to-[#07162C] pointer-events-none" />
         </div>
 
         {/* Hero Content Box */}
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
+        <div className="relative z-10 max-w-5xl mx-auto text-center w-full">
           <span className="text-[#C9A227] text-xs font-black uppercase tracking-[0.25em] mb-4 inline-block font-mono bg-white/5 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm">
             01 / Marketplace Search
           </span>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight mb-6 font-heading">
-            Real Opportunities.<br />
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight mb-6 font-heading">
+            Real Estate Opportunities.<br />
             Real Connections. <span className="text-[#C9A227]">Real Results.</span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-slate-300 text-base sm:text-lg mb-8 font-normal leading-relaxed">
+          <p className="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg mb-8 font-normal leading-relaxed">
             The premium network connecting buyers, sellers, active investors, and real estate professionals.
           </p>
 
@@ -154,7 +159,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 <button
                   key={tab}
                   onClick={() => setSearchTab(tab)}
-                  className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all duration-300 cursor-pointer ${
+                  className={`px-3 sm:px-6 py-2 rounded-xl text-xs font-black uppercase transition-all duration-300 cursor-pointer ${
                     searchTab === tab
                       ? "bg-[#C9A227] text-[#07162C] font-extrabold shadow"
                       : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -195,20 +200,20 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             <p className="text-slate-400 text-xs sm:text-sm mt-1">High-quality buyer, seller, and investor leads available in your market segment.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-xs">
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-[120px]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center text-xs w-full">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-0">
               <span className="text-[#C9A227] font-black text-lg block font-mono">2,458+</span>
               <span className="text-slate-400 font-medium text-[10px]">Active Leads</span>
             </div>
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-[120px]">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-0">
               <span className="text-[#C9A227] font-black text-lg block font-mono">1,732+</span>
               <span className="text-slate-400 font-medium text-[10px]">Verified Profiles</span>
             </div>
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-[120px]">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-0">
               <span className="text-[#C9A227] font-black text-lg block font-mono">150+</span>
               <span className="text-slate-400 font-medium text-[10px]">Markets Covered</span>
             </div>
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-[120px]">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 min-w-0">
               <span className="text-[#C9A227] font-black text-lg block font-mono">5,000+</span>
               <span className="text-slate-400 font-medium text-[10px]">Pros Registered</span>
             </div>
@@ -221,9 +226,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 02: POPULAR LEAD OPPORTUNITIES ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C]">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[#C9A227] text-xs font-bold uppercase tracking-wider font-mono">
               02 / Popular Lead Opportunities
             </span>
@@ -235,7 +240,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10">
             {leadOpportunities.map((lead, idx) => (
               <motion.div
                 key={idx}
@@ -261,7 +266,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
           </div>
 
           {/* Gold CTA Bar Section */}
-          <div className="bg-gradient-to-r from-[#C9A227] to-amber-400 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+          <div className="bg-gradient-to-r from-[#C9A227] to-amber-400 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-5 shadow-xl">
             <div className="text-left text-[#07162C] max-w-xl">
               <h3 className="font-extrabold text-base sm:text-lg">Want More Exclusive Leads in Your Target Market?</h3>
               <p className="text-xs font-semibold text-[#07162C]/80 mt-1">Specify your zip code preferences and lead filters, and get instant notifications.</p>
@@ -274,9 +279,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 03: DISCOVER PROPERTIES ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-y border-slate-200">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
               03 / Discover Properties
             </span>
@@ -295,7 +300,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 <button
                   key={tab.id}
                   onClick={() => setPropertyTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all duration-300 cursor-pointer ${
+                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all duration-300 cursor-pointer ${
                     propertyTab === tab.id
                       ? "bg-[#07162C] text-[#C9A227] shadow"
                       : "text-slate-600 hover:text-[#07162C]"
@@ -307,7 +312,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
             <AnimatePresence mode="wait">
               {discoverProperties[propertyTab].map((prop) => (
                 <motion.article
@@ -319,11 +324,14 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                   className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col justify-between"
                 >
                   <div>
-                    <div className="h-56 overflow-hidden relative">
-                      <img
+                    <div className="h-48 sm:h-56 overflow-hidden relative">
+                      <Image
                         src={prop.img}
                         alt={prop.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        loading="lazy"
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute top-4 right-4 bg-[#07162C] text-[#C9A227] text-xs font-black px-3.5 py-1 rounded-full shadow-sm">
                         {prop.price}
@@ -351,9 +359,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 04: HOW IT WORKS & LOGOS ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 sm:mb-16">
             <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
               04 / How It Works
             </span>
@@ -362,9 +370,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 text-left mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 text-left mb-12 sm:mb-16">
             {/* For Clients Columns */}
-            <div className="bg-slate-50 p-8 sm:p-10 rounded-3xl border border-slate-200">
+            <div className="bg-slate-50 p-6 sm:p-8 lg:p-10 rounded-3xl border border-slate-200">
               <h3 className="text-xl font-black text-[#0A2647] border-b border-slate-200 pb-4 mb-6 uppercase tracking-wider">
                 For Clients & Investors
               </h3>
@@ -386,7 +394,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </div>
 
             {/* For Professionals Columns */}
-            <div className="bg-slate-50 p-8 sm:p-10 rounded-3xl border border-slate-200">
+            <div className="bg-slate-50 p-6 sm:p-8 lg:p-10 rounded-3xl border border-slate-200">
               <h3 className="text-xl font-black text-[#0A2647] border-b border-slate-200 pb-4 mb-6 uppercase tracking-wider">
                 For Real Estate Agents
               </h3>
@@ -411,7 +419,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
           {/* Grayscale Active Brand Logos Strip */}
           <div className="border-t border-slate-200 pt-12">
             <p className="text-center text-slate-400 text-xs font-bold uppercase tracking-wider mb-6">Trusted by Professionals from top offices</p>
-            <div className="flex flex-wrap items-center justify-center gap-10 md:gap-14 opacity-50 hover:opacity-75 transition-opacity duration-300">
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-14 opacity-50 hover:opacity-75 transition-opacity duration-300">
               {[
                 { name: "RE/MAX", img: "/companies-logos/Dallas-RE-150x150.png" },
                 { name: "eXp Realty", img: "/companies-logos/exp-realty-150x150.jpg" },
@@ -420,10 +428,13 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 { name: "Berkshire Hathaway", img: "/companies-logos/BHHS-logo-150x150.png" },
               ].map((logo, idx) => (
                 <div key={idx} className="flex items-center gap-2 group">
-                  <img
+                  <Image
                     src={logo.img}
                     alt={logo.name}
-                    className="h-8 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                    width={24}
+                    height={24}
+                    loading="lazy"
+                    className="h-6 sm:h-8 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
                   />
                   <span className="text-[10px] font-black text-slate-500 font-mono uppercase group-hover:text-slate-900 transition-colors">{logo.name}</span>
                 </div>
@@ -434,9 +445,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 05: EXPLORE BY CITY DIRECTORY ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C]">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
               05 / Explore by City
             </span>
@@ -448,7 +459,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               { city: "Dallas, Texas", bg: "/variant2-hero.jpg", path: "/properties?city=Dallas" },
               { city: "Houston, Texas", bg: "/variant3-hero.jpg", path: "/properties?city=Houston" },
@@ -456,10 +467,13 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
               { city: "Miami, Florida", bg: "/variant4-hero.jpg", path: "/properties?city=Miami" }
             ].map((item, idx) => (
               <Link href={item.path} key={idx} className="relative rounded-2xl overflow-hidden aspect-[4/3] group shadow-lg flex flex-col justify-end p-5 border border-white/5 hover:border-[#C9A227]/30 transition-all duration-300">
-                <img
+                <Image
                   src={item.bg}
                   alt={item.city}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  loading="lazy"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80" />
                 <div className="relative z-10 text-left">
@@ -473,9 +487,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 06: TOP RATED AGENTS & ADVISORS ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-b border-slate-200">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-b border-slate-200">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 sm:mb-12">
             <div>
               <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
                 06 / Top Rated Agents & Advisors
@@ -484,12 +498,12 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 Connect with Verified Local Experts
               </h2>
             </div>
-            <Link href="/realtors/agent-directory" className="text-xs font-extrabold text-[#07162C] hover:underline uppercase tracking-wider hidden sm:block">
+            <Link href="/realtors/agent-directory" className="text-xs font-extrabold text-[#07162C] hover:underline uppercase tracking-wider">
               View Directory →
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {loadingAgents ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="animate-pulse bg-white border border-slate-200 rounded-2xl h-80 p-5 flex flex-col justify-between">
@@ -500,7 +514,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 </div>
               ))
             ) : featuredAgents.length === 0 ? (
-              <div className="col-span-4 bg-slate-50 border border-slate-200 rounded-3xl p-10 text-center">
+              <div className="col-span-full bg-slate-50 border border-slate-200 rounded-3xl p-10 text-center">
                 <p className="text-base font-bold text-[#0A2647]">No Featured Broker Partners Found</p>
                 <Link href="/register" className="inline-block mt-4 bg-[#C9A227] text-[#07162C] font-extrabold px-6 py-3 rounded-xl text-xs uppercase transition-colors">
                   Join Agent Network
@@ -524,7 +538,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                     <div>
                       <div className="h-48 overflow-hidden relative bg-slate-200">
                         {avatar ? (
-                          <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                          <Image src={avatar} alt={name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" loading="lazy" className="object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-[#07162C] to-[#0A2647] flex items-center justify-center text-[#C9A227] font-semibold text-3xl font-mono">
                             {agentInitials(agent)}
@@ -557,9 +571,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 07: CHOOSE YOUR PREFERRED PARTNERSHIP TIER ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
               07 / Partnership Tiers
             </span>
@@ -583,7 +597,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 md:gap-6">
             {(["Solo", "Starter", "Professional", "Elite"] as const).map((tierKey) => {
               const baseTier = AGENT_PLAN_TIERS.find((p) => p.name === tierKey);
               if (!baseTier) return null;
@@ -596,7 +610,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                   key={tierKey}
                   className={`rounded-3xl p-6 border transition-all flex flex-col justify-between text-left ${
                     isPopular
-                      ? "border-[#C9A227] bg-[#07162C] text-white shadow-xl scale-105 relative"
+                      ? "border-[#C9A227] bg-[#07162C] text-white shadow-xl lg:scale-105 relative"
                       : "border-slate-200 bg-slate-50 text-slate-800 shadow-sm hover:shadow"
                   }`}
                 >
@@ -651,9 +665,9 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 08: FREQUENTLY ASKED QUESTIONS ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-t border-slate-200">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-t border-slate-200">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
               08 / Got Questions? We Have Answers.
             </span>
@@ -700,7 +714,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       </section>
 
       {/* ── SECTION 09: STAY AHEAD IN REAL ESTATE ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C] text-center border-t border-slate-800 relative overflow-hidden">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#07162C] text-center border-t border-slate-800 relative overflow-hidden">
         {/* Dynamic Glowing Accents */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[150px] bg-[#C9A227]/10 blur-3xl pointer-events-none rounded-full" />
 

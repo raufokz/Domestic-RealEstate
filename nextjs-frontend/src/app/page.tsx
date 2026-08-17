@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { buildMetadata, SITE_NAME, SITE_URL, breadcrumbLd } from "@/lib/seo";
+import { buildMetadata, SITE_NAME, SITE_URL, breadcrumbLd, faqLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import HomeClient from "@/components/home/HomeClient";
 import { getAgents, type PublicAgent } from "@/lib/agents";
@@ -85,7 +85,35 @@ export default async function HomePage() {
 
   return (
     <>
-      <JsonLd data={[orgSchema, websiteSchema, breadcrumbLd([{ name: "Home", path: "/" }])]} />
+      <JsonLd
+        data={[
+          orgSchema,
+          websiteSchema,
+          breadcrumbLd([{ name: "Home", path: "/" }]),
+          faqLd([
+            {
+              question: "What is Domestic Real Estate (DomesticRealEstate)?",
+              answer:
+                "Domestic Real Estate is an enterprise-grade proptech platform designed for property buyers, sellers, investors, and licensed brokers. We provide high-intent localized lead marketplace feeds, SaaS marketing tools, and directory indexing to streamline real estate transactions.",
+            },
+            {
+              question: "How does the Domestic Real Estate Lead Marketplace work?",
+              answer:
+                "We collect property inquiry signals from public records, digital marketing, and direct seller submissions. After undergoing skip-tracing and verification, the leads are posted to our daily deal feed where local agents and investors can claim them.",
+            },
+            {
+              question: "Are leads shared or exclusive?",
+              answer:
+                "We offer both Territory-Exclusive plans (guaranteeing solo access to zip codes) and open marketplace pay-per-lead listings for wholesaling, hard money, and lending professionals.",
+            },
+            {
+              question: "Can I sync leads with my current CRM?",
+              answer:
+                "Absolutely! Our platform integrations support native API and Webhook connectivity to popular CRMs like Follow Up Boss, kvCORE, Lofty, Salesforce, and HubSpot.",
+            },
+          ]),
+        ]}
+      />
       <HomeClient initialAgents={initialAgents} />
     </>
   );
