@@ -37,6 +37,35 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["framer-motion", "recharts", "leaflet"],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/ads",
+        destination: "/services/ads",
+        permanent: true,
+      },
+      {
+        source: "/product-listing",
+        destination: "/services/property-listing",
+        permanent: true,
+      },
+      {
+        source: "/properties/spacious-4br-family-home-in-suburban-atlanta",
+        destination: "/properties",
+        permanent: true,
+      },
+      {
+        source: "/realtors/veronica-a-medellin",
+        destination: "/agents",
+        permanent: true,
+      },
+      {
+        source: "/agents/veronica-a-medellin",
+        destination: "/agents",
+        permanent: true,
+      },
+    ];
   }
 };
 
