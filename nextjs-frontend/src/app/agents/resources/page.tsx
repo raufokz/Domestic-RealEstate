@@ -1,38 +1,35 @@
 import type { Metadata } from 'next';
-import { PageHero, FeaturesSection, CTASection } from '@/components/ui/PageTemplate';
+import { buildMetadata, SITE_URL } from '@/lib/seo';
+import JsonLd from '@/components/seo/JsonLd';
+import AgentResourcesClient from '@/components/agents/AgentResourcesClient';
 
-export const metadata: Metadata = {
-  title: 'Agent Resources',
-};
+export const metadata: Metadata = buildMetadata({
+  title: 'Agent Resource Hub & Document Library',
+  description: 'Access pre-approved real estate contract templates, disclosures, marketing flyers, CMA tools, and luxury social media kits.',
+  path: '/agents/resources',
+  keywords: [
+    'real estate agent resources',
+    'realtor document templates',
+    'real estate listing presentation template',
+    'CMA report templates',
+    'agent marketing flyers'
+  ],
+});
 
 export default function AgentResourcesPage() {
+  const resourceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Real Estate Agent Resource Library',
+    description: 'Collection of contracts, marketing templates, and market analysis tools.',
+    url: `${SITE_URL}/agents/resources`,
+  };
+
   return (
-    <main className="min-h-screen bg-white">
-      <PageHero
-        badge="Resources"
-        title="Agent Resources"
-        subtitle="Access a comprehensive library of tools, templates, and reference materials built for agents."
-      />
-
-      <FeaturesSection
-        title="Resource Library"
-        subtitle="Everything you need to run your business efficiently and serve your clients exceptionally well."
-        features={[
-          { icon: '📑', title: 'Forms & Templates', description: 'Pre-approved contracts, disclosure forms, marketing templates, and checklists ready for immediate use.' },
-          { icon: '📊', title: 'Market Intelligence', description: 'Real-time market data, neighborhood reports, and pricing trend analyses to share with your clients.' },
-          { icon: '🎥', title: 'Video Tutorials', description: 'Step-by-step video guides for using the platform, transaction processes, and advanced sales strategies.' },
-          { icon: '📰', title: 'Industry News', description: 'Curated industry news, regulatory updates, and market commentary to keep you informed and current.' },
-          { icon: '🧮', title: 'Calculators & Tools', description: 'Mortgage calculators, affordability estimators, investment analyzers, and other useful client-facing tools.' },
-          { icon: '👥', title: 'Peer Network', description: 'Join agent-only forums, discussion groups, and virtual meetups to learn from and collaborate with peers.' },
-        ]}
-      />
-
-      <CTASection
-        title="Access the Full Library"
-        subtitle="Join our team and unlock all agent resources, tools, and training materials."
-        primaryAction={{ label: 'Apply Now', href: '/agents/apply' }}
-        secondaryAction={{ label: 'View Training', href: '/agents/training' }}
-      />
-    </main>
+    <>
+      <JsonLd data={resourceSchema} />
+      <AgentResourcesClient />
+    </>
   );
 }
+
