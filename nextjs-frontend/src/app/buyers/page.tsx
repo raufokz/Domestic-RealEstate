@@ -3,6 +3,7 @@ import { buildMetadata, webPageLd, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import MortgageCalculatorWidget from "@/components/buyers/MortgageCalculatorWidget";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
+import PersonaLeadForm from "@/components/leads/PersonaLeadForm";
 
 export const metadata: Metadata = buildMetadata({
   title: "Home Buyer Solutions & Financing",
@@ -170,13 +171,8 @@ export default function BuyersPage() {
           <p className="mt-4 text-slate-300 text-base sm:text-lg font-body max-w-2xl mx-auto">
             Get instant alerts when new homes matching your exact buy-box criteria enter the market.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <a
-              href="/properties"
-              className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-heading font-extrabold text-sm px-8 py-4 rounded-xl shadow-gold hover:scale-105 transition-all"
-            >
-              Search Properties Now →
-            </a>
+          <div className="mt-8 max-w-3xl mx-auto text-left">
+            <PersonaLeadForm persona="buyer" source="buyer_landing_cta" />
           </div>
         </div>
       </section>

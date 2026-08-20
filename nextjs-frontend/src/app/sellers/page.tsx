@@ -3,6 +3,7 @@ import { buildMetadata, webPageLd, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import HomeValuationWidget from "@/components/sellers/HomeValuationWidget";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
+import PersonaLeadForm from "@/components/leads/PersonaLeadForm";
 
 export const metadata: Metadata = buildMetadata({
   title: "Sell Your Home for Top Dollar",
@@ -156,13 +157,8 @@ export default function SellersPage() {
           <p className="mt-4 text-slate-300 text-base sm:text-lg font-body max-w-2xl mx-auto">
             Get your instant valuation report with zero obligation.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <a
-              href="#valuation"
-              className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-heading font-extrabold text-sm px-8 py-4 rounded-xl shadow-gold hover:scale-105 transition-all"
-            >
-              Calculate Home Value Now →
-            </a>
+          <div className="mt-8 max-w-3xl mx-auto text-left">
+            <PersonaLeadForm persona="seller" source="seller_landing_cta" />
           </div>
         </div>
       </section>

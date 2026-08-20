@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildMetadata, webPageLd, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import ChatWidgetWrapper from "@/components/ai/ChatWidgetWrapper";
+import PersonaLeadForm from "@/components/leads/PersonaLeadForm";
 
 export const metadata: Metadata = buildMetadata({
   title: "Domestic Real Estate Investment | Assets & Holdings Solutions",
@@ -98,13 +99,8 @@ export default function InvestorsPage() {
           <p className="mt-4 text-slate-300 text-base sm:text-lg font-body max-w-2xl mx-auto">
             Set your target ROI parameters and receive real-time deal alerts in your inbox.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <a
-              href="/contact?topic=investor"
-              className="bg-[#C9A227] hover:bg-amber-400 text-[#0A2647] font-heading font-extrabold text-sm px-8 py-4 rounded-xl shadow-gold hover:scale-105 transition-all"
-            >
-              Set Investor Deal Criteria →
-            </a>
+          <div className="mt-8 max-w-3xl mx-auto text-left">
+            <PersonaLeadForm persona="investor" source="investor_landing_cta" />
           </div>
         </div>
       </section>
