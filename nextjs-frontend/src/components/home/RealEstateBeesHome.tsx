@@ -602,7 +602,11 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
               const baseTier = AGENT_PLAN_TIERS.find((p) => p.name === tierKey);
               if (!baseTier) return null;
               
-              const priceVal = billingPeriod === "annual" ? baseTier.annualPrice : (baseTier.oneTimePrice ?? baseTier.annualTotalPrice);
+              /* Annual tiers quote the full yearly figure, not the monthly
+                 equivalent. The two were inconsistent: this card said "$21/mo"
+                 while /pricing said "$250/yr" for the same tier, which reads as
+                 a different product to anyone comparing the two pages. */
+              const priceVal = billingPeriod === "annual" ? baseTier.annualTotalPrice : (baseTier.oneTimePrice ?? baseTier.annualTotalPrice);
               const isPopular = tierKey === "Professional";
 
               return (
@@ -628,13 +632,13 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                         ${priceVal}
                       </span>
                       <span className={`text-xs font-medium ${isPopular ? "text-slate-400" : "text-slate-500"}`}>
-                        /{billingPeriod === "annual" ? "mo" : "one-time"}
+                        /{billingPeriod === "annual" ? "year" : "one-time"}
                       </span>
-                      {billingPeriod === "annual" && (
-                        <p className={`text-[10px] font-semibold mt-1 ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
-                          Paid annually (${baseTier.annualTotalPrice}/yr)
-                        </p>
-                      )}
+                      <p className={`text-[10px] font-semibold mt-1 ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
+                        {billingPeriod === "annual"
+                          ? "Billed once per year · no monthly charge"
+                          : "Pay once · no recurring charge"}
+                      </p>
                     </div>
 
                     <ul className="space-y-3 mb-8 text-xs font-medium leading-relaxed">
