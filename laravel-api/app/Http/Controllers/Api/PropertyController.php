@@ -7,6 +7,8 @@ use App\Models\PropertyFavorite;
 use App\Models\PropertyImage;
 use App\Models\Enquiry;
 use App\Support\ApiResponse;
+use App\Http\Requests\PropertyWriteRequest;
+use App\Services\PropertyWriteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -115,7 +117,15 @@ class PropertyController extends Controller
         return response()->json($property);
     }
 
-    public function store(Request $request) {
+    /**
+     * Create a listing and everything attached to it in ONE transaction.
+     *
+     * The gallery, cover image, ordering and amenities all arrive in the same
+     * payload and are written by PropertyWriteService inside a single
+     * DB::transaction — a failure anywhere rolls the whole listing back rather
+     * than leaving a row with no photos.
+     */
+    public function store(PropertyWriteRequest $request, PropertyWriteService $writer) {
         if (!in_array($request->user()->role, self::LISTING_ROLES)) {
             return ApiResponse::fail(
                 'Only agents, brokers, sellers, and admins can create listings.',
@@ -125,32 +135,8 @@ class PropertyController extends Controller
             );
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'property_type_id' => 'nullable|exists:property_types,id',
-            'price' => 'required|numeric|min:0',
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'zip' => 'required|string',
-            'bedrooms' => 'nullable|integer|min:0',
-            'bathrooms' => 'nullable|numeric|min:0',
-            'sqft' => 'nullable|integer|min:0',
-        ]);
+        $property = $writer->create($request->validated(), $request->user());
 
-        // A self-listing homeowner (role=seller) owns the listing via seller_id;
-        // agents/brokers/admins keep the existing realtor_id ownership path.
-        if ($request->user()->role === 'seller') {
-            $validated['seller_id'] = $request->user()->id;
-        } else {
-            $validated['realtor_id'] = $request->user()->id;
-        }
-        $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
-        $validated['uuid'] = \Illuminate\Support\Str::uuid();
-        $validated['country'] = 'US';
-
-        $property = Property::create($validated);
         return response()->json($property, 201);
     }
 
@@ -547,7 +533,12 @@ class PropertyController extends Controller
         return $value !== '' && is_numeric($value) ? (float) $value : null;
     }
 
-    public function update(Request $request, $id) {
+    /**
+     * Update core fields, add/remove/reorder media and reset the cover image in
+     * a single atomic call. Privileged fields (featured, approval_status,
+     * ownership) are stripped for non-staff inside PropertyWriteService.
+     */
+    public function update(PropertyWriteRequest $request, $id, PropertyWriteService $writer) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
             return ApiResponse::fail(
@@ -557,16 +548,13 @@ class PropertyController extends Controller
                 reason: 'you are not the owner of this listing and are not an admin',
             );
         }
-        $restricted = ['approval_status', 'featured', 'premium', 'view_count', 'inquiry_count', 'realtor_id', 'broker_id', 'seller_id', 'uuid', 'slug'];
-        $blocked = in_array($request->user()->role, ['admin', 'super_admin'])
-            ? ['uuid', 'slug', 'view_count', 'inquiry_count']
-            : $restricted;
-        $allowed = array_values(array_diff($property->getFillable(), $blocked));
-        $property->update($request->only($allowed));
+
+        $property = $writer->update($property, $request->validated(), $request->user());
+
         return response()->json($property);
     }
 
-    public function destroy(Request $request, $id) {
+    public function destroy(Request $request, $id, PropertyWriteService $writer) {
         $property = Property::findOrFail($id);
         if (!$this->canManage($request->user(), $property)) {
             return ApiResponse::fail(
@@ -576,7 +564,9 @@ class PropertyController extends Controller
                 reason: 'you are not the owner of this listing and are not an admin',
             );
         }
-        $property->delete();
+        // Soft-deletes the listing and clears its media rows + stored files.
+        $writer->delete($property);
+
         return response()->json(['message' => 'Property deleted']);
     }
 

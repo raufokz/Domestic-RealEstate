@@ -26,7 +26,8 @@
     "recharts": "^3.9.2",
     "server-only": "^0.0.1",
     "source-map-js": "^1.2.1",
-    "use-sync-external-store": "^1.6.0"
+    "use-sync-external-store": "^1.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

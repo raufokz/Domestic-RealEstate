@@ -20,11 +20,15 @@ class Property extends Model
         'amenities', 'nearby_places', 'tags', 'featured', 'premium',
         'open_house_date', 'open_house_end', 'realtor_id', 'broker_id', 'seller_id',
         'listed_by_type', 'approval_status', 'view_count', 'inquiry_count',
+        // Added by 2026_08_20_100000_extend_properties_for_listing_management
+        'original_price', 'half_bathrooms', 'property_taxes_annual', 'address_line2',
+        'is_verified', 'verified_at', 'verified_by',
     ];
 
     protected function casts(): array {
         return [
             'photos' => 'array', 'gallery' => 'array', 'amenities' => 'array',
+            'is_verified' => 'boolean', 'verified_at' => 'datetime',
             'nearby_places' => 'array', 'tags' => 'array',
             'price' => 'decimal:2', 'hoa_fees' => 'decimal:2', 'lot_size' => 'decimal:2',
             'featured' => 'boolean', 'premium' => 'boolean',

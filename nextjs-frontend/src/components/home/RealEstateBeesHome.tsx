@@ -418,8 +418,8 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
 
           {/* Grayscale Active Brand Logos Strip */}
           <div className="border-t border-slate-200 pt-12">
-            <p className="text-center text-slate-600 text-xs font-bold uppercase tracking-wider mb-6">Trusted by Professionals from top offices</p>
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-14 opacity-50 hover:opacity-75 transition-opacity duration-300">
+            <p className="text-center text-slate-600 text-xs font-bold uppercase tracking-wider mb-8">Trusted by Professionals from top offices</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 max-w-5xl mx-auto px-4 justify-items-center items-center">
               {[
                 { name: "RE/MAX", img: "/companies-logos/Dallas-RE-150x150.png" },
                 { name: "eXp Realty", img: "/companies-logos/exp-realty-150x150.jpg" },
@@ -427,17 +427,26 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                 { name: "Sotheby's", img: "/companies-logos/sotheby-logo-150x150.png" },
                 { name: "Berkshire Hathaway", img: "/companies-logos/BHHS-logo-150x150.png" },
               ].map((logo, idx) => (
-                <div key={idx} className="flex items-center gap-2 group">
-                  <Image
-                    src={logo.img}
-                    alt={logo.name}
-                    width={24}
-                    height={24}
-                    loading="lazy"
-                    className="h-6 sm:h-8 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
-                  />
-                  <span className="text-[10px] font-black text-slate-500 font-mono uppercase group-hover:text-slate-900 transition-colors">{logo.name}</span>
-                </div>
+                <motion.div
+                  key={idx}
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  className="flex flex-col items-center justify-center bg-slate-50/50 hover:bg-white backdrop-blur-sm border border-slate-100 hover:border-slate-200 rounded-2xl p-4 w-full h-24 shadow-sm hover:shadow-md group cursor-pointer"
+                >
+                  <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden">
+                    <Image
+                      src={logo.img}
+                      alt=""
+                      width={48}
+                      height={48}
+                      loading="lazy"
+                      className="object-contain filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                    />
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 font-mono uppercase tracking-wider mt-2 group-hover:text-slate-800 transition-colors">
+                    {logo.name}
+                  </span>
+                </motion.div>
               ))}
             </div>
           </div>

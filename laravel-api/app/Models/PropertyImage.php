@@ -11,6 +11,8 @@ class PropertyImage extends Model
     protected $fillable = [
         'property_id', 'path', 'original_name', 'mime_type', 'size',
         'is_featured', 'sort_order',
+        // Added by 2026_08_20_100000_extend_properties_for_listing_management
+        'public_id', 'media_type', 'caption',
     ];
 
     protected function casts(): array {
