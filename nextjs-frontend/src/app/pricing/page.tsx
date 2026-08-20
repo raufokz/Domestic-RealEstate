@@ -246,7 +246,7 @@ export default function PricingPage() {
               }`}
             >
               <span>📅 Annual Plans</span>
-              <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+              <span className="bg-emerald-700 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
                 Save 20%
               </span>
             </button>
@@ -413,7 +413,7 @@ export default function PricingPage() {
                               </span>
                             </div>
 
-                            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                            <div className="w-6 h-6 rounded-full bg-black/30 flex items-center justify-center border border-white/25">
                               <span className="text-xs font-black text-white">RE</span>
                             </div>
                           </div>
@@ -566,7 +566,7 @@ export default function PricingPage() {
               className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 shadow-premium-xl"
             >
               <div className="text-center max-w-3xl mx-auto mb-12">
-                <span className="text-[#c9a227] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
+                <span className="text-[#806326] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
                   Interactive Plan Builder
                 </span>
                 <h3 className="text-3xl font-heading font-black text-navy mt-4">
@@ -858,7 +858,7 @@ export default function PricingPage() {
       <section className="py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="text-[#c9a227] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
+            <span className="text-[#806326] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
               Interactive ROI Tool
             </span>
             <h2 className="text-3xl sm:text-4xl font-heading font-black text-navy mt-4">
@@ -976,7 +976,7 @@ export default function PricingPage() {
       {/* ── DETAILED MATRIX FEATURE TABLE ── */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <span className="text-[#c9a227] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
+          <span className="text-[#806326] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
             Detailed Comparison
           </span>
           <h2 className="text-3xl sm:text-4xl font-heading font-black text-navy mt-4">
@@ -1038,7 +1038,7 @@ export default function PricingPage() {
       <section className="py-24 bg-slate-100 border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-left">
           <div className="text-center mb-16">
-            <span className="text-[#c9a227] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
+            <span className="text-[#806326] text-xs font-mono font-bold uppercase tracking-widest bg-[#c9a227]/10 px-4 py-1.5 rounded-full">
               Help & Support
             </span>
             <h2 className="text-3xl font-heading font-black text-navy mt-4">Frequently Asked Questions</h2>

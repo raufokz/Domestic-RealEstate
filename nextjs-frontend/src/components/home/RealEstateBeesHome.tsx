@@ -282,7 +282,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 sm:mb-12">
-            <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
+            <span className="text-[#806326] text-xs font-black uppercase tracking-wider font-mono">
               03 / Discover Properties
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-[#0A2647] mt-2">
@@ -339,14 +339,14 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                     </div>
 
                     <div className="p-6 text-left">
-                      <span className="text-[10px] font-black text-[#C9A227] uppercase tracking-wider font-mono">{prop.desc}</span>
+                      <span className="text-[10px] font-black text-[#806326] uppercase tracking-wider font-mono">{prop.desc}</span>
                       <h3 className="text-lg font-black text-[#0A2647] mt-1 group-hover:text-amber-700 transition-colors uppercase tracking-tight">{prop.title}</h3>
                       <p className="text-xs text-slate-500 mt-2 font-medium">{prop.addr}</p>
                     </div>
                   </div>
 
                   <div className="px-6 pb-6 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-mono text-[10px]">Verified Listing</span>
+                    <span className="text-slate-600 font-mono text-[10px]">Verified Listing</span>
                     <Link href="/properties" className="text-[#07162C] font-black uppercase hover:underline">
                       View Tour →
                     </Link>
@@ -362,7 +362,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
-            <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
+            <span className="text-[#806326] text-xs font-black uppercase tracking-wider font-mono">
               04 / How It Works
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0A2647] mt-2">
@@ -383,7 +383,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                   { num: "03", title: "Take Action", desc: "Gain off-market listing pipeline access and close with absolute confidence." }
                 ].map((step, idx) => (
                   <li key={idx} className="flex gap-4">
-                    <span className="text-sm font-black text-[#C9A227] font-mono bg-white border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm">{step.num}</span>
+                    <span className="text-sm font-black text-[#806326] font-mono bg-white border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm">{step.num}</span>
                     <div>
                       <h4 className="font-extrabold text-sm text-[#0A2647]">{step.title}</h4>
                       <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">{step.desc}</p>
@@ -418,7 +418,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
 
           {/* Grayscale Active Brand Logos Strip */}
           <div className="border-t border-slate-200 pt-12">
-            <p className="text-center text-slate-400 text-xs font-bold uppercase tracking-wider mb-6">Trusted by Professionals from top offices</p>
+            <p className="text-center text-slate-600 text-xs font-bold uppercase tracking-wider mb-6">Trusted by Professionals from top offices</p>
             <div className="flex flex-wrap items-center justify-center gap-6 md:gap-14 opacity-50 hover:opacity-75 transition-opacity duration-300">
               {[
                 { name: "RE/MAX", img: "/companies-logos/Dallas-RE-150x150.png" },
@@ -491,7 +491,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 sm:mb-12">
             <div>
-              <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
+              <span className="text-[#806326] text-xs font-black uppercase tracking-wider font-mono">
                 06 / Top Rated Agents & Advisors
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-[#0A2647] mt-2">
@@ -550,7 +550,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                       </div>
 
                       <div className="p-5 text-left">
-                        <span className="text-[10px] font-bold text-[#C9A227] font-mono uppercase">{role}</span>
+                        <span className="text-[10px] font-bold text-[#806326] font-mono uppercase">{role}</span>
                         <h3 className="text-base font-black text-[#0A2647] leading-snug mt-1 truncate">{name}</h3>
                         <p className="text-xs text-slate-500 mt-1 truncate">{location}</p>
                       </div>
@@ -574,7 +574,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white text-slate-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 sm:mb-12">
-            <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
+            <span className="text-[#806326] text-xs font-black uppercase tracking-wider font-mono">
               07 / Partnership Tiers
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0A2647] mt-2">
@@ -583,7 +583,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
 
             {/* Billing Switcher Toggle */}
             <div className="flex items-center justify-center gap-3 mt-6">
-              <span className={`text-xs font-extrabold uppercase ${billingPeriod === "one-time" ? "text-[#0A2647]" : "text-slate-400"}`}>One-time package</span>
+              <span className={`text-xs font-extrabold uppercase ${billingPeriod === "one-time" ? "text-[#0A2647]" : "text-slate-600"}`}>One-time package</span>
               <button
                 onClick={() => setBillingPeriod(billingPeriod === "one-time" ? "annual" : "one-time")}
                 aria-label="Toggle billing duration subscription model"
@@ -591,7 +591,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
               >
                 <div className={`w-4 h-4 rounded-full bg-[#07162C] shadow-sm transform transition-transform ${billingPeriod === "annual" ? "translate-x-6 bg-[#C9A227]" : ""}`} />
               </button>
-              <span className={`text-xs font-extrabold uppercase flex items-center gap-1.5 ${billingPeriod === "annual" ? "text-[#0A2647]" : "text-slate-400"}`}>
+              <span className={`text-xs font-extrabold uppercase flex items-center gap-1.5 ${billingPeriod === "annual" ? "text-[#0A2647]" : "text-slate-600"}`}>
                 Annual Membership <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full font-mono">SAVE 20%</span>
               </span>
             </div>
@@ -631,7 +631,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                       <span className="text-3xl font-black font-mono">
                         ${priceVal}
                       </span>
-                      <span className={`text-xs font-medium ${isPopular ? "text-slate-400" : "text-slate-500"}`}>
+                      <span className={`text-xs font-medium ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
                         /{billingPeriod === "annual" ? "year" : "one-time"}
                       </span>
                       <p className={`text-[10px] font-semibold mt-1 ${isPopular ? "text-slate-300" : "text-slate-500"}`}>
@@ -672,7 +672,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-slate-100 text-[#07162C] border-t border-slate-200">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10 sm:mb-12">
-            <span className="text-[#C9A227] text-xs font-black uppercase tracking-wider font-mono">
+            <span className="text-[#806326] text-xs font-black uppercase tracking-wider font-mono">
               08 / Got Questions? We Have Answers.
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-[#0A2647] mt-2">
@@ -691,7 +691,7 @@ export default function RealEstateBeesHome({ initialAgents = [] }: { initialAgen
                     className="w-full px-6 py-5 text-left flex justify-between items-center bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     <span className="text-sm font-extrabold text-[#0a2647]">{item.q}</span>
-                    <span className="text-slate-400 text-lg transition-transform duration-300 font-mono">
+                    <span className="text-slate-600 text-lg transition-transform duration-300 font-mono">
                       {isOpen ? "−" : "+"}
                     </span>
                   </button>

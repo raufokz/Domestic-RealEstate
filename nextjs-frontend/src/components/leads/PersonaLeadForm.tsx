@@ -189,7 +189,7 @@ export default function PersonaLeadForm({
 
         <div>
           <label htmlFor={persona + "-phone"} className={LABEL}>
-            Phone <span className="font-normal text-slate-400">(optional)</span>
+            Phone <span className="font-normal text-slate-500">(optional)</span>
           </label>
           <input
             id={persona + "-phone"}
@@ -203,7 +203,7 @@ export default function PersonaLeadForm({
 
         <div>
           <label htmlFor={persona + "-extra"} className={LABEL}>
-            {copy.extraLabel} <span className="font-normal text-slate-400">(optional)</span>
+            {copy.extraLabel} <span className="font-normal text-slate-500">(optional)</span>
           </label>
           <input
             id={persona + "-extra"}
@@ -234,7 +234,7 @@ export default function PersonaLeadForm({
         {message}
       </p>
 
-      <p className="mt-1 font-body text-xs text-slate-400">
+      <p className="mt-1 font-body text-xs text-slate-500">
         We will only use your details to respond to this request.
       </p>
     </form>

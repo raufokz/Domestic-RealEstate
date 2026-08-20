@@ -168,12 +168,18 @@ body {
   font-family: var(--font-body), "Inter", sans-serif;
 }
 
-input, textarea, select {
-  color: var(--text-primary);
-}
+/* Defaults only — kept in @layer base so a Tailwind utility still wins.
+   Unlayered, these beat the utilities: `button { color: inherit }` cancelled
+   every `text-white` on a button (navy button + navy text = invisible label),
+   and the input rule did the same to `text-white` on a dark input. */
+@layer base {
+  input, textarea, select {
+    color: var(--text-primary);
+  }
 
-button {
-  color: inherit;
+  button {
+    color: inherit;
+  }
 }
 
 /* ── HIGH CONTRAST BUTTON COLOR RULES ──
@@ -202,22 +208,6 @@ button {
 [class^="bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]),
 [class*=" bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]) {
   color: #0A2647;
-}
-
-/* ── GOLD TEXT ON LIGHT SURFACES ──
-   The brand gold #C9A227 measures about 2.4:1 against white — well under the
-   4.5:1 AA needs for body-size text. It reads fine on the navy sections, so
-   rather than change the brand colour everywhere, gold text that sits inside a
-   light section is swapped for a darkened bronze (#806326, ~4.9:1 on white)
-   that still reads as the same accent.
-
-   Scoped by ancestor background so the navy sections keep the bright gold. */
-[class*="bg-white"] [class*="text-[#C9A227]"],
-[class*="bg-slate-50"] [class*="text-[#C9A227]"],
-[class*="bg-slate-100"] [class*="text-[#C9A227]"],
-[class*="bg-gray-50"] [class*="text-[#C9A227]"],
-[class*="bg-gray-100"] [class*="text-[#C9A227]"] {
-  color: #806326;
 }
 
 input::placeholder, textarea::placeholder {

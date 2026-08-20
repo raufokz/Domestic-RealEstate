@@ -88,7 +88,7 @@ export default function SellersPage() {
       <section className="py-20 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-[#C9A227] font-heading font-bold text-xs uppercase tracking-widest block mb-2">
+            <span className="text-[#806326] font-heading font-bold text-xs uppercase tracking-widest block mb-2">
               Step-By-Step Guidance
             </span>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#0A2647]">
@@ -105,7 +105,7 @@ export default function SellersPage() {
                 key={idx}
                 className="bg-slate-50 border border-slate-200 rounded-3xl p-8 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="text-3xl font-heading font-extrabold text-[#C9A227] font-mono mb-4">
+                <div className="text-3xl font-heading font-extrabold text-[#806326] font-mono mb-4">
                   {s.step}
                 </div>
                 <h3 className="font-heading font-bold text-xl text-[#0A2647] mb-2">{s.title}</h3>
@@ -130,8 +130,8 @@ export default function SellersPage() {
         <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-card font-body">
           <div className="grid grid-cols-3 bg-[#0A2647] text-white p-6 font-heading font-bold text-sm sm:text-base border-b border-slate-700">
             <div>Feature</div>
-            <div className="text-[#C9A227]">Full MLS Agent Listing</div>
-            <div className="text-[#C9A227]">Direct Cash Offer</div>
+            <div className="text-[#806326]">Full MLS Agent Listing</div>
+            <div className="text-[#806326]">Direct Cash Offer</div>
           </div>
           {comparison.map((row, idx) => (
             <div

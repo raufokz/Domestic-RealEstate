@@ -116,7 +116,7 @@ export default function ExitPopup() {
               >
                 {submitting ? "Calculating..." : "Get Free Valuation"}
               </button>
-              <p className="text-xs text-gray-400 text-center">No spam. Your info is safe with us.</p>
+              <p className="text-xs text-gray-600 text-center">No spam. Your info is safe with us.</p>
             </form>
           ) : (
             <div className="text-center py-4">

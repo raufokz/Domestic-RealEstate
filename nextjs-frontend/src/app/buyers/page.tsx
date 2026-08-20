@@ -96,7 +96,7 @@ export default function BuyersPage() {
       {/* 4-Step Home Buying Process */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-[#C9A227] font-heading font-bold text-xs uppercase tracking-widest block mb-2">
+          <span className="text-[#806326] font-heading font-bold text-xs uppercase tracking-widest block mb-2">
             Structured Guidance
           </span>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#0A2647]">
@@ -113,7 +113,7 @@ export default function BuyersPage() {
               key={idx}
               className="bg-white border border-slate-200 rounded-3xl p-8 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="text-3xl font-heading font-extrabold text-[#C9A227] font-mono mb-4">
+              <div className="text-3xl font-heading font-extrabold text-[#806326] font-mono mb-4">
                 {s.step}
               </div>
               <h3 className="font-heading font-bold text-xl text-[#0A2647] mb-2">{s.title}</h3>
