@@ -215,12 +215,12 @@ export default async function BlogPostPage({
               Blog
             </Link>
             <span aria-hidden="true" className="text-stone-300">/</span>
-            <span className="text-[#8C6D27] line-clamp-1">{post.title}</span>
+            <span className="text-[#806326] line-clamp-1">{post.title}</span>
           </nav>
 
           <div className="flex items-center gap-3 mb-4">
             {post.category?.name && (
-              <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-3.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-3.5 py-1 rounded-full uppercase tracking-wider">
                 {post.category.name}
               </span>
             )}
@@ -284,7 +284,7 @@ export default async function BlogPostPage({
                 aria-label="Table of contents"
                 className="lg:hidden bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-6 mb-10 font-body"
               >
-                <p className="font-heading text-xs font-extrabold uppercase tracking-wider text-[#8C6D27] mb-3 flex items-center gap-2">
+                <p className="font-heading text-xs font-extrabold uppercase tracking-wider text-[#806326] mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#C9A227]" />
                   In This Article
                 </p>
@@ -293,7 +293,7 @@ export default async function BlogPostPage({
                     <li key={item.id} className={item.level === 3 ? "ml-4" : ""}>
                       <a
                         href={`#${item.id}`}
-                        className="text-xs text-stone-700 hover:text-[#8C6D27] transition-colors font-medium"
+                        className="text-xs text-stone-700 hover:text-[#806326] transition-colors font-medium"
                       >
                         {item.text}
                       </a>
@@ -318,7 +318,7 @@ export default async function BlogPostPage({
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="bg-[#F5F0E6] border border-[#E3DAC9] text-[#8C6D27] text-xs font-semibold px-3 py-1 rounded-full"
+                    className="bg-[#F5F0E6] border border-[#E3DAC9] text-[#806326] text-xs font-semibold px-3 py-1 rounded-full"
                   >
                     #{tag}
                   </span>
@@ -332,7 +332,7 @@ export default async function BlogPostPage({
                 {authorInitials(authorName)}
               </div>
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#8C6D27]">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#806326]">
                   Author Spotlight
                 </span>
                 <h3 className="font-heading text-lg font-bold text-[#0A2647]">
@@ -348,7 +348,7 @@ export default async function BlogPostPage({
             <div className="border-t border-[#EBE6DD] pt-8 flex flex-wrap items-center justify-between gap-4">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 text-xs font-bold text-[#0A2647] hover:text-[#8C6D27] transition-colors"
+                className="inline-flex items-center gap-2 text-xs font-bold text-[#0A2647] hover:text-[#806326] transition-colors"
               >
                 <span>←</span> Back to all articles
               </Link>
@@ -375,10 +375,10 @@ export default async function BlogPostPage({
                     href={`/blog/${prev.slug}`}
                     className="group flex flex-col p-5 rounded-2xl border border-[#EBE6DD] bg-[#FDFBF7] hover:border-[#C9A227] transition-all"
                   >
-                    <span className="text-[10px] font-extrabold text-[#8C6D27] uppercase tracking-wider mb-1">
+                    <span className="text-[10px] font-extrabold text-[#806326] uppercase tracking-wider mb-1">
                       ← Previous Article
                     </span>
-                    <span className="font-heading font-bold text-sm text-[#0A2647] group-hover:text-[#8C6D27] transition-colors line-clamp-2">
+                    <span className="font-heading font-bold text-sm text-[#0A2647] group-hover:text-[#806326] transition-colors line-clamp-2">
                       {prev.title}
                     </span>
                   </Link>
@@ -390,10 +390,10 @@ export default async function BlogPostPage({
                     href={`/blog/${next.slug}`}
                     className="group flex flex-col p-5 rounded-2xl border border-[#EBE6DD] bg-[#FDFBF7] hover:border-[#C9A227] transition-all sm:text-right sm:items-end"
                   >
-                    <span className="text-[10px] font-extrabold text-[#8C6D27] uppercase tracking-wider mb-1">
+                    <span className="text-[10px] font-extrabold text-[#806326] uppercase tracking-wider mb-1">
                       Next Article →
                     </span>
-                    <span className="font-heading font-bold text-sm text-[#0A2647] group-hover:text-[#8C6D27] transition-colors line-clamp-2">
+                    <span className="font-heading font-bold text-sm text-[#0A2647] group-hover:text-[#806326] transition-colors line-clamp-2">
                       {next.title}
                     </span>
                   </Link>
@@ -412,7 +412,7 @@ export default async function BlogPostPage({
                 aria-label="Table of contents"
                 className="hidden lg:block bg-white border border-[#EBE6DD] rounded-3xl p-6 shadow-sm font-body"
               >
-                <p className="font-heading text-xs font-extrabold uppercase tracking-wider text-[#8C6D27] mb-4 flex items-center gap-2">
+                <p className="font-heading text-xs font-extrabold uppercase tracking-wider text-[#806326] mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#C9A227]" />
                   In This Article
                 </p>
@@ -448,7 +448,7 @@ export default async function BlogPostPage({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-[#C9A227]" />
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8C6D27]">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#806326]">
                 Further Reading
               </span>
             </div>
@@ -465,17 +465,17 @@ export default async function BlogPostPage({
                 >
                   <div>
                     {r.category?.name && (
-                      <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-3">
+                      <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-3">
                         {r.category.name}
                       </span>
                     )}
-                    <h3 className="font-heading font-bold text-base text-[#0A2647] group-hover:text-[#8C6D27] transition-colors leading-snug mb-2">
+                    <h3 className="font-heading font-bold text-base text-[#0A2647] group-hover:text-[#806326] transition-colors leading-snug mb-2">
                       {r.title}
                     </h3>
                   </div>
                   <div className="pt-4 border-t border-[#F5F0E6] flex items-center justify-between text-xs text-stone-400">
                     <span>{formatBlogDate(r.published_at ?? r.created_at)}</span>
-                    <span className="text-[#8C6D27] font-semibold group-hover:translate-x-1 transition-transform">
+                    <span className="text-[#806326] font-semibold group-hover:translate-x-1 transition-transform">
                       Read →
                     </span>
                   </div>

@@ -176,20 +176,48 @@ button {
   color: inherit;
 }
 
-/* ── HIGH CONTRAST BUTTON COLOR RULES ── */
+/* ── HIGH CONTRAST BUTTON COLOR RULES ──
+   Each dark background gets white text.
+
+   The token must be at the START of the class attribute or preceded by a
+   SPACE. A plain [class*="bg-[#0A2647]"] also matched variant classes such as
+   `hover:bg-[#0A2647]`, because the substring is present there too — so an
+   element that is only navy ON HOVER was given white text permanently. That is
+   how the blog share buttons ended up as white glyphs on a light grey circle:
+   invisible until you happened to hover them. */
 .bg-navy,
-[class*="bg-[#0A2647]"],
-[class*="bg-[#07162C]"],
-[class*="bg-[#051324]"],
-[class*="bg-[#081F3A]"],
-[class*="bg-slate-900"],
-[class*="bg-slate-800"] {
+[class^="bg-[#0A2647]"], [class*=" bg-[#0A2647]"],
+[class^="bg-[#07162C]"], [class*=" bg-[#07162C]"],
+[class^="bg-[#051324]"], [class*=" bg-[#051324]"],
+[class^="bg-[#081F3A]"], [class*=" bg-[#081F3A]"],
+[class^="bg-slate-900"], [class*=" bg-slate-900"],
+[class^="bg-slate-800"], [class*=" bg-slate-800"] {
   color: #ffffff;
 }
 
+/* Same start-or-space scoping as above, so `hover:bg-[#C9A227]` no longer
+   forces navy text on an element that is only gold on hover. The :not() keeps
+   translucent variants such as bg-[#C9A227]/10 out of it. */
 .bg-gold,
-[class*="bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]) {
+[class^="bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]),
+[class*=" bg-[#C9A227]"]:not([class*="bg-[#C9A227]/"]) {
   color: #0A2647;
+}
+
+/* ── GOLD TEXT ON LIGHT SURFACES ──
+   The brand gold #C9A227 measures about 2.4:1 against white — well under the
+   4.5:1 AA needs for body-size text. It reads fine on the navy sections, so
+   rather than change the brand colour everywhere, gold text that sits inside a
+   light section is swapped for a darkened bronze (#806326, ~4.9:1 on white)
+   that still reads as the same accent.
+
+   Scoped by ancestor background so the navy sections keep the bright gold. */
+[class*="bg-white"] [class*="text-[#C9A227]"],
+[class*="bg-slate-50"] [class*="text-[#C9A227]"],
+[class*="bg-slate-100"] [class*="text-[#C9A227]"],
+[class*="bg-gray-50"] [class*="text-[#C9A227]"],
+[class*="bg-gray-100"] [class*="text-[#C9A227]"] {
+  color: #806326;
 }
 
 input::placeholder, textarea::placeholder {

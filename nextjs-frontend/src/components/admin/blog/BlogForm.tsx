@@ -426,7 +426,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
                 <button
                   type="button"
                   onClick={() => setFullPreviewOpen(true)}
-                  className="px-2.5 py-1 text-xs font-bold text-[#8C6D27] bg-[#F5F0E6] border border-[#E3DAC9] rounded-lg hover:bg-[#EBE3D3] transition"
+                  className="px-2.5 py-1 text-xs font-bold text-[#806326] bg-[#F5F0E6] border border-[#E3DAC9] rounded-lg hover:bg-[#EBE3D3] transition"
                 >
                   ↗ Full Screen Preview
                 </button>
@@ -441,7 +441,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
               />
             ) : (
               <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-6 sm:p-8 min-h-[350px]">
-                <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#8C6D27] mb-4 pb-2 border-b border-[#EBE6DD] flex items-center justify-between">
+                <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#806326] mb-4 pb-2 border-b border-[#EBE6DD] flex items-center justify-between">
                   <span>Sanitized Live HTML Renderer</span>
                   <span className="text-slate-400 font-normal">Matches live site 1:1</span>
                 </div>
@@ -699,7 +699,7 @@ export default function BlogForm({ post }: { post?: BlogFormPost | null }) {
               {/* Header */}
               <div>
                 {categories.find((c) => String(c.id) === form.category_id)?.name && (
-                  <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-4">
+                  <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-4">
                     {categories.find((c) => String(c.id) === form.category_id)?.name}
                   </span>
                 )}

@@ -138,7 +138,7 @@ export default function BlogListingContainer({
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-[#C9A227]" />
-              <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#8C6D27]">
+              <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#806326]">
                 Featured Lead Story
               </h2>
             </div>
@@ -150,13 +150,13 @@ export default function BlogListingContainer({
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 <div className="lg:col-span-7">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-3 py-1 rounded-full uppercase tracking-wider">
+                    <span className="text-[11px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-3 py-1 rounded-full uppercase tracking-wider">
                       {featuredGuide.category}
                     </span>
                     <span className="text-xs text-stone-400 font-medium">{featuredGuide.readTime}</span>
                   </div>
 
-                  <h3 className="font-heading font-bold text-2xl sm:text-3xl text-[#0A2647] group-hover:text-[#8C6D27] transition-colors leading-tight mb-4">
+                  <h3 className="font-heading font-bold text-2xl sm:text-3xl text-[#0A2647] group-hover:text-[#806326] transition-colors leading-tight mb-4">
                     {featuredGuide.title}
                   </h3>
 
@@ -172,7 +172,7 @@ export default function BlogListingContainer({
                       <span className="font-semibold text-stone-900">Domestic RE Research Team</span>
                     </div>
 
-                    <span className="inline-flex items-center gap-1.5 font-bold text-[#8C6D27] group-hover:translate-x-1 transition-transform">
+                    <span className="inline-flex items-center gap-1.5 font-bold text-[#806326] group-hover:translate-x-1 transition-transform">
                       Read Full Article <span>→</span>
                     </span>
                   </div>
@@ -202,7 +202,7 @@ export default function BlogListingContainer({
         <section className="mb-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <span className="text-xs font-extrabold uppercase tracking-widest text-[#8C6D27] block mb-1">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-[#806326] block mb-1">
                 Curated Series
               </span>
               <h2 className="font-heading text-2xl font-bold text-[#0A2647]">
@@ -244,7 +244,7 @@ export default function BlogListingContainer({
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3.5">
-                        <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                           {guide.category}
                         </span>
                         <span className="text-[11px] text-stone-400 font-medium">
@@ -252,7 +252,7 @@ export default function BlogListingContainer({
                         </span>
                       </div>
 
-                      <h3 className="font-heading font-bold text-lg text-[#0A2647] group-hover:text-[#8C6D27] transition-colors leading-snug mb-2.5">
+                      <h3 className="font-heading font-bold text-lg text-[#0A2647] group-hover:text-[#806326] transition-colors leading-snug mb-2.5">
                         {guide.title}
                       </h3>
 
@@ -263,7 +263,7 @@ export default function BlogListingContainer({
 
                     <div className="pt-4 border-t border-[#F5F0E6] flex items-center justify-between text-xs">
                       <span className="text-stone-400 font-medium">Research Article</span>
-                      <span className="font-bold text-[#8C6D27] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                      <span className="font-bold text-[#806326] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                         Read Guide <span className="text-xs">→</span>
                       </span>
                     </div>
@@ -277,7 +277,7 @@ export default function BlogListingContainer({
         {/* Dynamic Published Articles Section */}
         <section className="bg-white border border-[#EBE6DD] rounded-3xl p-8 lg:p-12 mb-20 shadow-sm">
           <div className="max-w-2xl mb-8">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-[#8C6D27] block mb-1">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-[#806326] block mb-1">
               Live Feed
             </span>
             <h2 className="font-heading text-2xl font-bold text-[#0A2647]">
@@ -325,7 +325,7 @@ export default function BlogListingContainer({
                       <div>
                         <div className="flex items-center justify-between mb-3 gap-3">
                           {post.category?.name && (
-                            <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#8C6D27] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            <span className="text-[10px] font-extrabold bg-[#F5F0E6] text-[#806326] border border-[#E3DAC9] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                               {post.category.name}
                             </span>
                           )}
@@ -336,7 +336,7 @@ export default function BlogListingContainer({
                           )}
                         </div>
 
-                        <h3 className="font-heading font-bold text-lg text-[#0A2647] mb-2 group-hover:text-[#8C6D27] transition-colors leading-snug">
+                        <h3 className="font-heading font-bold text-lg text-[#0A2647] mb-2 group-hover:text-[#806326] transition-colors leading-snug">
                           {post.title}
                         </h3>
                         <p className="text-stone-600 text-xs leading-relaxed mb-5 font-body">

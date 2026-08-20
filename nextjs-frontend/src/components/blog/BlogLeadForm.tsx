@@ -39,7 +39,7 @@ export default function BlogLeadForm({ source = "blog" }: { source?: string }) {
     return (
       <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-8 text-center text-stone-900 shadow-sm">
         <div className="w-12 h-12 bg-[#C9A227]/15 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#C9A227]/30">
-          <span className="text-xl text-[#8C6D27]">✓</span>
+          <span className="text-xl text-[#806326]">✓</span>
         </div>
         <h3 className="font-heading text-xl font-bold text-[#0A2647] mb-2">Request Received</h3>
         <p className="text-stone-600 text-sm leading-relaxed">
@@ -53,7 +53,7 @@ export default function BlogLeadForm({ source = "blog" }: { source?: string }) {
     <div className="bg-[#FDFBF7] border border-[#EBE6DD] rounded-2xl p-8 text-stone-900 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <span className="w-2 h-2 rounded-full bg-[#C9A227]" />
-        <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8C6D27]">
+        <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#806326]">
           Expert Consultation
         </span>
       </div>
