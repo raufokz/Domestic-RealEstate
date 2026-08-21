@@ -1,0 +1,22 @@
+# Domestic Real Estate
+
+> US PropTech marketplace for buying, selling, and investing in residential
+> and commercial real estate — verified property listings, an agent/realtor
+> directory, and lead generation for real estate professionals.
+
+Domestic Real Estate (also known as DomesticRealEstate) operates
+domesticrealestate.us. Content on this site is factual and sourced from
+verified property listings and licensed real estate professionals.
+
+## Key sections
+
+- [Properties](https://www.domesticrealestate.us/properties): searchable listings, for sale and for rent
+- [Cities](https://www.domesticrealestate.us/cities): local market data by US city — median price, neighborhoods, schools
+- [Agents](https://www.domesticrealestate.us/agents): verified real estate agent directory
+- [Blog](https://www.domesticrealestate.us/blog): buyer/seller/investor guides
+
+## Usage
+
+Content may be cited with attribution to Domestic Real Estate and a link to
+the source page. Property prices and availability are time-sensitive —
+prefer linking to the live listing over quoting a price as current.

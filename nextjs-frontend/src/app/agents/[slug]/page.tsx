@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { getAgentBySlug, agentName, agentInitials } from "@/lib/agents";
 import { formatPrice, propertyPhotoPaths } from "@/lib/properties";
 import { storageUrl } from "@/lib/media";
-import { buildMetadata, realEstateAgentLd, breadcrumbLd } from "@/lib/seo";
+import { buildMetadata, realEstateAgentLd, profilePageLd, breadcrumbLd } from "@/lib/seo";
 import JsonLd from "@/components/seo/JsonLd";
 import AgentContactForm from "./AgentContactForm";
 
@@ -57,21 +57,24 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ s
           always matches what a visitor can see on the page. */}
       <JsonLd
         data={[
-          realEstateAgentLd({
-            name,
-            path: `/agents/${slug}`,
-            description: agent.bio ?? agent.headline ?? null,
-            image: coverPhotoUrl ?? avatarUrl,
-            telephone: agent.office_phone ?? agent.mobile_number ?? null,
-            email: agent.office_email ?? null,
-            jobTitle: agent.headline ?? null,
-            brokerage: agent.brokerage_name ?? null,
-            city: agent.office_city ?? null,
-            state: agent.office_state ?? null,
-            rating: rating > 0 ? rating : null,
-            reviewCount: agent.review_count ?? null,
-            sameAs: socialLinks.map(([, url]) => url),
-          }),
+          profilePageLd(
+            { path: `/agents/${slug}` },
+            realEstateAgentLd({
+              name,
+              path: `/agents/${slug}`,
+              description: agent.bio ?? agent.headline ?? null,
+              image: coverPhotoUrl ?? avatarUrl,
+              telephone: agent.office_phone ?? agent.mobile_number ?? null,
+              email: agent.office_email ?? null,
+              jobTitle: agent.headline ?? null,
+              brokerage: agent.brokerage_name ?? null,
+              city: agent.office_city ?? null,
+              state: agent.office_state ?? null,
+              rating: rating > 0 ? rating : null,
+              reviewCount: agent.review_count ?? null,
+              sameAs: socialLinks.map(([, url]) => url),
+            })
+          ),
           breadcrumbLd([
             { name: "Home", path: "/" },
             { name: "Agents", path: "/agents" },

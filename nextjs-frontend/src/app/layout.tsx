@@ -138,6 +138,24 @@ const organizationSchema = {
   },
 };
 
+// SearchAction target must match the query param PropertySearchClient actually
+// reads (`q`, not `search`) — an unhonored SearchAction risks Google revoking
+// sitelinks-search-box eligibility for the whole site, not just this entry.
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Domestic Real Estate",
+  url: "https://www.domesticrealestate.us",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://www.domesticrealestate.us/properties?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -161,6 +179,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
           }}
         />
       </head>

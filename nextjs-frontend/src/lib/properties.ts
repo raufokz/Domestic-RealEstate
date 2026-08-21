@@ -13,6 +13,7 @@ export interface PublicProperty {
   sqft?: number | null;
   lot_size?: string | number | null;
   year_built?: number | null;
+  half_bathrooms?: number | null;
   parking_spaces?: number | null;
   hoa_fees?: string | number | null;
   address?: string | null;

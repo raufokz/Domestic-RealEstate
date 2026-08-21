@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import PropertyGrid from "@/components/properties/PropertyGrid";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildMetadata, breadcrumbLd, faqLd, localBusinessLd, SITE_URL } from "@/lib/seo";
+import { groupCitiesByState, slugifyState } from "@/lib/cityStates";
+import StateHubPage, { buildStateMetadata } from "./StateHubPage";
 
 export interface CityData {
   name: string;
@@ -1150,6 +1152,9 @@ export const CITY_DB: Record<string, CityData> = {
   },
 };
 
+/** US cities in CITY_DB grouped by state slug, for the /cities/[state] hub branch below. */
+const STATE_GROUPS = groupCitiesByState(CITY_DB);
+
 /**
  * Shape for a city that has no curated entry in CITY_DB.
  *
@@ -1365,7 +1370,13 @@ function getRelatedCities(currentSlug: string, currentState: string, currentCoun
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
   const { city: slug } = await params;
 
-  if (!CITY_SLUGS.includes(slug)) notFound();
+  if (!CITY_SLUGS.includes(slug)) {
+    // Not a city slug — check whether it's a state hub slug (e.g. "texas")
+    // before giving up. Same route, disambiguated by slug: see StateHubPage.tsx.
+    const stateGroup = STATE_GROUPS.get(slug);
+    if (stateGroup) return buildStateMetadata(slug, stateGroup);
+    notFound();
+  }
 
   const city = CITY_DB[slug] ?? fallbackCity(slug);
   const loc = city.state ? `${city.name}, ${city.state}` : city.name;
@@ -1406,7 +1417,11 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 export default async function CityDetailPage({ params }: { params: Promise<{ city: string }> }) {
   const { city: slug } = await params;
 
-  if (!CITY_SLUGS.includes(slug)) notFound();
+  if (!CITY_SLUGS.includes(slug)) {
+    const stateGroup = STATE_GROUPS.get(slug);
+    if (stateGroup) return <StateHubPage stateSlug={slug} group={stateGroup} />;
+    notFound();
+  }
 
   const city = CITY_DB[slug] ?? fallbackCity(slug);
 
@@ -1463,6 +1478,12 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
           breadcrumbLd([
             { name: "Home", path: "/" },
             { name: "Cities", path: "/cities" },
+            // Only US cities have a state hub page (Canadian provinces
+            // aren't grouped — see groupCitiesByState) — omit the step
+            // rather than link to a hub that doesn't exist for them.
+            ...(city.country === "USA" && city.state
+              ? [{ name: city.state, path: `/cities/${slugifyState(city.state)}` }]
+              : []),
             { name: city.name, path: `/cities/${slug}` },
           ]),
           faqLd(city.faqs.map((f) => ({ question: f.q, answer: f.a }))),

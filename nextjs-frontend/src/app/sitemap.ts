@@ -3,8 +3,30 @@ import { getProperties } from "@/lib/properties";
 import { getAgents } from "@/lib/agents";
 import { getBlogPosts } from "@/lib/blog";
 import { CITY_DB } from "@/app/cities/[city]/page";
+import { groupCitiesByState } from "@/lib/cityStates";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domesticrealestate.us";
+
+/**
+ * Fetch every page of a paginated public endpoint via getProperties/getAgents,
+ * rather than a single capped `limit` call. The previous single-call version
+ * hard-capped at 100 rows and silently dropped every listing beyond that from
+ * the sitemap once inventory grew past it. Stops on an empty page, or at
+ * MAX_PAGES as a runaway-loop safety ceiling — 200 pages * 250/page is
+ * 50,000 rows, matching Google's per-sitemap URL limit.
+ */
+async function fetchAllPages<T>(
+  fetchPage: (page: number) => Promise<T[]>
+): Promise<T[]> {
+  const PAGE_SIZE_SAFETY_MAX_PAGES = 200;
+  const all: T[] = [];
+  for (let page = 1; page <= PAGE_SIZE_SAFETY_MAX_PAGES; page++) {
+    const batch = await fetchPage(page);
+    if (batch.length === 0) break;
+    all.push(...batch);
+  }
+  return all;
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -80,8 +102,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/accessibility`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // 2. Add City URLs dynamically from CITY_DB configuration
+  // 2. Cities: the /cities index, /cities/[state] hubs, and every /cities/[city] page
   try {
+    sitemapEntries.push({ url: `${BASE_URL}/cities`, lastModified: now, changeFrequency: "monthly", priority: 0.7 });
+
+    const stateGroups = groupCitiesByState(CITY_DB);
+    for (const group of stateGroups.values()) {
+      sitemapEntries.push({
+        url: `${BASE_URL}/cities/${group.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.75,
+      });
+    }
+
     const citySlugs = Object.keys(CITY_DB);
     for (const citySlug of citySlugs) {
       sitemapEntries.push({
@@ -95,14 +129,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to add cities to sitemap:", err);
   }
 
-  // 3. Fetch and add dynamic Properties
+  // 3. Properties — paginated through the full result set, not a single
+  //    capped call, so listings past row 100 stop silently disappearing
+  //    from the sitemap as inventory grows.
   try {
-    const properties = await getProperties({}, 100);
+    const properties = await fetchAllPages((page) => getProperties({ page }, 250));
     for (const prop of properties) {
       if (prop.slug) {
         sitemapEntries.push({
           url: `${BASE_URL}/properties/${prop.slug}`,
-          lastModified: now, // Ideally prop.updated_at if available
+          lastModified: now,
           changeFrequency: "daily",
           priority: 0.7,
         });
@@ -112,9 +148,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to add properties to sitemap:", err);
   }
 
-  // 4. Fetch and add dynamic Agent Profiles
+  // 4. Agent Profiles
   try {
-    const agents = await getAgents({}, 100);
+    const agents = await getAgents({}, 1000);
     for (const agent of agents) {
       if (agent.slug) {
         sitemapEntries.push({
@@ -129,9 +165,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to add agents to sitemap:", err);
   }
 
-  // 5. Fetch and add dynamic Blog Posts and Categories
+  // 5. Blog Posts and Categories
   try {
-    const { posts } = await getBlogPosts(100);
+    const { posts } = await getBlogPosts(1000);
     const categorySlugs = new Set<string>();
 
     for (const post of posts) {
@@ -148,7 +184,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // Add unique category pages
     for (const catSlug of categorySlugs) {
       sitemapEntries.push({
         url: `${BASE_URL}/blog/category/${catSlug}`,

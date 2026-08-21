@@ -213,6 +213,25 @@ export function realEstateAgentLd(agent: RealEstateAgentLd) {
 }
 
 /**
+ * ProfilePage wrapper — Google's guidance for person/professional profile
+ * pages is a ProfilePage whose mainEntity is the person schema, not the
+ * person schema standalone. Wraps realEstateAgentLd() rather than
+ * duplicating its fields.
+ */
+export function profilePageLd(
+  opts: { path: string; dateModified?: string | null },
+  agent: ReturnType<typeof realEstateAgentLd>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: absUrl(opts.path),
+    ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+    mainEntity: agent,
+  };
+}
+
+/**
  * Standalone Organization schema — matches the site-wide entity emitted in
  * the root layout (name/url/logo/sameAs), for pages that need to reference
  * the organization on its own (e.g. as `publisher`) rather than nested
@@ -312,6 +331,10 @@ export interface ListingLd {
   numberOfRooms?: number | null;
   /** Floor size in square feet. */
   floorSizeSqft?: number | null;
+  yearBuilt?: number | null;
+  /** Lot size in square feet. */
+  lotSizeSqft?: number | null;
+  halfBathrooms?: number | null;
 }
 
 /** Product + Offer schema for a property listing detail page. */
@@ -351,6 +374,26 @@ export function listingLd(opts: ListingLd) {
     ...(opts.numberOfRooms ? { numberOfRooms: opts.numberOfRooms } : {}),
     ...(opts.floorSizeSqft
       ? { floorSize: { "@type": "QuantitativeValue", value: opts.floorSizeSqft, unitCode: "FTK" } }
+      : {}),
+    // Product has no native bed/bath/lot/year-built fields (those belong to
+    // Accommodation/SingleFamilyResidence, which Google doesn't grant rich
+    // results for outside a few verticals) — additionalProperty is
+    // schema.org's escape hatch, and what AI/LLM parsers actually read for
+    // spec extraction.
+    ...(opts.yearBuilt || opts.lotSizeSqft || opts.halfBathrooms
+      ? {
+          additionalProperty: [
+            ...(opts.yearBuilt
+              ? [{ "@type": "PropertyValue", name: "yearBuilt", value: opts.yearBuilt }]
+              : []),
+            ...(opts.lotSizeSqft
+              ? [{ "@type": "PropertyValue", name: "lotSize", value: opts.lotSizeSqft, unitCode: "FTK" }]
+              : []),
+            ...(opts.halfBathrooms
+              ? [{ "@type": "PropertyValue", name: "numberOfHalfBathrooms", value: opts.halfBathrooms }]
+              : []),
+          ],
+        }
       : {}),
     ...(opts.price
       ? {

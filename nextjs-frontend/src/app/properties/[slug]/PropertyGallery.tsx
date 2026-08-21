@@ -80,10 +80,20 @@ export default function PropertyGallery({
             onClick={() => openLightbox(0)}
             className="col-span-4 md:col-span-2 row-span-2 h-full relative cursor-pointer overflow-hidden transition-all duration-300 hover:brightness-95"
           >
+            {/* Plain <img>, not next/image: cover photos can come from an
+                external CDN on imported/paste-imported listings (e.g.
+                photos.zillowstatic.com), not just our own storage host, so
+                next/image's remote-pattern allowlist would silently break
+                the LCP image on any newly-imported source. fetchPriority
+                gets the same browser preload hint next/image's `priority`
+                would, without the host restriction. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={coverImg}
               alt={`${title} Cover view`}
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-cover select-none transition-transform duration-500 hover:scale-102"
             />
             {/* Soft decorative bottom gradient */}

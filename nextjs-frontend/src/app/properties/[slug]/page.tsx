@@ -78,6 +78,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     longitude: hasGeo ? lng : null,
     numberOfRooms: prop.bedrooms,
     floorSizeSqft: prop.sqft,
+    yearBuilt: prop.year_built,
+    lotSizeSqft: prop.lot_size ? Number(prop.lot_size) : null,
+    halfBathrooms: prop.half_bathrooms,
   });
   return (
     <main className="min-h-screen bg-slate-50/50">
