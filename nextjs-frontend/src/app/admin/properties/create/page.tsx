@@ -6,6 +6,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { apiPost, API_BASE, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import PropertyImageManager, { PropertyImage } from "@/components/property/PropertyImageManager";
+import PropertyForm, { emptyPropertyForm, propertyFormToPayload, PropertyFormValues } from "@/components/admin/property/PropertyForm";
 
 function authToken(): string | null {
   return typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
@@ -17,31 +18,13 @@ export default function CreatePropertyPage() {
   const [saving, setSaving] = useState(false);
   const [createdId, setCreatedId] = useState<number | null>(null);
   const [createdImages, setCreatedImages] = useState<PropertyImage[]>([]);
-  
+
   // Staged cover and gallery files before property creation
   const [stagedFiles, setStagedFiles] = useState<{ file: File; preview: string; isCover: boolean }[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "US",
-    price: "",
-    bedrooms: "",
-    bathrooms: "",
-    sqft: "",
-    year_built: "",
-    parking_spaces: "",
-    approval_status: "approved",
-    status: "active",
-  });
-
-  const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+  const [form, setForm] = useState<PropertyFormValues>(emptyPropertyForm);
 
   const handleStageFiles = (files: FileList | File[]) => {
     const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
@@ -79,16 +62,7 @@ export default function CreatePropertyPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      const created = await apiPost<{ data: { id: number } }>("/admin/properties", {
-        ...form,
-        description: form.description || form.title,
-        price: Number(form.price),
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
-        bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-        sqft: form.sqft ? Number(form.sqft) : null,
-        year_built: form.year_built ? Number(form.year_built) : null,
-        parking_spaces: form.parking_spaces ? Number(form.parking_spaces) : null,
-      });
+      const created = await apiPost<{ data: { id: number } }>("/admin/properties", propertyFormToPayload(form));
 
       const propId = created.data.id;
 
@@ -136,10 +110,6 @@ export default function CreatePropertyPage() {
     }
   };
 
-  const inputClass =
-    "w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#C9A227] outline-none text-sm";
-  const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
-
   if (createdId) {
     return (
       <AdminLayout title="Add & Edit Photos">
@@ -161,8 +131,6 @@ export default function CreatePropertyPage() {
       </AdminLayout>
     );
   }
-
-  const coverItem = stagedFiles.find((f) => f.isCover);
 
   return (
     <AdminLayout title="Create Property">
@@ -265,65 +233,7 @@ export default function CreatePropertyPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-navy">Basic Information</h2>
-          <div>
-            <label className={labelClass}>Title *</label>
-            <input required className={inputClass} value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="e.g. Modern Coastal Luxury Villa" />
-          </div>
-          <div>
-            <label className={labelClass}>Description</label>
-            <textarea className={inputClass} rows={4} value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Write an engaging property overview..." />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Price ($) *</label>
-              <input required type="number" className={inputClass} value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="1250000" />
-            </div>
-            <div>
-              <label className={labelClass}>Approval Status</label>
-              <select className={inputClass} value={form.approval_status} onChange={(e) => update("approval_status", e.target.value)}>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="draft">Draft</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-navy">Location</h2>
-          <div>
-            <label className={labelClass}>Address *</label>
-            <input required className={inputClass} value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="123 Ocean Drive" />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className={labelClass}>City *</label>
-              <input required className={inputClass} value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="Beverly Hills" />
-            </div>
-            <div>
-              <label className={labelClass}>State *</label>
-              <input required className={inputClass} value={form.state} onChange={(e) => update("state", e.target.value)} placeholder="CA" />
-            </div>
-            <div>
-              <label className={labelClass}>ZIP *</label>
-              <input required className={inputClass} value={form.zip} onChange={(e) => update("zip", e.target.value)} placeholder="90210" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-navy">Property Specs</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {(["bedrooms", "bathrooms", "sqft", "year_built", "parking_spaces"] as const).map((f) => (
-              <div key={f}>
-                <label className={labelClass}>{f.replace("_", " ")}</label>
-                <input type="number" className={inputClass} value={form[f]} onChange={(e) => update(f, e.target.value)} />
-              </div>
-            ))}
-          </div>
-        </div>
+        <PropertyForm value={form} onChange={setForm} />
 
         <div className="flex gap-3">
           <button type="button" onClick={() => router.back()} className="px-5 py-2.5 border rounded-lg text-sm font-semibold">

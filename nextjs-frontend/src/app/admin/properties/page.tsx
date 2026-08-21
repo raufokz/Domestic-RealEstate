@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { storageUrl } from "@/lib/media";
 import { useToast } from "@/components/Toast";
-import PropertyImageManager, { PropertyImage } from "@/components/property/PropertyImageManager";
+import { PropertyImage } from "@/components/property/PropertyImageManager";
 
 interface Property {
   id: number;
@@ -34,21 +35,6 @@ interface Paginated {
   total: number;
 }
 
-const emptyForm = {
-  title: "",
-  description: "",
-  price: "",
-  address: "",
-  city: "",
-  state: "",
-  zip: "",
-  bedrooms: "",
-  bathrooms: "",
-  sqft: "",
-  approval_status: "approved",
-  status: "active",
-};
-
 export default function PropertiesPage() {
   const { success, notifyError } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -57,10 +43,6 @@ export default function PropertiesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<Property | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -91,69 +73,6 @@ export default function PropertiesPage() {
       p.address?.toLowerCase().includes(q)
     );
   });
-
-  const openCreate = () => {
-    setEditing(null);
-    setForm(emptyForm);
-    setShowModal(true);
-  };
-
-  const openEdit = (p: Property) => {
-    setEditing(p);
-    setForm({
-      title: p.title || "",
-      description: p.description || "",
-      price: String(p.price || ""),
-      address: p.address || "",
-      city: p.city || "",
-      state: p.state || "",
-      zip: p.zip || "",
-      bedrooms: p.bedrooms != null ? String(p.bedrooms) : "",
-      bathrooms: p.bathrooms != null ? String(p.bathrooms) : "",
-      sqft: p.sqft != null ? String(p.sqft) : "",
-      approval_status: p.approval_status || "approved",
-      status: p.status || "active",
-    });
-    setShowModal(true);
-  };
-
-  const handleSave = async () => {
-    if (!form.title || !form.price || !form.address || !form.city) {
-      notifyError(new Error("Title, price, address, and city are required."));
-      return;
-    }
-    try {
-      setSaving(true);
-      const payload = {
-        title: form.title,
-        description: form.description || form.title,
-        price: Number(form.price),
-        address: form.address,
-        city: form.city,
-        state: form.state || "CA",
-        zip: form.zip || "00000",
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
-        bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-        sqft: form.sqft ? Number(form.sqft) : null,
-        approval_status: form.approval_status,
-        status: form.status,
-      };
-      if (editing) {
-        await apiPut(`/admin/properties/${editing.id}`, payload);
-        success("Property updated.", "Properties");
-        setShowModal(false);
-      } else {
-        const created = await apiPost<{ data: Property }>("/admin/properties", payload);
-        success("Property created. Now add some photos.", "Properties");
-        setEditing(created.data);
-      }
-      await fetchProperties();
-    } catch (err) {
-      notifyError(err, "Property could not be saved.");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleApproval = async (id: number, approval_status: string) => {
     try {
@@ -216,19 +135,16 @@ export default function PropertiesPage() {
         />
         <Link
           href="/admin/properties/create"
-          className="px-4 py-2 bg-gold text-navy rounded-lg text-sm font-semibold"
+          className="px-4 py-2 bg-gold text-navy rounded-lg text-sm font-semibold text-center"
         >
           + Create Property
         </Link>
         <Link
           href="/admin/properties/import"
-          className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
+          className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all text-center"
         >
           📁 Import
         </Link>
-        <button onClick={openCreate} className="px-4 py-2 border rounded-lg text-sm font-medium">
-          Quick Add
-        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -244,6 +160,7 @@ export default function PropertiesPage() {
               <thead className="bg-navy text-white">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm">Property</th>
+                  <th className="px-4 py-3 text-left text-sm">Type</th>
                   <th className="px-4 py-3 text-left text-sm">Price</th>
                   <th className="px-4 py-3 text-left text-sm">Beds/Baths</th>
                   <th className="px-4 py-3 text-left text-sm">Agent</th>
@@ -255,11 +172,24 @@ export default function PropertiesPage() {
                 {filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-navy">{p.title}</p>
-                      <p className="text-xs text-slate-500">
-                        {p.address}, {p.city}, {p.state}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        {p.images?.[0] && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={storageUrl(p.images[0].path) ?? ""}
+                            alt=""
+                            className="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0"
+                          />
+                        )}
+                        <div>
+                          <p className="font-medium text-navy">{p.title}</p>
+                          <p className="text-xs text-slate-500">
+                            {p.address}, {p.city}, {p.state}
+                          </p>
+                        </div>
+                      </div>
                     </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{p.property_type?.name || "—"}</td>
                     <td className="px-4 py-3 font-semibold text-navy">{money(p.price)}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">
                       {p.bedrooms ?? "—"} / {p.bathrooms ?? "—"}
@@ -288,12 +218,12 @@ export default function PropertiesPage() {
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={() => openEdit(p)}
-                          className="px-2 py-1 border text-xs rounded text-navy"
+                        <Link
+                          href={`/admin/properties/${p.id}/edit`}
+                          className="px-2 py-1 border text-xs rounded text-navy inline-block"
                         >
                           Edit
-                        </button>
+                        </Link>
                         <button
                           onClick={() => handleDelete(p.id)}
                           className="px-2 py-1 border border-red-200 text-red-600 text-xs rounded"
@@ -322,45 +252,6 @@ export default function PropertiesPage() {
           </div>
         )}
       </div>
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className={`bg-white rounded-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto ${editing ? "max-w-2xl" : "max-w-lg"}`}>
-            <h3 className="text-lg font-bold text-navy">{editing ? "Edit Property" : "Add Property"}</h3>
-            {(["title", "address", "city", "state", "zip", "price", "bedrooms", "bathrooms", "sqft"] as const).map(
-              (field) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium mb-1 capitalize">{field}</label>
-                  <input
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                    value={form[field]}
-                    onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  />
-                </div>
-              )
-            )}
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-sm">
-                {editing ? "Close" : "Cancel"}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 bg-gold text-navy rounded-lg text-sm font-semibold disabled:opacity-50"
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
-
-            {editing && (
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-semibold text-navy mb-3">Photos</h4>
-                <PropertyImageManager propertyId={editing.id} initialImages={editing.images ?? []} />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 }

@@ -749,19 +749,29 @@ class AdminController extends Controller
 
     /* ───────────────────── Properties CRUD ───────────────────── */
 
+    public function showProperty($id) {
+        $this->checkAdmin();
+        $property = Property::with(['propertyType', 'realtor', 'images'])->findOrFail($id);
+        return response()->json(['data' => $property]);
+    }
+
     public function storeProperty(Request $request) {
         $this->checkAdmin();
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'price_type' => 'nullable|string|in:sale,rent,lease',
             'address' => 'required|string',
             'city' => 'required|string',
             'state' => 'required|string',
             'zip' => 'required|string',
             'country' => 'nullable|string',
+            'neighborhood' => 'nullable|string|max:255',
+            'county' => 'nullable|string|max:255',
             'bedrooms' => 'nullable|integer|min:0',
             'bathrooms' => 'nullable|numeric|min:0',
+            'half_bathrooms' => 'nullable|integer|min:0',
             'sqft' => 'nullable|integer|min:0',
             'property_type_id' => 'nullable|exists:property_types,id',
             'realtor_id' => 'nullable|exists:users,id',
@@ -770,12 +780,19 @@ class AdminController extends Controller
             'featured' => 'nullable|boolean',
             'premium' => 'nullable|boolean',
             'year_built' => 'nullable|integer',
-            'lot_size' => 'nullable|string',
+            'lot_size' => 'nullable|numeric',
             'parking_spaces' => 'nullable|integer',
+            'floors' => 'nullable|integer',
+            'hoa_fees' => 'nullable|numeric',
+            'amenities' => 'nullable|array',
+            'nearby_places' => 'nullable|array',
+            'video_url' => 'nullable|string|max:500',
+            'virtual_tour_url' => 'nullable|string|max:500',
         ]);
         $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']).'-'.\Illuminate\Support\Str::random(5);
         $validated['uuid'] = (string) \Illuminate\Support\Str::uuid();
         $validated['country'] = $validated['country'] ?? 'US';
+        $validated['price_type'] = $validated['price_type'] ?? 'sale';
         $validated['approval_status'] = $validated['approval_status'] ?? 'approved';
         $validated['status'] = $validated['status'] ?? 'active';
         $validated['realtor_id'] = $validated['realtor_id'] ?? Auth::id();
@@ -792,13 +809,17 @@ class AdminController extends Controller
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|nullable|string',
             'price' => 'sometimes|numeric|min:0',
+            'price_type' => 'sometimes|nullable|string|in:sale,rent,lease',
             'address' => 'sometimes|string|max:255',
             'city' => 'sometimes|string|max:255',
             'state' => 'sometimes|string|max:255',
             'zip' => 'sometimes|string|max:20',
             'country' => 'sometimes|string|max:255',
+            'neighborhood' => 'sometimes|nullable|string|max:255',
+            'county' => 'sometimes|nullable|string|max:255',
             'bedrooms' => 'sometimes|nullable|integer|min:0',
             'bathrooms' => 'sometimes|nullable|numeric|min:0',
+            'half_bathrooms' => 'sometimes|nullable|integer|min:0',
             'sqft' => 'sometimes|nullable|integer|min:0',
             'property_type_id' => 'sometimes|nullable|exists:property_types,id',
             'realtor_id' => 'sometimes|nullable|exists:users,id',
@@ -807,8 +828,10 @@ class AdminController extends Controller
             'featured' => 'sometimes|boolean',
             'premium' => 'sometimes|boolean',
             'year_built' => 'sometimes|nullable|integer',
-            'lot_size' => 'sometimes|nullable|string',
+            'lot_size' => 'sometimes|nullable|numeric',
             'parking_spaces' => 'sometimes|nullable|integer',
+            'floors' => 'sometimes|nullable|integer',
+            'hoa_fees' => 'sometimes|nullable|numeric',
             'amenities' => 'sometimes|nullable|array',
             'nearby_places' => 'sometimes|nullable|array',
             'video_url' => 'sometimes|nullable|string|max:500',

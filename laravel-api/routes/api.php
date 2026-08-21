@@ -590,6 +590,7 @@ Route::middleware(['auth:sanctum', 'role:staff,admin,super_admin'])->prefix('adm
     Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
     Route::get('/properties', [AdminController::class, 'properties']);
     Route::post('/properties', [AdminController::class, 'storeProperty']);
+    Route::get('/properties/{id}', [AdminController::class, 'showProperty'])->where('id', '[0-9]+');
     Route::put('/properties/{id}', [AdminController::class, 'updateProperty']);
     Route::delete('/properties/{id}', [AdminController::class, 'destroyProperty']);
     Route::post('/properties/{id}/approval', [AdminController::class, 'updatePropertyApproval']);

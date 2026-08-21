@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { apiGet, apiPut, apiPost, apiDelete, ApiError, API_BASE } from "@/lib/api";
+import { storageUrl } from "@/lib/media";
 import { useToast } from "@/components/Toast";
 import { SITE_URL } from "@/lib/seo";
 
@@ -408,7 +409,7 @@ export default function AdminAgentEditPage({ params }: { params: Promise<{ id: s
                   <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-slate-200 border-2 border-navy flex items-center justify-center mb-3">
                     {profile.profile_photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.profile_photo}`} alt="Avatar" className="w-full h-full object-cover" />
+                      <img src={storageUrl(profile.profile_photo) ?? ""} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-xl font-bold text-slate-500">{(userName || "?").slice(0, 2).toUpperCase()}</span>
                     )}
@@ -422,7 +423,7 @@ export default function AdminAgentEditPage({ params }: { params: Promise<{ id: s
                   <div className="w-full h-24 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 flex items-center justify-center mb-3">
                     {profile.cover_photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.cover_photo}`} alt="Cover" className="w-full h-full object-cover" />
+                      <img src={storageUrl(profile.cover_photo) ?? ""} alt="Cover" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-xs text-slate-400 font-medium">No Banner Uploaded</span>
                     )}
@@ -436,7 +437,7 @@ export default function AdminAgentEditPage({ params }: { params: Promise<{ id: s
                   <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-white border border-slate-300 flex items-center justify-center mb-3 p-2">
                     {profile.company_logo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={`${API_BASE.replace(/\/api$/, "")}/storage/${profile.company_logo}`} alt="Logo" className="max-h-full max-w-full object-contain" />
+                      <img src={storageUrl(profile.company_logo) ?? ""} alt="Logo" className="max-h-full max-w-full object-contain" />
                     ) : (
                       <span className="text-xs text-slate-400 font-medium">No Logo</span>
                     )}
