@@ -159,6 +159,8 @@ class FormSubmissionController extends Controller
 
             DB::commit();
 
+            Mail::to($application->email)->queue(new \App\Mail\RealtorApplicationReceived($application));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Your realtor application has been submitted successfully. Our team will review and contact you within 24-48 hours.',
